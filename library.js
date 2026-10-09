@@ -191,6 +191,42 @@ window.LIBRARY = {
    "kb": 441
   },
   {
+   "code": "JM-17",
+   "group": "JM",
+   "title": "Python Turtle Art",
+   "file": "library/slides/JM-17_Python_Turtle_Art_Slides.pdf",
+   "thumb": "library/thumbs/JM-17.jpg",
+   "pages": 20,
+   "kb": 520
+  },
+  {
+   "code": "JM-18",
+   "group": "JM",
+   "title": "MakeCode Arcade Platform Game",
+   "file": "library/slides/JM-18_MakeCode_Arcade_Platform_Game_Slides.pdf",
+   "thumb": "library/thumbs/JM-18.jpg",
+   "pages": 20,
+   "kb": 567
+  },
+  {
+   "code": "JM-19",
+   "group": "JM",
+   "title": "Binary Bracelets Secret Codes",
+   "file": "library/slides/JM-19_Binary_Bracelets_Secret_Codes_Slides.pdf",
+   "thumb": "library/thumbs/JM-19.jpg",
+   "pages": 20,
+   "kb": 555
+  },
+  {
+   "code": "JM-20",
+   "group": "JM",
+   "title": "Joystick Maze Game",
+   "file": "library/slides/JM-20_Joystick_Maze_Game_Slides.pdf",
+   "thumb": "library/thumbs/JM-20.jpg",
+   "pages": 20,
+   "kb": 538
+  },
+  {
    "code": "LE-01",
    "group": "LE",
    "title": "Light-Up Paper Circuit Card",

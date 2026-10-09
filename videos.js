@@ -167,6 +167,38 @@ window.VIDEOS = {
    "mins": 2
   }
  ],
+ "JM-17": [
+  {
+   "id": "r3Ti5Xp9W8A",
+   "title": "What are Loops? Coding for Kids",
+   "channel": "Kodable",
+   "mins": 4
+  }
+ ],
+ "JM-18": [
+  {
+   "id": "VlhlGk_9X4A",
+   "title": "Invention of the Video Game",
+   "channel": "The Dr. Binocs Show",
+   "mins": 7
+  }
+ ],
+ "JM-19": [
+  {
+   "id": "2Z03p3yhGmk",
+   "title": "The Basics of Binary for Kids",
+   "channel": "Potato Pirates",
+   "mins": 3
+  }
+ ],
+ "JM-20": [
+  {
+   "id": "JfJQTqzSpFw",
+   "title": "How do games controllers work?",
+   "channel": "Fun Kids Learn",
+   "mins": 2
+  }
+ ],
  "LE-01": [
   {
    "id": "HOFp8bHTN30",

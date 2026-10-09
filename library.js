@@ -1,0 +1,503 @@
+/* Generated list of presentations and documents in /library. */
+window.LIBRARY = {
+ "decks": [
+  {
+   "code": "F-00",
+   "group": "F",
+   "title": "Welcome to Robotics",
+   "file": "library/slides/F-00_Welcome_to_Robotics_Slides.pdf",
+   "thumb": "library/thumbs/F-00.jpg",
+   "pages": 28,
+   "kb": 944
+  },
+  {
+   "code": "F-01",
+   "group": "F",
+   "title": "Arduino Uno Basics",
+   "file": "library/slides/F-01_Arduino_Uno_Basics_Slides.pdf",
+   "thumb": "library/thumbs/F-01.jpg",
+   "pages": 19,
+   "kb": 604
+  },
+  {
+   "code": "F-02",
+   "group": "F",
+   "title": "ESP32 Basics",
+   "file": "library/slides/F-02_ESP32_Basics_Slides.pdf",
+   "thumb": "library/thumbs/F-02.jpg",
+   "pages": 21,
+   "kb": 748
+  },
+  {
+   "code": "F-03",
+   "group": "F",
+   "title": "3D Modelling and Printing",
+   "file": "library/slides/F-03_3D_Modelling_and_Printing_Slides.pdf",
+   "thumb": "library/thumbs/F-03.jpg",
+   "pages": 24,
+   "kb": 594
+  },
+  {
+   "code": "JM-00",
+   "group": "JM",
+   "title": "Intro to Robotics Art Bot",
+   "file": "library/slides/JM-00_Intro_to_Robotics_Art_Bot_Slides.pdf",
+   "thumb": "library/thumbs/JM-00.jpg",
+   "pages": 28,
+   "kb": 922
+  },
+  {
+   "code": "JM-01",
+   "group": "JM",
+   "title": "Series and Parallel Circuits",
+   "file": "library/slides/JM-01_Series_and_Parallel_Circuits_Slides.pdf",
+   "thumb": "library/thumbs/JM-01.jpg",
+   "pages": 15,
+   "kb": 503
+  },
+  {
+   "code": "JM-02",
+   "group": "JM",
+   "title": "Two Player Reaction Timer",
+   "file": "library/slides/JM-02_Two_Player_Reaction_Timer_Slides.pdf",
+   "thumb": "library/thumbs/JM-02.jpg",
+   "pages": 17,
+   "kb": 585
+  },
+  {
+   "code": "JM-03",
+   "group": "JM",
+   "title": "Mini Weather Station",
+   "file": "library/slides/JM-03_Mini_Weather_Station_Slides.pdf",
+   "thumb": "library/thumbs/JM-03.jpg",
+   "pages": 17,
+   "kb": 498
+  },
+  {
+   "code": "JM-04",
+   "group": "JM",
+   "title": "Smart Dustbin Fill Level",
+   "file": "library/slides/JM-04_Smart_Dustbin_Fill_Level_Slides.pdf",
+   "thumb": "library/thumbs/JM-04.jpg",
+   "pages": 18,
+   "kb": 550
+  },
+  {
+   "code": "JM-05",
+   "group": "JM",
+   "title": "Rain Sensing Automatic Window",
+   "file": "library/slides/JM-05_Rain_Sensing_Automatic_Window_Slides.pdf",
+   "thumb": "library/thumbs/JM-05.jpg",
+   "pages": 18,
+   "kb": 503
+  },
+  {
+   "code": "JM-06",
+   "group": "JM",
+   "title": "Fire and Gas Safety Alarm Panel",
+   "file": "library/slides/JM-06_Fire_and_Gas_Safety_Alarm_Panel_Slides.pdf",
+   "thumb": "library/thumbs/JM-06.jpg",
+   "pages": 19,
+   "kb": 501
+  },
+  {
+   "code": "JM-07",
+   "group": "JM",
+   "title": "Temperature Controlled Smart Fan",
+   "file": "library/slides/JM-07_Temperature_Controlled_Smart_Fan_Slides.pdf",
+   "thumb": "library/thumbs/JM-07.jpg",
+   "pages": 18,
+   "kb": 467
+  },
+  {
+   "code": "JM-08",
+   "group": "JM",
+   "title": "Sun Tracking Solar Panel",
+   "file": "library/slides/JM-08_Sun_Tracking_Solar_Panel_Slides.pdf",
+   "thumb": "library/thumbs/JM-08.jpg",
+   "pages": 18,
+   "kb": 476
+  },
+  {
+   "code": "JM-09",
+   "group": "JM",
+   "title": "Home Burglar Alarm Secret Code",
+   "file": "library/slides/JM-09_Home_Burglar_Alarm_Secret_Code_Slides.pdf",
+   "thumb": "library/thumbs/JM-09.jpg",
+   "pages": 19,
+   "kb": 502
+  },
+  {
+   "code": "JM-12",
+   "group": "JM",
+   "title": "Phone Controlled RGB Mood Lamp",
+   "file": "library/slides/JM-12_Phone_Controlled_RGB_Mood_Lamp_Slides.pdf",
+   "thumb": "library/thumbs/JM-12.jpg",
+   "pages": 18,
+   "kb": 472
+  },
+  {
+   "code": "JM-14",
+   "group": "JM",
+   "title": "Weather Report Webpage",
+   "file": "library/slides/JM-14_Weather_Report_Webpage_Slides.pdf",
+   "thumb": "library/thumbs/JM-14.jpg",
+   "pages": 16,
+   "kb": 386
+  },
+  {
+   "code": "JM-16",
+   "group": "JM",
+   "title": "AI Recycling Sorter",
+   "file": "library/slides/JM-16_AI_Recycling_Sorter_Slides.pdf",
+   "thumb": "library/thumbs/JM-16.jpg",
+   "pages": 18,
+   "kb": 404
+  },
+  {
+   "code": "LE-01",
+   "group": "LE",
+   "title": "Light-Up Paper Circuit Card",
+   "file": "library/slides/LE-01_Light-Up_Paper_Circuit_Card_Slides.pdf",
+   "thumb": "library/thumbs/LE-01.jpg",
+   "pages": 16,
+   "kb": 449
+  },
+  {
+   "code": "LE-04",
+   "group": "LE",
+   "title": "Traffic Light Controller",
+   "file": "library/slides/LE-04_Traffic_Light_Controller_Slides.pdf",
+   "thumb": "library/thumbs/LE-04.jpg",
+   "pages": 10,
+   "kb": 2250
+  },
+  {
+   "code": "LE-05",
+   "group": "LE",
+   "title": "Automatic Night Lamp",
+   "file": "library/slides/LE-05_Automatic_Night_Lamp_Slides.pdf",
+   "thumb": "library/thumbs/LE-05.jpg",
+   "pages": 14,
+   "kb": 416
+  },
+  {
+   "code": "LE-06",
+   "group": "LE",
+   "title": "Hot and Cold Temperature Indicator",
+   "file": "library/slides/LE-06_Hot_and_Cold_Temperature_Indicator_Slides.pdf",
+   "thumb": "library/thumbs/LE-06.jpg",
+   "pages": 16,
+   "kb": 397
+  },
+  {
+   "code": "LE-12",
+   "group": "LE",
+   "title": "Morse Code Light Messenger",
+   "file": "library/slides/LE-12_Morse_Code_Light_Messenger_Slides.pdf",
+   "thumb": "library/thumbs/LE-12.jpg",
+   "pages": 16,
+   "kb": 470
+  },
+  {
+   "code": "TL-01",
+   "group": "TL",
+   "title": "Solar Powered Off Grid Weather Node",
+   "file": "library/slides/TL-01_Solar_Powered_Off_Grid_Weather_Node_Slides.pdf",
+   "thumb": "library/thumbs/TL-01.jpg",
+   "pages": 24,
+   "kb": 758
+  },
+  {
+   "code": "TL-02",
+   "group": "TL",
+   "title": "Autonomous Maze Solving Robot",
+   "file": "library/slides/TL-02_Autonomous_Maze_Solving_Robot_Slides.pdf",
+   "thumb": "library/thumbs/TL-02.jpg",
+   "pages": 24,
+   "kb": 665
+  },
+  {
+   "code": "TL-03",
+   "group": "TL",
+   "title": "Pick and Place Robotic Arm",
+   "file": "library/slides/TL-03_Pick_and_Place_Robotic_Arm_Slides.pdf",
+   "thumb": "library/thumbs/TL-03.jpg",
+   "pages": 24,
+   "kb": 626
+  },
+  {
+   "code": "TL-04",
+   "group": "TL",
+   "title": "Fall Detection Wearable",
+   "file": "library/slides/TL-04_Fall_Detection_Wearable_Slides.pdf",
+   "thumb": "library/thumbs/TL-04.jpg",
+   "pages": 24,
+   "kb": 631
+  },
+  {
+   "code": "TL-05",
+   "group": "TL",
+   "title": "ESP-NOW Wireless Sensor Network",
+   "file": "library/slides/TL-05_ESP-NOW_Wireless_Sensor_Network_Slides.pdf",
+   "thumb": "library/thumbs/TL-05.jpg",
+   "pages": 24,
+   "kb": 902
+  },
+  {
+   "code": "TL-06",
+   "group": "TL",
+   "title": "Smart Home Cloud Control Hub",
+   "file": "library/slides/TL-06_Smart_Home_Cloud_Control_Hub_Slides.pdf",
+   "thumb": "library/thumbs/TL-06.jpg",
+   "pages": 24,
+   "kb": 556
+  },
+  {
+   "code": "TL-07",
+   "group": "TL",
+   "title": "Smart Parking Occupancy Dashboard",
+   "file": "library/slides/TL-07_Smart_Parking_Occupancy_Dashboard_Slides.pdf",
+   "thumb": "library/thumbs/TL-07.jpg",
+   "pages": 24,
+   "kb": 700
+  },
+  {
+   "code": "TL-08",
+   "group": "TL",
+   "title": "Two Factor Smart Locker",
+   "file": "library/slides/TL-08_Two_Factor_Smart_Locker_Slides.pdf",
+   "thumb": "library/thumbs/TL-08.jpg",
+   "pages": 24,
+   "kb": 552
+  },
+  {
+   "code": "YI-01",
+   "group": "YI",
+   "title": "555 Timer Alarm Siren",
+   "file": "library/slides/YI-01_555_Timer_Alarm_Siren_Slides.pdf",
+   "thumb": "library/thumbs/YI-01.jpg",
+   "pages": 16,
+   "kb": 619
+  },
+  {
+   "code": "YI-02",
+   "group": "YI",
+   "title": "Heart Rate Monitoring System",
+   "file": "library/slides/YI-02_Heart_Rate_Monitoring_System_Slides.pdf",
+   "thumb": "library/thumbs/YI-02.jpg",
+   "pages": 19,
+   "kb": 444
+  },
+  {
+   "code": "YI-03",
+   "group": "YI",
+   "title": "Smart Classroom Energy Saver",
+   "file": "library/slides/YI-03_Smart_Classroom_Energy_Saver_Slides.pdf",
+   "thumb": "library/thumbs/YI-03.jpg",
+   "pages": 18,
+   "kb": 528
+  },
+  {
+   "code": "YI-05",
+   "group": "YI",
+   "title": "Obstacle Avoiding Robot Scanning Sonar",
+   "file": "library/slides/YI-05_Obstacle_Avoiding_Robot_Scanning_Sonar_Slides.pdf",
+   "thumb": "library/thumbs/YI-05.jpg",
+   "pages": 19,
+   "kb": 617
+  },
+  {
+   "code": "YI-07",
+   "group": "YI",
+   "title": "Gesture Controlled Robot Arm",
+   "file": "library/slides/YI-07_Gesture_Controlled_Robot_Arm_Slides.pdf",
+   "thumb": "library/thumbs/YI-07.jpg",
+   "pages": 19,
+   "kb": 525
+  },
+  {
+   "code": "YI-08",
+   "group": "YI",
+   "title": "RFID Smart Door Lock",
+   "file": "library/slides/YI-08_RFID_Smart_Door_Lock_Slides.pdf",
+   "thumb": "library/thumbs/YI-08.jpg",
+   "pages": 18,
+   "kb": 469
+  },
+  {
+   "code": "YI-10",
+   "group": "YI",
+   "title": "Wireless Doorbell Visitor Counter",
+   "file": "library/slides/YI-10_Wireless_Doorbell_Visitor_Counter_Slides.pdf",
+   "thumb": "library/thumbs/YI-10.jpg",
+   "pages": 18,
+   "kb": 461
+  },
+  {
+   "code": "YI-11",
+   "group": "YI",
+   "title": "WiFi Plant Watering System",
+   "file": "library/slides/YI-11_WiFi_Plant_Watering_System_Slides.pdf",
+   "thumb": "library/thumbs/YI-11.jpg",
+   "pages": 16,
+   "kb": 611
+  },
+  {
+   "code": "YI-12",
+   "group": "YI",
+   "title": "Plant Monitor Mobile App",
+   "file": "library/slides/YI-12_Plant_Monitor_Mobile_App_Slides.pdf",
+   "thumb": "library/thumbs/YI-12.jpg",
+   "pages": 17,
+   "kb": 393
+  },
+  {
+   "code": "YI-13",
+   "group": "YI",
+   "title": "Python Maths Quiz Game",
+   "file": "library/slides/YI-13_Python_Maths_Quiz_Game_Slides.pdf",
+   "thumb": "library/thumbs/YI-13.jpg",
+   "pages": 18,
+   "kb": 381
+  },
+  {
+   "code": "YI-14",
+   "group": "YI",
+   "title": "Personal Portfolio Website",
+   "file": "library/slides/YI-14_Personal_Portfolio_Website_Slides.pdf",
+   "thumb": "library/thumbs/YI-14.jpg",
+   "pages": 18,
+   "kb": 444
+  },
+  {
+   "code": "YI-15",
+   "group": "YI",
+   "title": "School Helpdesk Chatbot",
+   "file": "library/slides/YI-15_School_Helpdesk_Chatbot_Slides.pdf",
+   "thumb": "library/thumbs/YI-15.jpg",
+   "pages": 18,
+   "kb": 403
+  }
+ ],
+ "docs": [
+  {
+   "title": "Phase 1 Curriculum Plan",
+   "kind": "plan",
+   "about": "Internal 16-class plan for all four age groups",
+   "file": "library/docs/Robotics_AI_Club_16-Class_Curriculum_Plan_INTERNAL.pdf",
+   "kb": 1850,
+   "type": "pdf",
+   "thumb": "library/thumbs/doc-Robotics_AI_Club_16-Class_Curriculum_Plan_INTERNAL.jpg",
+   "pages": 41
+  },
+  {
+   "title": "Phase 2 Curriculum Plan",
+   "kind": "plan",
+   "about": "Internal plan for Phase 2",
+   "file": "library/docs/Robotics_AI_Club_Phase2_Curriculum_Plan_INTERNAL.pdf",
+   "kb": 1796,
+   "type": "pdf",
+   "thumb": "library/thumbs/doc-Robotics_AI_Club_Phase2_Curriculum_Plan_INTERNAL.jpg",
+   "pages": 43
+  },
+  {
+   "title": "Robotics & AI Curriculum (reference)",
+   "kind": "plan",
+   "about": "Original reference curriculum",
+   "file": "library/docs/PakTurkMaarif_Robotics_AI_Curriculum_3.pdf",
+   "kb": 1992,
+   "type": "pdf",
+   "thumb": "library/thumbs/doc-PakTurkMaarif_Robotics_AI_Curriculum_3.jpg",
+   "pages": 92
+  },
+  {
+   "title": "Learning Pathways for Parents",
+   "kind": "parent",
+   "about": "Phase 1 brochure for parents",
+   "file": "library/docs/Robotics_AI_Club_Learning_Pathways_Parents.pdf",
+   "kb": 716,
+   "type": "pdf",
+   "thumb": "library/thumbs/doc-Robotics_AI_Club_Learning_Pathways_Parents.jpg",
+   "pages": 12
+  },
+  {
+   "title": "Phase 2 Learning Pathways for Parents",
+   "kind": "parent",
+   "about": "Phase 2 brochure for parents",
+   "file": "library/docs/Robotics_AI_Club_Phase2_Learning_Pathways_Parents.pdf",
+   "kb": 724,
+   "type": "pdf",
+   "thumb": "library/thumbs/doc-Robotics_AI_Club_Phase2_Learning_Pathways_Parents.jpg",
+   "pages": 12
+  },
+  {
+   "title": "Registration Form",
+   "kind": "parent",
+   "about": "A4 form for new students",
+   "file": "library/docs/Robotics_AI_Club_Registration_Form_A4.pdf",
+   "kb": 363,
+   "type": "pdf",
+   "thumb": "library/thumbs/doc-Robotics_AI_Club_Registration_Form_A4.jpg",
+   "pages": 1
+  },
+  {
+   "title": "Registration & Consent Form",
+   "kind": "parent",
+   "about": "A4 form with parent consent",
+   "file": "library/docs/Robotics_AI_Club_Registration_Consent_Form_A4.pdf",
+   "kb": 394,
+   "type": "pdf",
+   "thumb": "library/thumbs/doc-Robotics_AI_Club_Registration_Consent_Form_A4.jpg",
+   "pages": 1
+  },
+  {
+   "title": "Weekly Planner & Hardware (Excel)",
+   "kind": "sheet",
+   "about": "Kit tabs, daily kit lists, session tracker",
+   "file": "library/docs/Robotics_AI_Club_Weekly_Planner_and_Hardware.xlsx",
+   "kb": 542,
+   "type": "xlsx"
+  },
+  {
+   "title": "Hardware & 16-Class Plan (Excel)",
+   "kind": "sheet",
+   "about": "Older hardware plan workbook",
+   "file": "library/docs/Robotics_AI_Club_Hardware_and_16-Class_Plan.xlsx",
+   "kb": 75,
+   "type": "xlsx"
+  },
+  {
+   "title": "Session Tracker (Excel)",
+   "kind": "sheet",
+   "about": "Older session tracker",
+   "file": "library/docs/Robotics_AI_Club_Session_Tracker.xlsx",
+   "kb": 25,
+   "type": "xlsx"
+  },
+  {
+   "title": "Requisition: Lab Phase 2",
+   "kind": "req",
+   "about": "Equipment requisition",
+   "file": "library/docs/Requisition_2026_Robotics_Lab_Phase_2.xlsx",
+   "kb": 30,
+   "type": "xlsx"
+  },
+  {
+   "title": "Requisition: Phase 2A (Electrobes)",
+   "kind": "req",
+   "about": "Supplier: Electrobes",
+   "file": "library/docs/Requisition_2026_Robotics_Lab_Phase_2A_Electrobes.xlsx",
+   "kb": 28,
+   "type": "xlsx"
+  },
+  {
+   "title": "Requisition: Phase 2B (Other suppliers)",
+   "kind": "req",
+   "about": "Other suppliers",
+   "file": "library/docs/Requisition_2026_Robotics_Lab_Phase_2B_Other_Suppliers.xlsx",
+   "kb": 25,
+   "type": "xlsx"
+  }
+ ]
+};

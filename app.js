@@ -13,6 +13,13 @@
   const ACTS = D.activities;
   const BYCODE = Object.fromEntries(ACTS.map(a => [a.code, a]));
   const PHASES = ["Foundation", "Phase 1", "Phase 2"];
+  /* presentations and documents (library.js, generated from the Robotics Curriculum folder) */
+  const LIB = window.LIBRARY || { decks: [], docs: [] };
+  const DECK = Object.fromEntries(LIB.decks.map(d => [d.code, d]));
+  const LGROUPS = [{ code: "F", name: "Foundation", ages: "All age groups", color: "#1B3A6B", light: "#E7ECF5" }].concat(D.groups);
+  const LG = Object.fromEntries(LGROUPS.map(g => [g.code, g]));
+  const deckOf = id => DECK[String(id).split("@")[0].split(" ")[0]] || null;
+  const deckTitle = d => { const a = BYCODE[d.code] || BYCODE[d.code + " (LE)"]; return a ? a.title : d.title; };
   const phaseOf = a => (a.phase === "Intro" ? "Foundation" : a.phase);
 
   /* ---------- icons (simple line drawings) ---------- */
@@ -32,6 +39,15 @@
     parts: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 4v-2M15 4v-2M9 22v-2M15 22v-2M4 9H2M4 15H2M22 9h-2M22 15h-2"/><rect x="9" y="9" width="6" height="6" rx="1"/>',
     trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9 17h6"/>',
     arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    play: '<path d="M8 5l11 7-11 7z"/>',
+    book: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7"/>',
+    file: '<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5M8 13h8M8 17h6"/>',
+    sheet: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/>',
+    expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+    down: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+    ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+    left: '<path d="M15 5l-7 7 7 7"/>',
+    right: '<path d="M9 5l7 7-7 7"/>',
     // domain icons
     "Foundation": '<rect x="6" y="8" width="12" height="10" rx="3"/><circle cx="10" cy="13" r="1.3"/><circle cx="14" cy="13" r="1.3"/><path d="M12 8V4.5"/><circle cx="12" cy="3.5" r="1"/><path d="M6 13H3.5M18 13h2.5"/>',
     "Electronics & Circuits": '<path d="M3 12h4l2-5 3 10 2-5h7"/><circle cx="3" cy="12" r="1"/><circle cx="21" cy="12" r="1"/>',
@@ -118,7 +134,7 @@
   const coreOf = gc => ACTS.filter(a => a.group === gc && (a.phase === "Phase 1" || a.phase === "Phase 2"));
 
   /* ---------- routing / sidebar ---------- */
-  const ROUTES = ["home", "LE", "JM", "YI", "TL", "week", "print", "kits", "settings"];
+  const ROUTES = ["home", "curriculum", "LE", "JM", "YI", "TL", "week", "print", "kits", "settings"];
   const route = () => { const r = location.hash.slice(1); return ROUTES.includes(r) ? r : "home"; };
   function renderMenu() {
     const r = route(), nw = planned();
@@ -126,6 +142,7 @@
     const badge = n => (n ? `<em>${n}</em>` : "");
     $("#menu").innerHTML =
       item("home", "Home", ic("home")) +
+      item("curriculum", "Curriculum", ic("book"), `<em class="soft">${LIB.decks.length}</em>`) +
       `<div class="mlabel">Age groups</div>` +
       D.groups.map(g => item(g.code, g.name, `<i class="gdot" style="background:${g.color}"></i>`, badge(nw.filter(a => a.group === g.code).length))).join("") +
       `<div class="mlabel">This week</div>` +
@@ -141,7 +158,7 @@
   function render() {
     renderMenu();
     const r = route(), app = $("#app");
-    app.innerHTML = r === "home" ? vHome() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
+    app.innerHTML = r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
     document.body.dataset.route = r;
   }
   window.addEventListener("hashchange", () => { closeNav(); render(); window.scrollTo(0, 0); });
@@ -163,7 +180,7 @@
   function actCard(a) {
     const g = GROUPS[a.group], s = peek(a.code);
     return `<button class="acard ${isPlanned(a.code) ? "is-planned" : ""} ${isDone(a.code) ? "is-done" : ""}" data-open="${esc(a.code)}" style="--c:${g.color};--l:${g.light}">
-      <span class="acard-top"><span class="aicon">${ic(a.domain)}</span>${fromTag(a)}<span class="acode">${esc(lab(a))}</span></span>
+      <span class="acard-top"><span class="aicon">${ic(a.domain)}</span>${fromTag(a)}<span class="acode">${deckOf(a.code) ? `<i class="sbadge" title="Has slides">${ic("play")}</i>` : ""}${esc(lab(a))}</span></span>
       <span class="atitle">${esc(a.title)}</span>
       <span class="adom">${esc(a.domain)}${a.cls ? " · Class " + a.cls : ""}</span>
       <span class="afoot">${statusChip(a.code)}<span class="aplan">${isPlanned(a.code) || isDone(a.code) ? "Open" : "Plan"} ${ic("arrow")}</span></span>
@@ -192,7 +209,7 @@
     return `<section class="hero">
         <div><span class="kicker">${hi}, ${esc((S.name || "").split(" ")[0] || "teacher")}</span><h1>Plan the week of ${fmt(addDays(S.weekStart, 0), { day: "numeric", month: "long" })}</h1>
         <p>Pick an age group, tap an activity, choose a day. The kit lists build themselves.</p>
-        <div class="hero-btns"><a class="btn light" href="#week">${ic("week")}Timetable</a><a class="btn accent" href="#print">${ic("print")}Print kit lists</a></div></div>
+        <div class="hero-btns"><a class="btn light" href="#curriculum">${ic("book")}Curriculum</a><a class="btn light" href="#week">${ic("week")}Timetable</a><a class="btn accent" href="#print">${ic("print")}Print kit lists</a></div></div>
         ${DOODLE}
       </section>
       <div class="stats">
@@ -278,6 +295,7 @@
       <div class="m-foot">
         <div class="m-status">${statusChip(a.code)}${s.status === "Done" && s.date ? `<small>on ${fmt(new Date(s.date + "T00:00:00"), { day: "numeric", month: "short" })}</small>` : ""}</div>
         <div class="m-acts">
+          ${deckOf(a.code) ? `<button class="btn" data-view="${esc(deckOf(a.code).code)}">${ic("play")}Slides</button>` : ""}
           ${s.status === "Done" ? `<button class="btn" data-mstatus="Not started">Undo done</button>` : `<button class="btn" data-mstatus="Done">${ic("check")}Mark as done</button>`}
           <button class="btn primary" data-close>Save</button></div>
       </div></div>`;
@@ -387,6 +405,107 @@
   }
   const editableKit = () => (S.kits[UI.kitCode] = S.kits[UI.kitCode] || JSON.parse(JSON.stringify(BYCODE[UI.kitCode].kit)));
 
+  /* ---------- CURRICULUM ---------- */
+  function deckCard(d) {
+    const g = LG[d.group];
+    const st = d.group === "F" ? "" : (() => { const s = peek(d.code); return s.status === "Next week" ? `<span class="chip amber">${ic("cal")}${s.day ? DAYFULL[s.day] : "Planned"}</span>` : s.status === "Done" ? `<span class="chip green">${ic("check")}Done</span>` : ""; })();
+    return `<button class="deck" data-view="${esc(d.code)}" style="--c:${g.color};--l:${g.light}">
+      <span class="dthumb"><img loading="lazy" src="${esc(d.thumb)}" alt=""><span class="dplay">${ic("play")}</span><span class="dpages">${d.pages} slides</span></span>
+      <span class="dbody"><span class="dtop"><span class="acode">${esc(d.code)}</span>${st}</span><b>${esc(deckTitle(d))}</b></span></button>`;
+  }
+  const DOCKINDS = [["plan", "Curriculum plans", "book"], ["parent", "For parents", "users"], ["sheet", "Planner spreadsheets", "sheet"], ["req", "Requisitions", "box"]];
+  function docCard(d, i) {
+    const pdf = d.type === "pdf";
+    return `<button class="doc" ${pdf ? `data-doc="${i}"` : `data-dl="${i}"`}>
+      <span class="docthumb ${pdf ? "" : "xl"}">${pdf ? `<img loading="lazy" src="${esc(d.thumb)}" alt="">` : ic("sheet")}</span>
+      <span class="docbody"><b>${esc(d.title)}</b><small>${esc(d.about)}</small><span class="dmeta">${pdf ? `${ic("file")}PDF · ${d.pages} pages` : `${ic("down")}Excel · download`}</span></span></button>`;
+  }
+  function vCurriculum() {
+    const q = (UI.libQ || "").toLowerCase(), sel = UI.libG || "ALL";
+    const match = d => !q || (d.code + " " + deckTitle(d)).toLowerCase().includes(q);
+    const cards = LGROUPS.map(g => { const ds = LIB.decks.filter(d => d.group === g.code);
+      return `<button class="lgcard ${sel === g.code ? "on" : ""}" data-libg="${g.code}" style="--c:${g.color};--l:${g.light}">
+        <span class="lgthumbs">${ds.slice(0, 3).map(d => `<img loading="lazy" src="${esc(d.thumb)}" alt="">`).join("")}</span>
+        <span class="lgtxt"><span class="gbig">${g.code}</span><span><b>${esc(g.name)}</b><small>${esc(g.ages.indexOf("All") === 0 ? g.ages : "Ages " + g.ages)}</small></span></span>
+        <span class="lgcount"><b>${ds.length}</b> presentations</span></button>`; }).join("");
+    const show = LGROUPS.filter(g => sel === "ALL" || sel === g.code);
+    const sections = show.map(g => { const ds = LIB.decks.filter(d => d.group === g.code && match(d)); if (!ds.length) return "";
+      const total = g.code === "F" ? 4 : ACTS.filter(a => a.group === g.code && !/^F-/.test(a.code)).length;
+      return `<h2 class="sh lsh" style="--c:${g.color}"><i class="gdot" style="background:${g.color}"></i>${esc(g.name)} <small>${ds.length} of ${total} activities have slides</small></h2><div class="dgrid">${ds.map(deckCard).join("")}</div>`; }).join("");
+    const docs = DOCKINDS.map(([k, t, i]) => { const list = LIB.docs.map((d, n) => [d, n]).filter(([d]) => d.kind === k && (!q || d.title.toLowerCase().includes(q)));
+      return list.length ? `<h3 class="unit">${t}</h3><div class="docgrid">${list.map(([d, n]) => docCard(d, n)).join("")}</div>` : ""; }).join("");
+    return head("Curriculum", "Tap a presentation to open it full screen. Use the arrow keys or tap the sides to change slides.",
+        `<label class="search">${ic("search")}<input type="search" id="libQ" placeholder="Search presentations" value="${esc(UI.libQ || "")}"></label>`) +
+      `<div class="lgrid">${cards}</div>
+      ${sel !== "ALL" ? `<button class="linkbtn navy" data-libg="ALL">${ic("left")}Show all age groups</button>` : ""}
+      ${sections || empty("No presentation matches your search.")}
+      <h2 class="sh" id="docs">Plans, parent documents & spreadsheets</h2>${docs}`;
+  }
+
+  /* ---------- PDF VIEWER (PDF.js from cdnjs; falls back to the browser's own viewer) ---------- */
+  const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+  let pdfReady = null;
+  function loadPdfJs() {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    return pdfReady || (pdfReady = new Promise((res, rej) => { const sc = document.createElement("script"); sc.src = PDFJS + "pdf.min.js";
+      sc.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js"; res(window.pdfjsLib); };
+      sc.onerror = () => { pdfReady = null; rej(new Error("pdf.js")); }; document.head.appendChild(sc); }));
+  }
+  const V = { doc: null, page: 1, n: 0, mode: "slides", file: "", tok: 0, open: false };
+  async function openViewer(file, title, mode, color, sub) {
+    Object.assign(V, { doc: null, page: 1, n: 0, mode, file, open: true });
+    const el = $("#viewer"); el.style.setProperty("--c", color || "#F5B83D");
+    el.innerHTML = `<div class="vbar"><div class="vt"><b>${esc(title)}</b><span>${esc(sub || "")}<span id="vCount"></span></span></div>
+      <div class="vbtns">${mode === "slides" ? `<button class="vb" data-vgo="-1" aria-label="Previous">${ic("left")}</button><button class="vb" data-vgo="1" aria-label="Next">${ic("right")}</button>` : ""}
+        <button class="vb wide" data-vfs>${ic("expand")}<span>Full screen</span></button>
+        <a class="vb" href="${esc(file)}" download aria-label="Download" title="Download">${ic("down")}</a>
+        <a class="vb" href="${esc(file)}" target="_blank" rel="noopener" aria-label="Open in new tab" title="Open in new tab">${ic("ext")}</a>
+        <button class="vb close" data-vclose aria-label="Close">${ic("x")}</button></div></div>
+      <div class="vstage ${mode === "slides" ? "slides" : "scroll"}" id="vStage"><div class="vload"><span class="spin"></span>Opening ${esc(title)}</div></div>
+      ${mode === "slides" ? `<button class="vzone l" data-vgo="-1" aria-label="Previous slide"></button><button class="vzone r" data-vgo="1" aria-label="Next slide"></button>` : ""}
+      <div class="vprog"><i id="vProg"></i></div>`;
+    document.body.classList.add("viewer-open");
+    try {
+      const lib = await loadPdfJs(); const doc = await lib.getDocument(file).promise;
+      if (V.file !== file || !V.open) return;
+      V.doc = doc; V.n = doc.numPages;
+      if (mode === "slides") renderSlide(); else renderScroll();
+    } catch (err) {
+      if (V.file !== file) return;
+      $("#vStage").innerHTML = `<iframe class="vframe" src="${esc(file)}#view=Fit" title="${esc(title)}"></iframe>`;
+    }
+  }
+  function vCounter() { const c = $("#vCount"), p = $("#vProg"); if (c) c.textContent = V.mode === "slides" ? ` · Slide ${V.page} of ${V.n}` : ` · ${V.n} pages`; if (p) p.style.width = (V.mode === "slides" ? 100 * V.page / V.n : 100) + "%"; }
+  async function renderSlide() {
+    if (!V.doc) return; const tok = ++V.tok, st = $("#vStage"); vCounter();
+    const page = await V.doc.getPage(V.page); if (tok !== V.tok) return;
+    const W = st.clientWidth - 16, H = st.clientHeight - 16, v1 = page.getViewport({ scale: 1 }), sc = Math.min(W / v1.width, H / v1.height);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2), vp = page.getViewport({ scale: sc * dpr }), c = document.createElement("canvas");
+    c.width = Math.floor(vp.width); c.height = Math.floor(vp.height); c.style.width = Math.floor(vp.width / dpr) + "px"; c.style.height = Math.floor(vp.height / dpr) + "px";
+    await page.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise; if (tok !== V.tok) return;
+    st.replaceChildren(c);
+  }
+  function renderScroll() {
+    const st = $("#vStage"); st.innerHTML = ""; vCounter();
+    const io = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting || e.target.dataset.done) return; e.target.dataset.done = 1; drawPage(e.target); }), { root: st, rootMargin: "600px 0px" });
+    for (let i = 1; i <= V.n; i++) { const d = document.createElement("div"); d.className = "vpage"; d.dataset.p = i; st.appendChild(d); io.observe(d); }
+  }
+  async function drawPage(box) {
+    const page = await V.doc.getPage(+box.dataset.p), w = box.clientWidth, v1 = page.getViewport({ scale: 1 }), dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const vp = page.getViewport({ scale: (w / v1.width) * dpr }), c = document.createElement("canvas");
+    c.width = Math.floor(vp.width); c.height = Math.floor(vp.height); box.style.aspectRatio = v1.width + " / " + v1.height;
+    await page.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise; box.replaceChildren(c);
+  }
+  function goSlide(n) { if (!V.doc || V.mode !== "slides") return; const p = Math.max(1, Math.min(V.n, n)); if (p !== V.page) { V.page = p; renderSlide(); } }
+  function closeViewer() { V.open = false; V.doc = null; V.tok++; document.body.classList.remove("viewer-open"); $("#viewer").innerHTML = ""; if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
+  function toggleFs() { const el = $("#viewer"); if (document.fullscreenElement) document.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(); }
+  let rsT; const reflow = () => { clearTimeout(rsT); rsT = setTimeout(() => { if (V.open && V.mode === "slides") renderSlide(); }, 120); };
+  window.addEventListener("resize", reflow); document.addEventListener("fullscreenchange", reflow);
+  function openDeck(code) { const d = DECK[code]; if (!d) return; const g = LG[d.group]; openViewer(d.file, `${d.code} · ${deckTitle(d)}`, "slides", g.color, g.name); }
+  let tx = null;
+  document.addEventListener("touchstart", e => { if (V.open && V.mode === "slides") tx = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener("touchend", e => { if (tx == null) return; const dx = e.changedTouches[0].clientX - tx; tx = null; if (Math.abs(dx) > 50) goSlide(V.page + (dx < 0 ? 1 : -1)); }, { passive: true });
+
   /* ---------- SETTINGS ---------- */
   function vSettings() {
     return head("Settings", "Defaults for planning and printing, and backups of your plan.") + `<div class="setgrid">
@@ -406,6 +525,13 @@
   document.addEventListener("click", e => {
     const t = e.target.closest("button, a"); if (!t) { if (e.target.id === "scrim") { closeModal(); closeNav(); } return; }
     const d = t.dataset;
+    if (d.view) { openDeck(d.view); return; }
+    if (d.vgo) { goSlide(V.page + +d.vgo); return; }
+    if ("vfs" in d) { toggleFs(); return; }
+    if ("vclose" in d) { closeViewer(); return; }
+    if (d.doc) { const x = LIB.docs[+d.doc]; openViewer(x.file, x.title, "doc", "#F5B83D", x.about); return; }
+    if (d.dl) { const x = LIB.docs[+d.dl], l = document.createElement("a"); l.href = x.file; l.download = ""; document.body.appendChild(l); l.click(); l.remove(); toast("Downloading " + esc(x.title)); return; }
+    if (d.libg) { UI.libG = d.libg === UI.libG ? "ALL" : d.libg; render(); return; }
     if (d.open) { openModal(d.open); return; }
     if ("close" in d) { closeModal(); return; }
     if (d.mday) { const s = sess(modalCode); s.day = d.mday; setStatus(modalCode, "Next week"); save(); renderModal(); toast(`${esc(lab(getA(modalCode)))} planned for <b>${DAYFULL[d.mday]}</b>`); return; }
@@ -463,14 +589,22 @@
   document.addEventListener("input", e => {
     const t = e.target, key = t.dataset.gq ? "gq" : t.id;
     if (key === "pickQ") { UI.pickQ = t.value; const pos = t.selectionStart; renderModal(); const n = $("#pickQ"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (er) { } } return; }
-    if (!["gq", "kitQ", "catQ"].includes(key)) return;
+    if (!["gq", "kitQ", "catQ", "libQ"].includes(key)) return;
     clearTimeout(qT); qT = setTimeout(() => {
-      if (key === "gq") UI.q[t.dataset.gq] = t.value; else if (key === "kitQ") UI.kitQ = t.value; else UI.catQ = t.value;
+      if (key === "gq") UI.q[t.dataset.gq] = t.value; else if (key === "libQ") UI.libQ = t.value; else if (key === "kitQ") UI.kitQ = t.value; else UI.catQ = t.value;
       const pos = t.selectionStart; render(); const n = key === "gq" ? document.querySelector(`[data-gq="${t.dataset.gq}"]`) : document.getElementById(key);
       if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (er) { } }
     }, 200);
   });
-  document.addEventListener("keydown", e => { if (e.key === "Escape" && modalCode) closeModal(); });
+  document.addEventListener("keydown", e => {
+    if (V.open) {
+      if (e.key === "Escape") { if (!document.fullscreenElement) closeViewer(); return; }
+      if (["ArrowRight", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); goSlide(V.page + 1); }
+      else if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); goSlide(V.page - 1); }
+      else if (e.key === "Home") goSlide(1); else if (e.key === "End") goSlide(V.n); else if (e.key === "f") toggleFs();
+      return;
+    }
+    if (e.key === "Escape" && modalCode) closeModal(); });
   window.addEventListener("beforeprint", () => { if (route() !== "print") { location.hash = "#print"; render(); } });
 
   if (!S.weekStart) { S.weekStart = nextMonday(); save(); }

@@ -5,21 +5,21 @@ It is plain HTML, CSS and JavaScript: no server, no build step, no login.
 
 ## What it does
 
-- **Dashboard**: sessions planned this week, a Monday to Friday strip, and the next classes for each age group (tap a day to plan them).
-- **Little Explorers / Junior Makers / Young Innovators / Tech Leaders**: one tab per age group. Every activity in a table (Foundation, Phase 1, Phase 2) with status, day, groups, time, section and its kit.
-- **This Week**: the timetable. Move a session to another day or remove it.
-- **Kit Lists**: printable lists per session, per day (combined) or for the whole week. Filter by day, then Print / Save as PDF.
-- **Kits**: edit the parts of any activity and add new parts to the catalog.
-- **Settings**: default groups (8), your name for printouts, backup download / load, CSV session log.
+- **Home**: this week at a glance and the next classes to plan for each age group.
+- **Little Explorers / Junior Makers / Young Innovators / Tech Leaders**: activity cards by phase. Tap a card, choose a day, set the number of groups. Done.
+- **Timetable**: Monday to Friday. Tap a session to change it, or print one day's kit.
+- **Print lists**: per session, per day or whole week. Print or save as PDF for the lab.
+- **Kits & parts**: change the parts of any activity, add new parts.
+- **Settings**: default groups (8), your name on printouts, backup and session log.
 
-Use the arrows at the top right to move between weeks.
+Use the arrows in the sidebar to move between weeks.
 
 ## Put it on GitHub Pages
 
 1. On github.com, create a new repository, for example `lab-planner` (Public).
 2. Click **Add file → Upload files** and drag in the 5 files in this folder (`index.html`, `styles.css`, `app.js`, `data.js`, `README.md`). Click **Commit changes**.
 3. Go to **Settings → Pages**. Under *Build and deployment*, choose **Deploy from a branch**, branch **main**, folder **/ (root)**, then **Save**.
-4. After a minute or two the site is live at `https://YOUR-USERNAME.github.io/lab-planner/`.
+4. After a minute or two the site is live at `https://cassimhossain.github.io/lab-planner/`.
 
 ## Important: where your data is saved
 

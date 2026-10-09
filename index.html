@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robotics Lab Planner</title>
+<meta name="description" content="Robotics & AI Club planner: mark next week's sessions and print day-wise hardware kit lists.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231E3A5F'/%3E%3Crect x='16' y='22' width='32' height='24' rx='6' fill='none' stroke='%23fff' stroke-width='3.5'/%3E%3Ccircle cx='27' cy='34' r='3' fill='%23F2B84B'/%3E%3Ccircle cx='37' cy='34' r='3' fill='%23F2B84B'/%3E%3Cpath d='M32 22v-8' stroke='%23fff' stroke-width='3.5'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="currentColor"/><rect x="16" y="22" width="32" height="24" rx="6" fill="none" stroke="#fff" stroke-width="3.5"/><circle cx="27" cy="34" r="3" fill="#F2B84B"/><circle cx="37" cy="34" r="3" fill="#F2B84B"/><path d="M32 22v-8" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="12" r="3" fill="#F2B84B"/></svg>
+      </span>
+      <div>
+        <div class="brand-title">Lab Planner</div>
+        <div class="brand-sub">Robotics &amp; AI Club · Pak-Turk Maarif</div>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-view="plan" class="tab active">Plan</button>
+      <button data-view="week" class="tab">Next week</button>
+      <button data-view="print" class="tab">Kit lists</button>
+      <button data-view="kits" class="tab">Kits</button>
+      <button data-view="backup" class="tab">Settings</button>
+    </nav>
+    <div class="weekbox">
+      <label for="weekStart">Week of</label>
+      <input type="date" id="weekStart">
+      <span class="badge" id="weekSum"></span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- PLAN -->
+  <section id="view-plan" class="view active">
+    <div class="hero">
+      <div>
+        <h1>Plan next week</h1>
+        <p class="lead">Pick a day on each session you will teach. Then open <b>Kit lists</b> and print the hardware for each day.</p>
+      </div>
+      <svg class="doodle doodle-hero" viewBox="0 0 260 120" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="18" y="38" width="54" height="44" rx="10"/><circle cx="35" cy="58" r="5"/><circle cx="55" cy="58" r="5"/><path d="M36 72h18M45 38V24"/><circle cx="45" cy="20" r="4"/><path d="M18 60H8M72 60h10M30 82v14M60 82v14"/>
+          <circle cx="135" cy="58" r="20"/><circle cx="135" cy="58" r="7"/><path d="M135 32v-6M135 90v-6M109 58h-6M167 58h-6M117 40l-4-4M157 80l-4-4M153 40l4-4M113 80l4-4"/>
+          <path d="M200 30a18 18 0 0 1 18 18c0 8-6 12-8 18h-20c-2-6-8-10-8-18a18 18 0 0 1 18-18zM193 72h14M195 78h10"/>
+          <path d="M228 26l6-6M236 40h8M226 14l2-8" />
+          <path d="M84 104c20-10 40 10 60 0s40 10 60 0" stroke-dasharray="3 6"/>
+        </g>
+      </svg>
+    </div>
+    <div class="progress" id="progress"></div>
+    <div class="toolbar">
+      <div class="seg" id="groupChips"></div>
+      <div class="seg" id="phaseChips"></div>
+      <div class="grow"></div>
+      <input type="search" id="search" placeholder="Search activity, code or part">
+      <label class="check"><input type="checkbox" id="onlyNext"> Next week only</label>
+    </div>
+    <div id="cards"></div>
+  </section>
+
+  <!-- WEEK -->
+  <section id="view-week" class="view">
+    <div class="pagehead">
+      <div><h1>Next week</h1><p class="lead">Your sessions from Monday to Friday.</p></div>
+      <div class="btns">
+        <button class="btn" id="btnClearWeek">Clear next week</button>
+        <button class="btn" id="btnMarkDone">Mark week as done</button>
+        <button class="btn primary" id="btnGoPrint">Kit lists</button>
+      </div>
+    </div>
+    <div class="weekgrid" id="weekGrid"></div>
+  </section>
+
+  <!-- PRINT -->
+  <section id="view-print" class="view">
+    <div class="pagehead noprint">
+      <div><h1>Kit lists</h1><p class="lead" id="printHint"></p></div>
+      <div class="btns">
+        <label class="check"><input type="checkbox" id="pDayBreak" checked> New page per day</label>
+        <button class="btn primary" id="btnPrint">Print / Save PDF</button>
+      </div>
+    </div>
+    <div class="seg noprint" id="printModes" style="margin-bottom:18px"></div>
+    <div id="printArea"></div>
+  </section>
+
+  <!-- KITS -->
+  <section id="view-kits" class="view">
+    <div class="pagehead">
+      <div><h1>Kits</h1><p class="lead">Edit the hardware for any activity. Changes save automatically.</p></div>
+      <select id="kitPick"></select>
+    </div>
+    <div class="panel" id="kitEditor"></div>
+    <div class="panel">
+      <div class="panel-head"><h2>Parts catalog</h2><input type="search" id="catSearch" placeholder="Search parts"></div>
+      <div class="addpart">
+        <input id="npName" placeholder="New part name">
+        <select id="npCat"></select>
+        <select id="npType"><option>Reusable</option><option>Consumable</option></select>
+        <input id="npSpec" placeholder="Spec (optional)">
+        <button class="btn primary" id="btnAddPart">Add part</button>
+      </div>
+      <div id="catalogList"></div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="view-backup" class="view">
+    <div class="pagehead"><div><h1>Settings</h1><p class="lead">Defaults, printouts and backups.</p></div></div>
+    <div class="cols2">
+      <div class="panel">
+        <h2>Defaults</h2>
+        <label class="field">Groups (pairs) per session<input type="number" id="setGroups" min="1" max="40"></label>
+        <label class="field">Requested by<input id="setName"></label>
+        <label class="field">School / lab line<input id="setCampus"></label>
+      </div>
+      <div class="panel note">
+        <h2>Your data</h2>
+        <p>Your plan is saved <b>in this browser only</b>. Another device, another browser or clearing browsing data will not show it.</p>
+        <p>Download a backup every Friday. Use <b>Load backup</b> to move the plan to another device.</p>
+        <div class="btns">
+          <button class="btn primary" id="btnExport">Download backup</button>
+          <label class="btn filebtn">Load backup<input type="file" id="fileImport" accept=".json,application/json"></label>
+          <button class="btn" id="btnExportCsv">Session log (.csv)</button>
+          <button class="btn danger" id="btnReset">Reset</button>
+        </div>
+        <div id="lastSaved" class="muted small"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot noprint wrap">
+  <svg class="doodle doodle-foot" viewBox="0 0 120 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 12h20l4-6 6 12 4-6h20"/><circle cx="64" cy="12" r="4"/><path d="M68 12h18l4-6 6 12 4-6h18"/></g></svg>
+  Curriculum and planner by Qasim Mushtaq, MS Robotics and AI
+</footer>
+<div id="toast"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -383,12 +383,28 @@ window.VIDEOS = {
    "mins": 5
   }
  ],
+ "YI-04": [
+  {
+   "id": "eyqwLiowZiU",
+   "title": "How does a Stepper Motor work?",
+   "channel": "Sabin Civil Engineering",
+   "mins": 6
+  }
+ ],
  "YI-05": [
   {
    "id": "iwD9RiqIHQw",
    "title": "How an Ultrasonic Sensor Works: 3D Animated",
    "channel": "Blue Butterfly",
    "mins": 6
+  }
+ ],
+ "YI-06": [
+  {
+   "id": "mPMGRILsOVk",
+   "title": "Bluetooth vs WiFi: What is the difference?",
+   "channel": "PowerCert Animated Videos",
+   "mins": 5
   }
  ],
  "YI-07": [
@@ -405,6 +421,14 @@ window.VIDEOS = {
    "title": "What is RFID & How RFID Works",
    "channel": "Louis Sirico",
    "mins": 5
+  }
+ ],
+ "YI-09": [
+  {
+   "id": "YFd0kb9Nwt0",
+   "title": "How a Lithium-Ion Battery Works",
+   "channel": "Owl WiS",
+   "mins": 3
   }
  ],
  "YI-10": [
@@ -453,6 +477,14 @@ window.VIDEOS = {
    "title": "How Chatbots and Large Language Models Work",
    "channel": "Code.org",
    "mins": 7
+  }
+ ],
+ "YI-16": [
+  {
+   "id": "Vx0Z6LplaMU",
+   "title": "What Is 3D Printing and How Does It Work?",
+   "channel": "Mashable Explains",
+   "mins": 2
   }
  ]
 };

@@ -434,6 +434,15 @@ window.LIBRARY = {
    "kb": 576
   },
   {
+   "code": "YI-04",
+   "group": "YI",
+   "title": "Stepper Motor Drawing Plotter",
+   "file": "library/slides/YI-04_Stepper_Motor_Drawing_Plotter_Slides.pdf",
+   "thumb": "library/thumbs/YI-04.jpg",
+   "pages": 18,
+   "kb": 515
+  },
+  {
    "code": "YI-05",
    "group": "YI",
    "title": "Obstacle Avoiding Robot Scanning Sonar",
@@ -441,6 +450,15 @@ window.LIBRARY = {
    "thumb": "library/thumbs/YI-05.jpg",
    "pages": 20,
    "kb": 665
+  },
+  {
+   "code": "YI-06",
+   "group": "YI",
+   "title": "Bluetooth Robot Car Phone App",
+   "file": "library/slides/YI-06_Bluetooth_Robot_Car_Phone_App_Slides.pdf",
+   "thumb": "library/thumbs/YI-06.jpg",
+   "pages": 18,
+   "kb": 505
   },
   {
    "code": "YI-07",
@@ -459,6 +477,15 @@ window.LIBRARY = {
    "thumb": "library/thumbs/YI-08.jpg",
    "pages": 19,
    "kb": 505
+  },
+  {
+   "code": "YI-09",
+   "group": "YI",
+   "title": "Rechargeable Power Pack",
+   "file": "library/slides/YI-09_Rechargeable_Power_Pack_Slides.pdf",
+   "thumb": "library/thumbs/YI-09.jpg",
+   "pages": 18,
+   "kb": 471
   },
   {
    "code": "YI-10",
@@ -513,6 +540,15 @@ window.LIBRARY = {
    "thumb": "library/thumbs/YI-15.jpg",
    "pages": 19,
    "kb": 445
+  },
+  {
+   "code": "YI-16",
+   "group": "YI",
+   "title": "3D Printed Plant Monitor Enclosure",
+   "file": "library/slides/YI-16_3D_Printed_Plant_Monitor_Enclosure_Slides.pdf",
+   "thumb": "library/thumbs/YI-16.jpg",
+   "pages": 18,
+   "kb": 447
   }
  ],
  "docs": [

@@ -7,6 +7,7 @@ It is plain HTML, CSS and JavaScript: no server, no build step, no login.
 
 - **Home**: this week at a glance and the next classes to plan for each age group.
 - **Little Explorers / Junior Makers / Young Innovators / Tech Leaders**: activity cards by phase. Tap a card, choose a day, set the number of groups. Done.
+- **Swap or borrow**: in any session, tap another age group to give the activity to them (same day and time), or use *Swap with another group's session*. On a group page, *Add from another group* borrows any activity. Borrowed activities share the original kit.
 - **Timetable**: Monday to Friday. Tap a session to change it, or print one day's kit.
 - **Print lists**: per session, per day or whole week. Print or save as PDF for the lab.
 - **Kits & parts**: change the parts of any activity, add new parts.

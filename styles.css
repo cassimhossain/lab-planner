@@ -335,3 +335,25 @@ tr.gap td { border: 0; height: 12px; padding: 0; }
 }
 .klayout > div { min-width: 0; }
 .addpart > * { min-width: 0; }
+
+/* ---------- borrowed / swapped activities ---------- */
+.ftag { font-size: 11.5px; font-weight: 800; color: var(--c); background: #fff; border: 1.5px dashed var(--c); border-radius: 999px; padding: 1px 9px; margin-left: auto; margin-right: 8px; white-space: nowrap; }
+.wcard .ftag { margin: 0 0 0 8px; }
+.borrowbtn { border-style: dashed; }
+.gpick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+.gpick button { border: 2px solid var(--line); background: var(--card); border-radius: 14px; padding: 10px 8px; cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--ink2); display: flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1.2; text-align: center; }
+.gpick button b { font-size: 18px; color: var(--c); }
+.gpick button:hover:not([disabled]) { border-color: var(--c); background: var(--l); }
+.gpick button.on { border-color: var(--c); background: var(--l); cursor: default; box-shadow: inset 0 0 0 1px var(--c); }
+.hint { display: block; color: var(--muted); font-size: 13.5px; margin-top: -4px; }
+.m-links { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 6px; }
+.plist { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; max-height: 360px; overflow-y: auto; }
+.prow { display: flex; align-items: center; gap: 12px; text-align: left; border: 1.5px solid var(--line2); background: #FBFCFE; border-radius: 12px; padding: 12px 14px; cursor: pointer; font: inherit; color: var(--ink); }
+.prow:hover { border-color: var(--c); background: var(--l); }
+.prow .acode { color: var(--c); min-width: 64px; }
+.prow .nt small { display: block; color: var(--muted); font-weight: 500; font-size: 12.5px; }
+.sheet-m .search { width: 100%; min-width: 0; border: 1.5px solid var(--line); box-shadow: none; height: 50px; }
+@media (max-width: 560px) { .gpick { grid-template-columns: repeat(2, 1fr); } }
+@media print { .ftag { border: 0; padding: 0; } }
+.m-links [data-swapopen] { color: var(--navy); }
+.gpick.three { grid-template-columns: repeat(3, 1fr); } @media (max-width: 560px) { .gpick.three { grid-template-columns: repeat(3, 1fr); } }

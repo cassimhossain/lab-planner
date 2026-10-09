@@ -52,15 +52,24 @@
 
   /* ---------- state ---------- */
   const blank = () => ({ v: 1, defaultGroups: 8, name: "Qasim Mushtaq", campus: "Pak-Turk Maarif International Schools & Colleges, Chak Shahzad Campus · Robotics Lab",
-    weekStart: "", sessions: {}, kits: {}, catalog: {}, saved: null });
+    weekStart: "", sessions: {}, kits: {}, catalog: {}, extra: [], saved: null });
   let S = load();
-  function load() { try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.v === 1) return Object.assign(blank(), s); } catch (e) { } return blank(); }
+  function load() { try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.v === 1) { const o = Object.assign(blank(), s); o.extra = Array.isArray(o.extra) ? o.extra : []; return o; } } catch (e) { } return blank(); }
   function save() { S.saved = new Date().toISOString(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast("Could not save in this browser. Download a backup."); } }
   const EMPTY = { status: "Not started", day: "", time: "", section: "", groups: "", notes: "", date: "" };
   const sess = c => (S.sessions[c] = S.sessions[c] || Object.assign({}, EMPTY));
   const peek = c => S.sessions[c] || EMPTY;
   const groupsOf = c => { const g = parseInt(peek(c).groups, 10); return g > 0 ? g : S.defaultGroups; };
-  const kitOf = c => S.kits[c] || BYCODE[c].kit;
+  /* borrowed activities: "JM-06@YI" = Junior Makers activity JM-06 taught to Young Innovators */
+  const baseOf = id => String(id).split("@")[0];
+  const virt = id => { const [c, g] = String(id).split("@"), b = BYCODE[c]; if (!b || !GROUPS[g] || g === b.group) return null; return Object.assign({}, b, { code: id, base: c, group: g, from: b.group }); };
+  const getA = id => BYCODE[id] || virt(id);
+  const idFor = (base, g) => (BYCODE[base].group === g ? base : base + "@" + g);
+  const extras = () => (S.extra || []).map(virt).filter(Boolean);
+  const ALL = () => ACTS.concat(extras());
+  const lab = a => a.base || a.code;
+  function borrow(base, g) { const id = idFor(base, g); if (id !== base) { S.extra = S.extra || []; if (!S.extra.includes(id)) S.extra.push(id); } return id; }
+  const kitOf = c => S.kits[baseOf(c)] || BYCODE[baseOf(c)].kit;
   const catOf = n => S.catalog[n] || D.catalog[n] || { cat: "Other", spec: "", type: "Reusable" };
   const allParts = () => Object.assign({}, D.catalog, S.catalog);
   const isPlanned = c => peek(c).status === "Next week";
@@ -79,7 +88,25 @@
   const lineTotal = (k, c) => (k.b === "class" ? +k.q || 0 : (+k.q || 0) * groupsOf(c));
   const dayIdx = d => (d ? DAYS.indexOf(d) : 9);
   const catIdx = c => { const i = D.categories.indexOf(c); return i < 0 ? 99 : i; };
-  const planned = () => ACTS.filter(a => isPlanned(a.code)).sort((a, b) => dayIdx(peek(a.code).day) - dayIdx(peek(b.code).day) || ACTS.indexOf(a) - ACTS.indexOf(b));
+  const planned = () => { const all = ALL(); return all.filter(a => isPlanned(a.code)).sort((a, b) => dayIdx(peek(a.code).day) - dayIdx(peek(b.code).day) || all.indexOf(a) - all.indexOf(b)); };
+  const fromTag = a => (a.from ? `<span class="ftag">from ${esc(GROUPS[a.from].name)}</span>` : "");
+  /* swap: A's activity goes to B's age group and slot, B's activity goes to A's age group and slot */
+  const SLOT = ["status", "day", "time", "section", "groups", "notes"];
+  function swapSessions(idA, idB) {
+    const A = getA(idA), B = getA(idB), sa = Object.assign({}, peek(idA)), sb = Object.assign({}, peek(idB));
+    const nA = borrow(lab(A), B.group), nB = borrow(lab(B), A.group);
+    [idA, idB].forEach(i => setStatus(i, "Not started"));
+    SLOT.forEach(k => { sess(nA)[k] = sb[k]; sess(nB)[k] = sa[k]; });
+    [idA, idB].forEach(dropIdle);
+    return [nA, nB];
+  }
+  function dropIdle(id) { const a = getA(id); if (a && a.from && peek(id).status === "Not started") { delete S.sessions[id]; S.extra = (S.extra || []).filter(x => x !== id); } }
+  function moveTo(id, g) {
+    const s = Object.assign({}, peek(id)), n = borrow(lab(getA(id)), g);
+    if (s.status === "Next week") { SLOT.forEach(k => { sess(n)[k] = s[k]; }); setStatus(id, "Not started"); }
+    dropIdle(id);
+    return n;
+  }
   const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
   function setStatus(c, st) {
     const s = sess(c); s.status = st;
@@ -136,7 +163,7 @@
   function actCard(a) {
     const g = GROUPS[a.group], s = peek(a.code);
     return `<button class="acard ${isPlanned(a.code) ? "is-planned" : ""} ${isDone(a.code) ? "is-done" : ""}" data-open="${esc(a.code)}" style="--c:${g.color};--l:${g.light}">
-      <span class="acard-top"><span class="aicon">${ic(a.domain)}</span><span class="acode">${esc(a.code)}</span></span>
+      <span class="acard-top"><span class="aicon">${ic(a.domain)}</span>${fromTag(a)}<span class="acode">${esc(lab(a))}</span></span>
       <span class="atitle">${esc(a.title)}</span>
       <span class="adom">${esc(a.domain)}${a.cls ? " · Class " + a.cls : ""}</span>
       <span class="afoot">${statusChip(a.code)}<span class="aplan">${isPlanned(a.code) || isDone(a.code) ? "Open" : "Plan"} ${ic("arrow")}</span></span>
@@ -152,7 +179,7 @@
     const strip = DAYS.map(d => {
       const items = nw.filter(a => peek(a.code).day === d);
       return `<div class="hday"><div class="hday-h"><b>${d}</b><span>${dayDate(d)}</span></div>
-        ${items.map(a => `<button class="pchip" data-open="${esc(a.code)}" style="--c:${GROUPS[a.group].color};--l:${GROUPS[a.group].light}"><b>${esc(a.code)}</b>${esc(a.title)}</button>`).join("") || `<span class="hfree">Free</span>`}</div>`;
+        ${items.map(a => `<button class="pchip" data-open="${esc(a.code)}" style="--c:${GROUPS[a.group].color};--l:${GROUPS[a.group].light}"><b>${esc(lab(a))}${a.from ? " → " + a.group : ""}</b>${esc(a.title)}</button>`).join("") || `<span class="hfree">Free</span>`}</div>`;
     }).join("");
     const groupsHTML = D.groups.map(g => {
       const core = coreOf(g.code), dn = core.filter(a => isDone(a.code)).length, up = nextUp(g.code, 2);
@@ -182,8 +209,8 @@
   /* ---------- AGE GROUP ---------- */
   const UI = { phase: {}, q: {}, pMode: "session", pDay: "ALL", pBreak: true, kitCode: ACTS[0].code, kitGroup: "LE", kitQ: "", catOpen: false, catQ: "" };
   function vGroup(gc) {
-    const g = GROUPS[gc], all = ACTS.filter(a => a.group === gc), core = coreOf(gc);
-    const dn = core.filter(a => isDone(a.code)).length, nw = all.filter(a => isPlanned(a.code)).length;
+    const g = GROUPS[gc], all = ACTS.filter(a => a.group === gc), core = coreOf(gc), borrowed = extras().filter(a => a.group === gc);
+    const dn = core.filter(a => isDone(a.code)).length, nw = all.concat(borrowed).filter(a => isPlanned(a.code)).length;
     if (!UI.phase[gc]) UI.phase[gc] = PHASES.find(p => all.some(a => phaseOf(a) === p && peek(a.code).status === "Not started")) || "Phase 1";
     const ph = UI.phase[gc], q = (UI.q[gc] || "").toLowerCase();
     const list = all.filter(a => q ? (a.code + " " + a.title + " " + a.domain).toLowerCase().includes(q) : phaseOf(a) === ph);
@@ -195,28 +222,56 @@
         <div class="gban-s"><div><b>${dn}</b><span>of ${core.length} done</span></div><div><b>${nw}</b><span>planned</span></div></div>
         ${DOODLE}</section>
       <div class="gtools"><div class="tabs">${PHASES.map(p => `<button class="${!q && ph === p ? "on" : ""}" data-phase="${p}" data-g="${gc}">${p}<em>${all.filter(a => phaseOf(a) === p).length}</em></button>`).join("")}</div>
-        <label class="search">${ic("search")}<input type="search" data-gq="${gc}" placeholder="Search ${esc(g.name)}" value="${esc(UI.q[gc] || "")}"></label></div>
+        <label class="search">${ic("search")}<input type="search" data-gq="${gc}" placeholder="Search ${esc(g.name)}" value="${esc(UI.q[gc] || "")}"></label>
+        <button class="btn borrowbtn" data-pick="${gc}">${ic("plus")}Add from another group</button></div>
+      ${borrowed.length ? `<h3 class="unit">From other age groups <small>shared kits, planned for ${esc(g.name)}</small></h3><div class="agrid">${borrowed.map(actCard).join("")}</div>` : ""}
       ${body || empty("Nothing matches your search.")}`;
   }
 
   /* ---------- SESSION MODAL ---------- */
   let modalCode = null;
-  function openModal(code) { modalCode = code; renderModal(); document.body.classList.add("modal-open"); }
+  function openModal(code) { modalCode = code; UI.swapOpen = false; renderModal(); document.body.classList.add("modal-open"); }
   function closeModal() { modalCode = null; document.body.classList.remove("modal-open"); render(); }
-  function renderModal() {
-    const a = BYCODE[modalCode], g = GROUPS[a.group], s = peek(a.code), kit = kitOf(a.code), gr = groupsOf(a.code);
+  function renderPicker(gc) {
+    const g = GROUPS[gc], others = D.groups.filter(x => x.code !== gc);
+    if (!UI.pickG || UI.pickG === gc) UI.pickG = others[0].code;
+    const q = (UI.pickQ || "").toLowerCase(), src = GROUPS[UI.pickG];
+    const list = ACTS.filter(a => a.group === UI.pickG && (!q || (a.code + " " + a.title + " " + a.domain).toLowerCase().includes(q)));
     $("#modal").innerHTML = `<div class="sheet-m" style="--c:${g.color};--l:${g.light}">
-      <div class="m-head"><span class="aicon big">${ic(a.domain)}</span><div class="m-tt"><span class="acode">${esc(a.code)} · ${esc(g.name)}</span><h2>${esc(a.title)}</h2><p>${esc(a.domain)}${a.cls ? " · Class " + a.cls : ""}</p></div><button class="m-x" data-close aria-label="Close">${ic("x")}</button></div>
+      <div class="m-head"><span class="aicon big">${ic("plus")}</span><div class="m-tt"><span class="acode">Add to ${esc(g.name)}</span><h2>Borrow an activity</h2><p>Pick an activity from another age group. It keeps the same kit.</p></div><button class="m-x" data-close aria-label="Close">${ic("x")}</button></div>
+      <div class="m-body">
+        <div class="gpick three">${others.map(x => `<button class="${x.code === UI.pickG ? "on" : ""}" data-pickg="${x.code}" style="--c:${x.color};--l:${x.light}"><b>${x.code}</b>${esc(x.name)}</button>`).join("")}</div>
+        <label class="search">${ic("search")}<input type="search" id="pickQ" placeholder="Search ${esc(src.name)}" value="${esc(UI.pickQ || "")}"></label>
+        <div class="plist">${list.map(a => { const id = idFor(a.code, gc), have = (S.extra || []).includes(id);
+          return `<button class="prow" data-borrow="${esc(a.code)}" data-to="${gc}" style="--c:${src.color};--l:${src.light}"><span class="acode">${esc(a.code)}</span><span class="nt">${esc(a.title)}<small>${esc(phaseOf(a))} · ${esc(a.unit)}</small></span><span class="nplan">${have ? "Open" : "Add"}</span></button>`; }).join("") || `<p class="muted">Nothing matches.</p>`}</div>
+      </div></div>`;
+  }
+  function groupSection(a) {
+    const s = peek(a.code), here = a.group;
+    const others = planned().filter(b => b.group !== here && lab(b) !== lab(a));
+    return `<div class="m-sec"><label>Age group</label>
+      <div class="gpick">${D.groups.map(x => `<button class="${x.code === here ? "on" : ""}" ${x.code === here ? "disabled" : `data-moveto="${x.code}"`} style="--c:${x.color};--l:${x.light}"><b>${x.code}</b>${esc(x.name)}</button>`).join("")}</div>
+      <small class="hint">${isPlanned(a.code) ? `Tap a group to move this session there (same day and time).` : `Tap a group to add this activity to that group's page.`}${a.from ? ` Original group: ${esc(GROUPS[a.from].name)}.` : ""}</small>
+      <div class="m-links">${isPlanned(a.code) && others.length ? `<button class="linkbtn" data-swapopen>${ic("arrow")}Swap with another group's session</button>` : ""}
+        ${a.from && !isDone(a.code) ? `<button class="linkbtn" data-unborrow>${ic("x")}Remove from ${esc(GROUPS[here].name)}</button>` : ""}</div>
+      ${UI.swapOpen ? `<div class="plist">${others.map(b => `<button class="prow" data-swap="${esc(b.code)}" style="--c:${GROUPS[b.group].color};--l:${GROUPS[b.group].light}"><span class="acode">${esc(lab(b))}</span><span class="nt">${esc(b.title)}<small>${esc(GROUPS[b.group].name)} · ${DAYFULL[peek(b.code).day]}</small></span><span class="nplan">Swap</span></button>`).join("")}</div>` : ""}</div>`;
+  }
+  function renderModal() {
+    if (String(modalCode).startsWith("pick:")) return renderPicker(modalCode.slice(5));
+    const a = getA(modalCode), g = GROUPS[a.group], s = peek(a.code), kit = kitOf(a.code), gr = groupsOf(a.code);
+    $("#modal").innerHTML = `<div class="sheet-m" style="--c:${g.color};--l:${g.light}">
+      <div class="m-head"><span class="aicon big">${ic(a.domain)}</span><div class="m-tt"><span class="acode">${esc(lab(a))} · ${esc(g.name)}${a.from ? ` · borrowed from ${esc(GROUPS[a.from].name)}` : ""}</span><h2>${esc(a.title)}</h2><p>${esc(a.domain)}${a.cls ? " · Class " + a.cls : ""}</p></div><button class="m-x" data-close aria-label="Close">${ic("x")}</button></div>
       <div class="m-body">
         <div class="m-sec"><label>Which day next week?</label>
           <div class="daypick">${DAYS.map(d => `<button class="${isPlanned(a.code) && s.day === d ? "on" : ""}" data-mday="${d}"><b>${d}</b><span>${dayDate(d)}</span></button>`).join("")}</div>
           ${isPlanned(a.code) ? `<button class="linkbtn" data-unplan>${ic("x")}Remove from this week</button>` : ""}</div>
+        ${groupSection(a)}
         <div class="m-row">
           <div class="m-sec"><label>Groups (pairs)</label><div class="stepper"><button data-step="-1">${ic("minus")}</button><b>${gr}</b><button data-step="1">${ic("plus")}</button></div><small>${gr * 2} students</small></div>
           <div class="m-sec"><label>Time <i>optional</i></label><input data-mf="time" value="${esc(s.time)}" placeholder="e.g. 2:30 pm"></div>
           <div class="m-sec"><label>Section <i>optional</i></label><input data-mf="section" value="${esc(s.section)}" placeholder="e.g. Grade 4 B"></div>
         </div>
-        <div class="m-sec"><label>Kit for ${gr} groups <a href="#kits" data-editkit="${esc(a.code)}">Edit kit</a></label>
+        <div class="m-sec"><label>Kit for ${gr} groups <a href="#kits" data-editkit="${esc(lab(a))}">Edit kit</a></label>
           <div class="mkit">${kit.filter(k => k.n).map(k => `<div><span>${esc(k.n)}</span><b>${lineTotal(k, a.code)}</b></div>`).join("")}</div></div>
         <div class="m-sec"><label>Notes <i>optional</i></label><input data-mf="notes" value="${esc(s.notes)}" placeholder="Anything to remember"></div>
       </div>
@@ -234,11 +289,11 @@
     const cols = DAYS.map(d => {
       const items = nw.filter(a => peek(a.code).day === d);
       return `<div class="wcol"><div class="wcol-h"><div><b>${DAYFULL[d]}</b><span>${dayDate(d)}</span></div>${items.length ? `<span class="wcount">${plural(items.length, "session")}</span>` : ""}</div>
-        <div class="wlist">${items.map(a => `<button class="wcard" data-open="${esc(a.code)}" style="--c:${GROUPS[a.group].color};--l:${GROUPS[a.group].light}"><span class="acode">${esc(a.code)}</span><b>${esc(a.title)}</b><small>${esc(GROUPS[a.group].name)} · ${groupsOf(a.code)} groups${peek(a.code).time ? " · " + esc(peek(a.code).time) : ""}</small></button>`).join("") || `<div class="wfree">Free</div>`}</div>
+        <div class="wlist">${items.map(a => `<button class="wcard" data-open="${esc(a.code)}" style="--c:${GROUPS[a.group].color};--l:${GROUPS[a.group].light}"><span class="acode">${esc(lab(a))}</span>${fromTag(a)}<b>${esc(a.title)}</b><small>${esc(GROUPS[a.group].name)} · ${groupsOf(a.code)} groups${peek(a.code).time ? " · " + esc(peek(a.code).time) : ""}</small></button>`).join("") || `<div class="wfree">Free</div>`}</div>
         ${items.length ? `<a class="wprint" href="#print" data-printday="${d}">${ic("print")}Print ${d} kit</a>` : ""}</div>`;
     }).join("");
     return head("Timetable", nw.length ? `${plural(nw.length, "session")} planned. Tap a session to change it.` : "", nw.length ? `<button class="btn" data-act="doneweek">${ic("check")}Mark week done</button><a class="btn primary" href="#print">${ic("print")}Print lists</a>` : "") +
-      (noday.length ? `<div class="warn">${noday.length} planned session${noday.length > 1 ? "s have" : " has"} no day: ${noday.map(a => `<button class="lk" data-open="${esc(a.code)}">${esc(a.code)}</button>`).join(", ")}</div>` : "") +
+      (noday.length ? `<div class="warn">${noday.length} planned session${noday.length > 1 ? "s have" : " has"} no day: ${noday.map(a => `<button class="lk" data-open="${esc(a.code)}">${esc(lab(a))}</button>`).join(", ")}</div>` : "") +
       (nw.length ? `<div class="wgrid">${cols}</div>` : empty("Nothing planned for this week yet.", `<a class="btn primary" href="#home">Start planning</a>`));
   }
 
@@ -271,9 +326,9 @@
         h += `<div class="${UI.pBreak && i ? "pb" : ""}"><table class="kt">${TH}<tbody><tr class="kday"><td colspan="9">${dayLabel(d)}</td></tr>`;
         nw.filter(a => peek(a.code).day === d).forEach(a => {
           const g = GROUPS[a.group], s = peek(a.code);
-          h += `<tr class="kact" style="--c:${g.color};--l:${g.light}"><td class="kc">${esc(a.code)}</td><td>${esc(g.name)}</td><td>${esc(a.title)}</td><td colspan="3"></td><td>${[s.time, s.section].filter(Boolean).map(esc).join(" · ")}</td><td class="c">${groupsOf(a.code)} groups</td><td></td></tr>`;
+          h += `<tr class="kact" style="--c:${g.color};--l:${g.light}"><td class="kc">${esc(lab(a))}</td><td>${esc(g.name)}${a.from ? " (from " + a.from + ")" : ""}</td><td>${esc(a.title)}</td><td colspan="3"></td><td>${[s.time, s.section].filter(Boolean).map(esc).join(" · ")}</td><td class="c">${groupsOf(a.code)} groups</td><td></td></tr>`;
           kitOf(a.code).forEach(k => { if (!k.n) return; const c = catOf(k.n);
-            h += `<tr style="--c:${g.color}"><td class="kcode">${esc(a.code)}</td><td>${esc(c.cat)}</td><td>${esc(k.n)}</td><td class="c">${esc(k.q)}</td><td class="c">${k.b === "class" ? "Per class" : "Per group"}</td><td class="c">${esc(c.type)}</td><td>${esc(k.note)}</td><td class="tot">${lineTotal(k, a.code)}</td><td class="box"></td></tr>`; });
+            h += `<tr style="--c:${g.color}"><td class="kcode">${esc(lab(a))}</td><td>${esc(c.cat)}</td><td>${esc(k.n)}</td><td class="c">${esc(k.q)}</td><td class="c">${k.b === "class" ? "Per class" : "Per group"}</td><td class="c">${esc(c.type)}</td><td>${esc(k.note)}</td><td class="tot">${lineTotal(k, a.code)}</td><td class="box"></td></tr>`; });
           h += `<tr class="gap"><td colspan="9"></td></tr>`;
         });
         h += `</tbody></table></div>`;
@@ -283,15 +338,15 @@
       const TH = `<thead><tr><th>Category</th><th>Component</th><th class="c">Type</th><th class="c">Qty</th><th>Used in</th><th class="c">Packed</th><th class="c">Returned</th></tr></thead>`;
       show.forEach((d, i) => {
         const today = nw.filter(a => peek(a.code).day === d), agg = {};
-        today.forEach(a => kitOf(a.code).forEach(k => { const t = lineTotal(k, a.code); if (!t || !k.n) return; const x = agg[k.n] = agg[k.n] || { q: 0, u: [] }; x.q += t; if (!x.u.includes(a.code)) x.u.push(a.code); }));
+        today.forEach(a => kitOf(a.code).forEach(k => { const t = lineTotal(k, a.code); if (!t || !k.n) return; const x = agg[k.n] = agg[k.n] || { q: 0, u: [] }; x.q += t; if (!x.u.includes(lab(a))) x.u.push(lab(a)); }));
         const rows = Object.keys(agg).sort((p, q) => catIdx(catOf(p).cat) - catIdx(catOf(q).cat) || p.localeCompare(q));
-        h += `<div class="${UI.pBreak && i ? "pb" : ""}"><table class="kt">${TH}<tbody><tr class="kday"><td colspan="7">${dayLabel(d)} · ${today.map(a => esc(a.code)).join(", ")}</td></tr>` +
+        h += `<div class="${UI.pBreak && i ? "pb" : ""}"><table class="kt">${TH}<tbody><tr class="kday"><td colspan="7">${dayLabel(d)} · ${today.map(a => esc(lab(a))).join(", ")}</td></tr>` +
           rows.map(n => `<tr><td>${esc(catOf(n).cat)}</td><td>${esc(n)}</td><td class="c">${esc(catOf(n).type)}</td><td class="tot">${agg[n].q}</td><td>${esc(agg[n].u.join(", "))}</td><td class="box"></td><td class="box"></td></tr>`).join("") + `</tbody></table></div>`;
       });
     } else {
       h += sheetHead("Hardware Request for the Week");
       h += `<table class="kt"><thead><tr><th>Day</th><th>Code</th><th>Activity</th><th>Age group</th><th class="c">Groups</th><th>Time</th><th>Section</th></tr></thead><tbody>` +
-        nw.map(a => { const s = peek(a.code), g = GROUPS[a.group]; return `<tr style="--c:${g.color}"><td>${DAYFULL[s.day]} ${dayDate(s.day)}</td><td class="kcode">${esc(a.code)}</td><td>${esc(a.title)}</td><td>${esc(g.name)}</td><td class="c">${groupsOf(a.code)}</td><td>${esc(s.time)}</td><td>${esc(s.section)}</td></tr>`; }).join("") + `</tbody></table>
+        nw.map(a => { const s = peek(a.code), g = GROUPS[a.group]; return `<tr style="--c:${g.color}"><td>${DAYFULL[s.day]} ${dayDate(s.day)}</td><td class="kcode">${esc(lab(a))}</td><td>${esc(a.title)}</td><td>${esc(g.name)}${a.from ? " (from " + a.from + ")" : ""}</td><td class="c">${groupsOf(a.code)}</td><td>${esc(s.time)}</td><td>${esc(s.section)}</td></tr>`; }).join("") + `</tbody></table>
         <p class="note">Reusable parts: the most needed on any one day. Consumables: the whole week's total.</p>`;
       const per = {};
       nw.forEach(a => { const d = peek(a.code).day || "X"; kitOf(a.code).forEach(k => { const t = lineTotal(k, a.code); if (!t || !k.n) return; const x = per[k.n] = per[k.n] || {}; x[d] = (x[d] || 0) + t; }); });
@@ -353,10 +408,19 @@
     const d = t.dataset;
     if (d.open) { openModal(d.open); return; }
     if ("close" in d) { closeModal(); return; }
-    if (d.mday) { const s = sess(modalCode); s.day = d.mday; setStatus(modalCode, "Next week"); save(); renderModal(); toast(`${modalCode} planned for <b>${DAYFULL[d.mday]}</b>`); return; }
+    if (d.mday) { const s = sess(modalCode); s.day = d.mday; setStatus(modalCode, "Next week"); save(); renderModal(); toast(`${esc(lab(getA(modalCode)))} planned for <b>${DAYFULL[d.mday]}</b>`); return; }
     if ("unplan" in d) { setStatus(modalCode, "Not started"); save(); renderModal(); return; }
     if (d.step) { const s = sess(modalCode); s.groups = Math.max(1, Math.min(40, groupsOf(modalCode) + +d.step)); save(); renderModal(); return; }
     if (d.mstatus) { setStatus(modalCode, d.mstatus); save(); renderModal(); return; }
+    if (d.moveto) { const a = getA(modalCode), wasP = isPlanned(a.code), n = moveTo(modalCode, d.moveto); save(); modalCode = n; UI.swapOpen = false; renderModal(); render();
+      toast(`${esc(lab(a))} ${wasP ? "moved" : "added"} to <b>${esc(GROUPS[d.moveto].name)}</b>`); return; }
+    if ("swapopen" in d) { UI.swapOpen = !UI.swapOpen; renderModal(); return; }
+    if (d.swap) { const A = getA(modalCode), B = getA(d.swap), r = swapSessions(modalCode, d.swap); save(); modalCode = r[0]; UI.swapOpen = false; renderModal(); render();
+      toast(`Swapped: ${esc(lab(A))} → ${esc(GROUPS[B.group].name)}, ${esc(lab(B))} → ${esc(GROUPS[A.group].name)}`); return; }
+    if ("unborrow" in d) { const a = getA(modalCode); delete S.sessions[a.code]; S.extra = (S.extra || []).filter(x => x !== a.code); save(); toast(`${esc(lab(a))} removed from ${esc(GROUPS[a.group].name)}`); closeModal(); return; }
+    if (d.pick) { openModal("pick:" + d.pick); return; }
+    if (d.pickg) { UI.pickG = d.pickg; UI.pickQ = ""; renderModal(); return; }
+    if (d.borrow) { const n = borrow(d.borrow, d.to); save(); render(); openModal(n); return; }
     if (d.editkit) { UI.kitCode = d.editkit; UI.kitGroup = BYCODE[d.editkit].group; document.body.classList.remove("modal-open"); modalCode = null; return; }
     if (d.phase) { UI.phase[d.g] = d.phase; UI.q[d.g] = ""; render(); return; }
     if (d.printday) { UI.pDay = d.printday; UI.pMode = "session"; return; }
@@ -376,7 +440,7 @@
       case "addpart": { const n = $("#npName").value.trim(); if (!n) return toast("Type a part name first"); S.catalog[n] = { cat: $("#npCat").value, type: $("#npType").value, spec: "" }; save(); render(); toast("Part added"); break; }
       case "export": download(`lab-planner-backup-${iso(new Date())}.json`, JSON.stringify(S, null, 1), "application/json"); break;
       case "csv": { const rows = [["Code", "Age group", "Phase", "Class", "Activity", "Status", "Day", "Date done", "Groups", "Time", "Section", "Notes"]];
-        ACTS.forEach(a => { const s = peek(a.code); rows.push([a.code, GROUPS[a.group].name, phaseOf(a), a.cls || "", a.title, s.status, s.day, s.date, groupsOf(a.code), s.time, s.section, s.notes]); });
+        ALL().forEach(a => { const s = peek(a.code); rows.push([lab(a) + (a.from ? " (from " + a.from + ")" : ""), GROUPS[a.group].name, phaseOf(a), a.cls || "", a.title, s.status, s.day, s.date, groupsOf(a.code), s.time, s.section, s.notes]); });
         download(`session-log-${iso(new Date())}.csv`, "﻿" + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n"), "text/csv"); break; }
       case "reset": if (confirm("Delete ALL plans and kit changes in this browser?")) { S = blank(); S.weekStart = nextMonday(); save(); render(); } break;
     }
@@ -392,12 +456,13 @@
     if (t.id === "setName") { S.name = t.value.trim(); save(); return; }
     if (t.id === "setCampus") { S.campus = t.value.trim(); save(); return; }
     if (t.id === "fileImport") { const f = t.files[0]; if (!f) return; const r = new FileReader();
-      r.onload = () => { try { const x = JSON.parse(r.result); if (x.v !== 1 || typeof x.sessions !== "object") throw 0; if (confirm("Replace the plan in this browser with this backup?")) { S = Object.assign(blank(), x); save(); render(); toast("Backup loaded"); } } catch (err) { toast("That file is not a planner backup"); } };
+      r.onload = () => { try { const x = JSON.parse(r.result); if (x.v !== 1 || typeof x.sessions !== "object") throw 0; if (confirm("Replace the plan in this browser with this backup?")) { S = Object.assign(blank(), x); S.extra = Array.isArray(S.extra) ? S.extra : []; save(); render(); toast("Backup loaded"); } } catch (err) { toast("That file is not a planner backup"); } };
       r.readAsText(f); }
   });
   let qT;
   document.addEventListener("input", e => {
     const t = e.target, key = t.dataset.gq ? "gq" : t.id;
+    if (key === "pickQ") { UI.pickQ = t.value; const pos = t.selectionStart; renderModal(); const n = $("#pickQ"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (er) { } } return; }
     if (!["gq", "kitQ", "catQ"].includes(key)) return;
     clearTimeout(qT); qT = setTimeout(() => {
       if (key === "gq") UI.q[t.dataset.gq] = t.value; else if (key === "kitQ") UI.kitQ = t.value; else UI.catQ = t.value;

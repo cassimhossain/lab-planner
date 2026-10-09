@@ -407,6 +407,78 @@ window.LIBRARY = {
    "kb": 590
   },
   {
+   "code": "TL-09",
+   "group": "TL",
+   "title": "Sensor Data Logging Analysis Pipeline",
+   "file": "library/slides/TL-09_Sensor_Data_Logging_Analysis_Pipeline_Slides.pdf",
+   "thumb": "library/thumbs/TL-09.jpg",
+   "pages": 20,
+   "kb": 587
+  },
+  {
+   "code": "TL-10",
+   "group": "TL",
+   "title": "Machine Learning Rain Predictor",
+   "file": "library/slides/TL-10_Machine_Learning_Rain_Predictor_Slides.pdf",
+   "thumb": "library/thumbs/TL-10.jpg",
+   "pages": 20,
+   "kb": 450
+  },
+  {
+   "code": "TL-11",
+   "group": "TL",
+   "title": "AI Fake News Detector",
+   "file": "library/slides/TL-11_AI_Fake_News_Detector_Slides.pdf",
+   "thumb": "library/thumbs/TL-11.jpg",
+   "pages": 20,
+   "kb": 520
+  },
+  {
+   "code": "TL-12",
+   "group": "TL",
+   "title": "Web Controlled Devices REST API",
+   "file": "library/slides/TL-12_Web_Controlled_Devices_REST_API_Slides.pdf",
+   "thumb": "library/thumbs/TL-12.jpg",
+   "pages": 20,
+   "kb": 555
+  },
+  {
+   "code": "TL-13",
+   "group": "TL",
+   "title": "Securing an IoT Device",
+   "file": "library/slides/TL-13_Securing_an_IoT_Device_Slides.pdf",
+   "thumb": "library/thumbs/TL-13.jpg",
+   "pages": 20,
+   "kb": 508
+  },
+  {
+   "code": "TL-14",
+   "group": "TL",
+   "title": "Autonomous Fire Fighting Robot",
+   "file": "library/slides/TL-14_Autonomous_Fire_Fighting_Robot_Slides.pdf",
+   "thumb": "library/thumbs/TL-14.jpg",
+   "pages": 21,
+   "kb": 588
+  },
+  {
+   "code": "TL-15",
+   "group": "TL",
+   "title": "Parametric Robot Gripper Design",
+   "file": "library/slides/TL-15_Parametric_Robot_Gripper_Design_Slides.pdf",
+   "thumb": "library/thumbs/TL-15.jpg",
+   "pages": 20,
+   "kb": 539
+  },
+  {
+   "code": "TL-16",
+   "group": "TL",
+   "title": "Motion Controlled Game",
+   "file": "library/slides/TL-16_Motion_Controlled_Game_Slides.pdf",
+   "thumb": "library/thumbs/TL-16.jpg",
+   "pages": 21,
+   "kb": 549
+  },
+  {
    "code": "YI-01",
    "group": "YI",
    "title": "555 Timer Alarm Siren",

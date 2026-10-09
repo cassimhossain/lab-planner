@@ -359,6 +359,70 @@ window.VIDEOS = {
    "mins": 3
   }
  ],
+ "TL-09": [
+  {
+   "id": "X3paOmcrTjQ",
+   "title": "Data Science In 5 Minutes",
+   "channel": "Simplilearn",
+   "mins": 5
+  }
+ ],
+ "TL-10": [
+  {
+   "id": "f_uwKZIAeM0",
+   "title": "What is Machine Learning?",
+   "channel": "Oxford Sparks",
+   "mins": 2
+  }
+ ],
+ "TL-11": [
+  {
+   "id": "cSKGa_7XJkg",
+   "title": "How false news can spread",
+   "channel": "TED-Ed",
+   "mins": 4
+  }
+ ],
+ "TL-12": [
+  {
+   "id": "-mN3VyJuCjM",
+   "title": "What Is REST API? Examples And How To Use It",
+   "channel": "ByteByteGo",
+   "mins": 5
+  }
+ ],
+ "TL-13": [
+  {
+   "id": "SvFyd8DpRkw",
+   "title": "Your Smart Home Is Stupid: IoT Security Explained",
+   "channel": "Techquickie",
+   "mins": 6
+  }
+ ],
+ "TL-14": [
+  {
+   "id": "gH4rPVHxfhA",
+   "title": "Explosion-Proof Fire Fighting Robot Field Test",
+   "channel": "Wei Technology",
+   "mins": 3
+  }
+ ],
+ "TL-15": [
+  {
+   "id": "ERuOe8eLHOE",
+   "title": "What is Parametric and Non-Parametric Design?",
+   "channel": "Boldform Consulting",
+   "mins": 5
+  }
+ ],
+ "TL-16": [
+  {
+   "id": "ETAKfSkec6A",
+   "title": "How the Wii Remote Works",
+   "channel": "VonTower",
+   "mins": 4
+  }
+ ],
  "YI-01": [
   {
    "id": "fLaexx-NMj8",

@@ -68,7 +68,7 @@
 
   /* ---------- state ---------- */
   const blank = () => ({ v: 1, defaultGroups: 8, name: "Qasim Mushtaq", campus: "Pak-Turk Maarif International Schools & Colleges, Chak Shahzad Campus · Robotics Lab",
-    weekStart: "", sessions: {}, kits: {}, catalog: {}, extra: [], saved: null });
+    weekStart: "", sessions: {}, kits: {}, catalog: {}, extra: [], lastBackup: "", saved: null });
   let S = load();
   function load() { try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.v === 1) { const o = Object.assign(blank(), s); o.extra = Array.isArray(o.extra) ? o.extra : []; return o; } } catch (e) { } return blank(); }
   function save() { S.saved = new Date().toISOString(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast("Could not save in this browser. Download a backup."); } }
@@ -134,7 +134,7 @@
   const coreOf = gc => ACTS.filter(a => a.group === gc && (a.phase === "Phase 1" || a.phase === "Phase 2"));
 
   /* ---------- routing / sidebar ---------- */
-  const ROUTES = ["home", "curriculum", "LE", "JM", "YI", "TL", "week", "print", "kits", "settings"];
+  const ROUTES = ["home", "curriculum", "hardware", "LE", "JM", "YI", "TL", "week", "print", "kits", "settings"];
   const route = () => { const r = location.hash.slice(1); return ROUTES.includes(r) ? r : "home"; };
   function renderMenu() {
     const r = route(), nw = planned();
@@ -143,22 +143,22 @@
     $("#menu").innerHTML =
       item("home", "Home", ic("home")) +
       item("curriculum", "Curriculum", ic("book"), `<em class="soft">${LIB.decks.length}</em>`) +
+      item("hardware", "Hardware", ic("parts")) +
       `<div class="mlabel">Age groups</div>` +
       D.groups.map(g => item(g.code, g.name, `<i class="gdot" style="background:${g.color}"></i>`, badge(nw.filter(a => a.group === g.code).length))).join("") +
       `<div class="mlabel">This week</div>` +
       item("week", "Timetable", ic("week"), badge(nw.length)) +
       item("print", "Print lists", ic("print")) +
       `<div class="mlabel">Setup</div>` +
-      item("kits", "Kits & parts", ic("box")) +
+      item("kits", "Edit kits & parts", ic("box")) +
       item("settings", "Settings", ic("gear"));
     const a = addDays(S.weekStart, 0), b = addDays(S.weekStart, 4);
     $("#wkLabel").textContent = `${fmt(a, { day: "numeric", month: "short" })} to ${fmt(b, { day: "numeric", month: "short" })}`;
-    $("#mbWeek").textContent = fmt(a, { day: "numeric", month: "short" });
   }
   function render() {
     renderMenu();
     const r = route(), app = $("#app");
-    app.innerHTML = r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
+    app.innerHTML = r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
     document.body.dataset.route = r;
   }
   window.addEventListener("hashchange", () => { closeNav(); render(); window.scrollTo(0, 0); });
@@ -189,42 +189,142 @@
   const head = (title, sub, right = "") => `<div class="phead"><div><h1>${title}</h1>${sub ? `<p>${sub}</p>` : ""}</div><div class="phead-r">${right}</div></div>`;
   const empty = (msg, cta = "") => `<div class="empty">${DOODLE}<p>${msg}</p>${cta}</div>`;
 
-  /* ---------- HOME ---------- */
+  /* ---------- HOME (dashboard) ---------- */
+  function weekIssue(nw) {
+    const per = {};
+    nw.forEach(a => { const d = peek(a.code).day || "X"; kitOf(a.code).forEach(k => { const t = lineTotal(k, a.code); if (!t || !k.n) return; const x = per[k.n] = per[k.n] || {}; x[d] = (x[d] || 0) + t; }); });
+    return Object.keys(per).map(n => { const x = per[n], c = catOf(n), dv = DAYS.map(d => x[d] || 0), nd = x.X || 0;
+      return { n, cat: c.cat, type: c.type, q: c.type === "Consumable" ? dv.reduce((p, q) => p + q, 0) + nd : Math.max(...dv) + nd }; });
+  }
+  function todayDay() { if (!S.weekStart) return ""; const diff = Math.round((new Date(iso(new Date()) + "T00:00:00") - new Date(S.weekStart + "T00:00:00")) / 864e5); return diff >= 0 && diff < 5 ? DAYS[diff] : ""; }
+  function ring(pct, color, size = 64) {
+    const r = 26, c = 2 * Math.PI * r;
+    return `<svg class="ring" viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true"><circle cx="32" cy="32" r="${r}" fill="none" stroke="var(--line2)" stroke-width="7"/>
+      ${pct > 0 ? "" : "<!--"}<circle cx="32" cy="32" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * pct / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 32 32)"/>${pct > 0 ? "" : "-->"}
+      <text x="32" y="37" text-anchor="middle" font-size="15" font-weight="800" fill="currentColor">${pct}%</text></svg>`;
+  }
   function vHome() {
-    const nw = planned(), pairs = nw.reduce((t, a) => t + groupsOf(a.code), 0);
-    const hr = new Date().getHours(), hi = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
-    const strip = DAYS.map(d => {
-      const items = nw.filter(a => peek(a.code).day === d);
-      return `<div class="hday"><div class="hday-h"><b>${d}</b><span>${dayDate(d)}</span></div>
-        ${items.map(a => `<button class="pchip" data-open="${esc(a.code)}" style="--c:${GROUPS[a.group].color};--l:${GROUPS[a.group].light}"><b>${esc(lab(a))}${a.from ? " → " + a.group : ""}</b>${esc(a.title)}</button>`).join("") || `<span class="hfree">Free</span>`}</div>`;
-    }).join("");
-    const groupsHTML = D.groups.map(g => {
-      const core = coreOf(g.code), dn = core.filter(a => isDone(a.code)).length, up = nextUp(g.code, 2);
-      return `<div class="gcard" style="--c:${g.color};--l:${g.light}">
-        <a class="gcard-h" href="#${g.code}"><span class="gbig">${g.code}</span><span><b>${esc(g.name)}</b><small>Ages ${esc(g.ages)}</small></span>${ic("arrow", "go")}</a>
-        <div class="gprog"><div class="bar"><i style="width:${Math.round(100 * dn / core.length)}%"></i></div><span>${dn}/${core.length} done</span></div>
-        <div class="gnext">${up.map(a => `<button class="nrow" data-open="${esc(a.code)}"><span class="acode">${esc(a.code)}</span><span class="nt">${esc(a.title)}</span><span class="nplan">Plan</span></button>`).join("") || `<span class="muted">All planned or done</span>`}</div>
-      </div>`;
-    }).join("");
-    return `<section class="hero">
-        <div><span class="kicker">${hi}, ${esc((S.name || "").split(" ")[0] || "teacher")}</span><h1>Plan the week of ${fmt(addDays(S.weekStart, 0), { day: "numeric", month: "long" })}</h1>
-        <p>Pick an age group, tap an activity, choose a day. The kit lists build themselves.</p>
-        <div class="hero-btns"><a class="btn light" href="#curriculum">${ic("book")}Curriculum</a><a class="btn light" href="#week">${ic("week")}Timetable</a><a class="btn accent" href="#print">${ic("print")}Print kit lists</a></div></div>
+    const nw = planned(), pairs = nw.reduce((t, a) => t + groupsOf(a.code), 0), today = todayDay();
+    const now = new Date(), hr = now.getHours(), hi = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
+    const core = D.groups.flatMap(g => coreOf(g.code)), doneAll = core.filter(a => isDone(a.code)).length, pctAll = Math.round(100 * doneAll / core.length);
+    const issue = weekIssue(nw), items = issue.reduce((t, r) => t + r.q, 0);
+    const byDay = DAYS.map(d => nw.filter(a => peek(a.code).day === d).length), maxD = Math.max(1, ...byDay);
+    const next = (today ? nw.find(a => peek(a.code).day && dayIdx(peek(a.code).day) >= dayIdx(today)) : null) || nw[0];
+    const ws = fmt(addDays(S.weekStart, 0), { day: "numeric", month: "long" });
+
+    const kpi = (icon, val, label, sub, href, extra = "", tone = "") => `<a class="kpi ${tone}" href="${href}"><div class="kpi-top"><span class="kpi-ic">${ic(icon)}</span>${extra}</div><b>${val}</b><span class="kpi-l">${label}</span><small>${sub}</small></a>`;
+    const bars = `<span class="mini">${byDay.map((n, i) => `<i style="height:${8 + 26 * n / maxD}px" class="${n ? "" : "z"}" title="${DAYS[i]}: ${n}"></i>`).join("")}</span>`;
+    const kpis = kpi("cal", nw.length, "Sessions this week", nw.length ? DAYS.map((d, i) => byDay[i] ? `${d} ${byDay[i]}` : "").filter(Boolean).join(" · ") : "Nothing planned yet", "#week", bars, "t-amber") +
+      kpi("users", pairs * 2, "Students", `${pairs} groups of 2`, "#week", "", "t-blue") +
+      kpi("parts", issue.length, "Parts to pack", `${items} items in total`, "#hardware", "", "t-green") +
+      kpi("trophy", doneAll, "Activities done", `of ${core.length} in Phase 1 and 2`, "#curriculum", ring(pctAll, "var(--navy)", 46), "t-navy");
+
+    let upnext;
+    if (next) {
+      const g = GROUPS[next.group], s = peek(next.code), dk = deckOf(next.code);
+      upnext = `<div class="panel upnext" style="--c:${g.color};--l:${g.light}">
+        <div class="panel-h"><h2>${today && s.day === today ? "Today" : "Up next"}</h2><a href="#week">Timetable ${ic("arrow")}</a></div>
+        <div class="un-body">
+          ${dk ? `<button class="un-thumb" data-view="${esc(dk.code)}" aria-label="Open presentation"><img src="${esc(dk.thumb)}" alt=""><span class="dplay">${ic("play")}</span></button>` : `<div class="un-thumb none"><span class="aicon big">${ic(next.domain)}</span><small>No slides yet</small></div>`}
+          <div class="un-info"><span class="acode">${esc(lab(next))}</span>${fromTag(next)}<h3>${esc(next.title)}</h3>
+            <div class="facts"><span class="fact on">${ic("cal")}${s.day ? DAYFULL[s.day] + " " + dayDate(s.day) : "No day yet"}${s.time ? " · " + esc(s.time) : ""}</span><span class="fact grp"><i class="gdot" style="background:${g.color}"></i>${esc(g.name)}</span><span class="fact">${ic("users")}${groupsOf(next.code)} groups</span></div>
+            <div class="un-btns">${dk ? `<button class="btn primary" data-view="${esc(dk.code)}">${ic("play")}Present</button>` : ""}<button class="btn" data-open="${esc(next.code)}">Details & kit</button>${s.day ? `<a class="btn ghost" href="#print" data-printday="${s.day}">${ic("print")}Print ${s.day} kit</a>` : ""}</div></div>
+        </div></div>`;
+    } else {
+      upnext = `<div class="panel upnext empty-panel"><div class="panel-h"><h2>Up next</h2></div>${empty(`Nothing planned for the week of ${ws} yet.`, `<button class="btn primary" data-palette="plan">${ic("plus")}Plan a session</button>`)}</div>`;
+    }
+
+    const board = `<div class="panel"><div class="panel-h"><h2>This week</h2><span class="muted">${ws}</span></div><div class="board">${DAYS.map(d => {
+      const its = nw.filter(a => peek(a.code).day === d);
+      return `<div class="bday ${today === d ? "today" : ""}"><div class="bday-h"><b>${d}</b><span>${dayDate(d)}</span>${today === d ? `<em>Today</em>` : ""}</div>
+        ${its.map(a => { const g = GROUPS[a.group]; return `<button class="bitem" data-open="${esc(a.code)}" style="--c:${g.color};--l:${g.light}"><span>${esc(lab(a))}${deckOf(a.code) ? ic("play") : ""}</span><b>${esc(a.title)}</b><small>${esc(g.name)}${peek(a.code).time ? " · " + esc(peek(a.code).time) : ""}</small></button>`; }).join("")}
+        <button class="badd" data-palette="plan" aria-label="Plan a session on ${DAYFULL[d]}">${ic("plus")}</button></div>`; }).join("")}</div></div>`;
+
+    const groupsHTML = `<div class="panel"><div class="panel-h"><h2>Age groups</h2><a href="#curriculum">Curriculum ${ic("arrow")}</a></div><div class="gcards">${D.groups.map(g => {
+      const c = coreOf(g.code), dn = c.filter(a => isDone(a.code)).length, pl = nw.filter(a => a.group === g.code).length, up = nextUp(g.code, 2);
+      return `<div class="gc" style="--c:${g.color};--l:${g.light}"><a class="gc-h" href="#${g.code}">${ring(Math.round(100 * dn / c.length), g.color, 54)}<span><b>${esc(g.name)}</b><small>Ages ${esc(g.ages)} · ${dn}/${c.length} done${pl ? ` · <em>${pl} this week</em>` : ""}</small></span>${ic("arrow", "go")}</a>
+        <div class="gc-next">${up.map(a => `<button class="nrow" data-open="${esc(a.code)}"><span class="acode">${esc(a.code)}</span><span class="nt">${esc(a.title)}</span><span class="nplan">Plan</span></button>`).join("") || `<span class="muted">All planned or done</span>`}</div></div>`; }).join("")}</div></div>`;
+
+    const top = issue.slice().sort((x, y) => y.q - x.q).slice(0, 8);
+    const pack = `<div class="panel"><div class="panel-h"><h2>Pack list</h2><a href="#print">Print ${ic("arrow")}</a></div>
+      ${top.length ? `<div class="pack">${top.map(r => `<div><span>${esc(r.n)}<small>${esc(r.cat)}</small></span><b>${r.q}</b></div>`).join("")}</div>
+        ${issue.length > top.length ? `<a class="more" href="#print" data-pmode="week">+ ${issue.length - top.length} more parts</a>` : ""}` : `<p class="muted pad">Plan a session and its parts appear here.</p>`}</div>`;
+
+    const att = [];
+    const noday = nw.filter(a => !peek(a.code).day);
+    if (noday.length) att.push(["warn", `${plural(noday.length, "session")} without a day`, noday.map(a => lab(a)).join(", "), `<button class="lk" data-open="${esc(noday[0].code)}">Fix</button>`]);
+    const noslides = nw.filter(a => !deckOf(a.code));
+    if (noslides.length) att.push(["info", `No slides yet for ${plural(noslides.length, "session")}`, noslides.map(a => lab(a)).join(", "), `<a class="lk" href="#curriculum">View</a>`]);
+    const bk = S.lastBackup ? Math.floor((now - new Date(S.lastBackup)) / 864e5) : -1;
+    if (bk < 0 || bk > 7) att.push(["warn", bk < 0 ? "No backup downloaded yet" : `Last backup ${bk} days ago`, "Your plan lives in this browser only.", `<button class="lk" data-act="export">Download</button>`]);
+    if (!nw.length && [4, 5, 6].includes(now.getDay())) att.push(["info", "Plan next week", "Friday is kit-request day.", `<button class="lk" data-palette="plan">Plan</button>`]);
+    const attention = `<div class="panel"><div class="panel-h"><h2>Needs attention</h2>${att.length ? `<em class="count">${att.length}</em>` : ""}</div>
+      ${att.length ? `<div class="att">${att.map(([t, h, d, act]) => `<div class="att-i ${t}"><span class="att-dot"></span><div><b>${h}</b><small>${esc(d)}</small></div>${act}</div>`).join("")}</div>` : `<div class="allgood">${ic("check")}<span>All good. Nothing needs you right now.</span></div>`}</div>`;
+
+    const recent = ALL().filter(a => isDone(a.code)).sort((x, y) => (peek(y.code).date || "").localeCompare(peek(x.code).date || "")).slice(0, 5);
+    const done = `<div class="panel"><div class="panel-h"><h2>Recently done</h2><a href="#settings">Log ${ic("arrow")}</a></div>
+      ${recent.length ? `<div class="recent">${recent.map(a => `<button data-open="${esc(a.code)}" style="--c:${GROUPS[a.group].color}"><i></i><span><b>${esc(lab(a))}</b> ${esc(a.title)}</span><small>${peek(a.code).date ? fmt(new Date(peek(a.code).date + "T00:00:00"), { day: "numeric", month: "short" }) : ""}</small></button>`).join("")}</div>` : `<p class="muted pad">Mark sessions as done and they show up here.</p>`}</div>`;
+
+    const quick = `<div class="panel quick"><div class="panel-h"><h2>Shortcuts</h2></div><div class="qgrid">
+      <a href="#curriculum">${ic("book")}<span>Presentations</span></a><a href="#curriculum" data-libg="DOCS">${ic("file")}<span>Parent docs</span></a>
+      <a href="#hardware">${ic("parts")}<span>Hardware</span></a><a href="#print">${ic("print")}<span>Print lists</span></a></div></div>`;
+
+    return `<section class="welcome">
+        <div class="wl-txt"><span class="kicker">${fmt(now, { weekday: "long", day: "numeric", month: "long" })}</span>
+          <h1>${hi}, ${esc((S.name || "").split(" ")[0] || "teacher")}</h1>
+          <p>${nw.length ? `Week of ${ws}: ${plural(nw.length, "session")}, ${pairs * 2} students, ${plural(issue.length, "part")} to pack.` : `Week of ${ws} is empty. Plan the first session in two taps.`}</p></div>
+        <div class="wl-btns"><button class="btn primary big" data-palette="plan">${ic("plus")}Plan a session</button><a class="btn big" href="#print">${ic("print")}Print kit lists</a></div>
         ${DOODLE}
       </section>
-      <div class="stats">
-        <div class="stat">${ic("cal")}<div><b>${nw.length}</b><span>sessions planned</span></div></div>
-        <div class="stat">${ic("users")}<div><b>${pairs}</b><span>groups (about ${pairs * 2} students)</span></div></div>
-        <div class="stat">${ic("parts")}<div><b>${partsCount(nw)}</b><span>different parts to pack</span></div></div>
-      </div>
-      <h2 class="sh">This week</h2>
-      <div class="hweek">${strip}</div>
-      <h2 class="sh">Age groups <small>next classes to plan</small></h2>
-      <div class="ggrid">${groupsHTML}</div>`;
+      <div class="kpis">${kpis}</div>
+      <div class="dash">
+        <div class="dash-main">${upnext}${board}${groupsHTML}</div>
+        <div class="dash-side">${attention}${pack}${quick}${done}</div>
+      </div>`;
   }
 
+  /* ---------- COMMAND PALETTE (Ctrl K) ---------- */
+  const PAGES = [["home", "Home", "home"], ["curriculum", "Curriculum", "book"], ["hardware", "Hardware", "parts"], ["week", "Timetable", "week"], ["print", "Print lists", "print"], ["kits", "Edit kits & parts", "box"], ["settings", "Settings & backup", "gear"]];
+  const CMD = { open: false, mode: "all", q: "", i: 0, res: [] };
+  function openPalette(mode) { CMD.open = true; CMD.mode = mode || "all"; CMD.q = ""; CMD.i = 0;
+    $("#palette").innerHTML = `<div class="pal-box"><div class="pal-in">${ic("search")}<input id="palQ" autocomplete="off" placeholder="${CMD.mode === "plan" ? "Which activity? Type a code or name, e.g. JM-06 or robot" : "Search activities, presentations, documents, pages"}"><kbd>Esc</kbd></div><div class="pal-res" id="palRes"></div>
+      <div class="pal-foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>Enter</kbd> open</span><span><kbd>Ctrl K</kbd> search anywhere</span></div></div>`;
+    document.body.classList.add("pal-open"); palResults(); setTimeout(() => $("#palQ").focus(), 10); }
+  function closePalette() { CMD.open = false; document.body.classList.remove("pal-open"); $("#palette").innerHTML = ""; }
+  function palResults() {
+    const q = CMD.q.trim().toLowerCase(), toks = q.split(/\s+/).filter(Boolean), hit = h => toks.every(t => h.includes(t));
+    const R = [], sec = (title, arr, n) => { if (arr.length) R.push({ head: title }); arr.slice(0, n).forEach(x => R.push(x)); };
+    const act = a => ({ icon: a.domain, title: `${lab(a)} · ${a.title}`, sub: `${GROUPS[a.group].name}${a.from ? " (borrowed)" : ""} · ${statusText(a.code)}`, color: GROUPS[a.group].color, light: GROUPS[a.group].light, run: () => openModal(a.code), badge: deckOf(a.code) ? "Slides" : "" });
+    const deck = d => ({ thumb: d.thumb, title: `${d.code} · ${deckTitle(d)}`, sub: `${LG[d.group].name} · ${d.pages} slides`, color: LG[d.group].color, light: LG[d.group].light, run: () => openDeck(d.code), badge: "Present" });
+    const doc = (d, n) => ({ icon: d.type === "pdf" ? "file" : "sheet", title: d.title, sub: d.about, color: "#C98A12", light: "#FFF4DC", run: () => { if (d.type === "pdf") openViewer(d.file, d.title, "doc", "#F5B83D", d.about); else { const l = document.createElement("a"); l.href = d.file; l.download = ""; document.body.appendChild(l); l.click(); l.remove(); } }, badge: d.type === "pdf" ? "PDF" : "Excel" });
+    const page = ([k, t, i]) => ({ icon: i, title: t, sub: "Go to page", color: "#1B3A6B", light: "#E7ECF5", run: () => { location.hash = "#" + k; } });
+    if (!toks.length) {
+      if (CMD.mode !== "plan") sec("Jump to", PAGES.map(page).concat(D.groups.map(g => ({ icon: "users", title: g.name, sub: "Ages " + g.ages, color: g.color, light: g.light, run: () => { location.hash = "#" + g.code; } }))), 11);
+      sec("Planned this week", planned().map(act), 6);
+      sec("Next to teach", D.groups.flatMap(g => nextUp(g.code, 2)).map(act), 8);
+    } else {
+      const acts = ALL().filter(a => hit((a.code + " " + a.title + " " + a.domain + " " + GROUPS[a.group].name).toLowerCase()))
+        .sort((x, y) => (y.code.toLowerCase().startsWith(q) - x.code.toLowerCase().startsWith(q)));
+      sec("Activities", acts.map(act), CMD.mode === "plan" ? 14 : 7);
+      if (CMD.mode !== "plan") {
+        sec("Presentations", LIB.decks.filter(d => hit((d.code + " " + deckTitle(d) + " " + LG[d.group].name).toLowerCase())).map(deck), 6);
+        sec("Documents", LIB.docs.map((d, n) => [d, n]).filter(([d]) => hit((d.title + " " + d.about).toLowerCase())).map(([d, n]) => doc(d, n)), 5);
+        sec("Pages", PAGES.filter(p => hit(p[1].toLowerCase())).map(page), 4);
+      }
+    }
+    CMD.res = R.filter(x => !x.head); CMD.i = Math.min(CMD.i, Math.max(0, CMD.res.length - 1));
+    let k = -1;
+    $("#palRes").innerHTML = R.length ? R.map(x => x.head ? `<div class="pal-h">${x.head}</div>` : (k++, `<button class="pal-i ${k === CMD.i ? "on" : ""}" data-pal="${k}" style="--c:${x.color};--l:${x.light}">
+        ${x.thumb ? `<img src="${esc(x.thumb)}" alt="">` : `<span class="pal-ic">${ic(x.icon)}</span>`}<span class="pal-t"><b>${esc(x.title)}</b><small>${esc(x.sub)}</small></span>${x.badge ? `<em>${x.badge}</em>` : ""}${ic("arrow", "pal-go")}</button>`)).join("")
+      : `<div class="pal-empty">${DOODLE}<p>Nothing found for “${esc(CMD.q)}”.</p></div>`;
+  }
+  const statusText = c => { const s = peek(c); return s.status === "Next week" ? (s.day ? "Planned " + DAYFULL[s.day] : "Planned") : s.status === "Not started" ? "Not planned" : s.status; };
+  function palMove(n) { if (!CMD.res.length) return; CMD.i = (CMD.i + n + CMD.res.length) % CMD.res.length; document.querySelectorAll(".pal-i").forEach((b, i) => b.classList.toggle("on", i === CMD.i)); const on = document.querySelector(".pal-i.on"); if (on) on.scrollIntoView({ block: "nearest" }); }
+  function palRun(i) { const x = CMD.res[i]; if (!x) return; closePalette(); x.run(); }
+  $("#cmdk").onclick = () => openPalette("all");
+
   /* ---------- AGE GROUP ---------- */
-  const UI = { phase: {}, q: {}, pMode: "session", pDay: "ALL", pBreak: true, kitCode: ACTS[0].code, kitGroup: "LE", kitQ: "", catOpen: false, catQ: "" };
+  const UI = { phase: {}, q: {}, hwPh: {}, hwG: "", hwQ: "", libG: "F", libQ: "", pMode: "session", pDay: "ALL", pBreak: true, kitCode: ACTS[0].code, kitGroup: "LE", kitQ: "", catOpen: false, catQ: "" };
   function vGroup(gc) {
     const g = GROUPS[gc], all = ACTS.filter(a => a.group === gc), core = coreOf(gc), borrowed = extras().filter(a => a.group === gc);
     const dn = core.filter(a => isDone(a.code)).length, nw = all.concat(borrowed).filter(a => isPlanned(a.code)).length;
@@ -275,27 +375,37 @@
   }
   function renderModal() {
     if (String(modalCode).startsWith("pick:")) return renderPicker(modalCode.slice(5));
-    const a = getA(modalCode), g = GROUPS[a.group], s = peek(a.code), kit = kitOf(a.code), gr = groupsOf(a.code);
-    $("#modal").innerHTML = `<div class="sheet-m" style="--c:${g.color};--l:${g.light}">
-      <div class="m-head"><span class="aicon big">${ic(a.domain)}</span><div class="m-tt"><span class="acode">${esc(lab(a))} · ${esc(g.name)}${a.from ? ` · borrowed from ${esc(GROUPS[a.from].name)}` : ""}</span><h2>${esc(a.title)}</h2><p>${esc(a.domain)}${a.cls ? " · Class " + a.cls : ""}</p></div><button class="m-x" data-close aria-label="Close">${ic("x")}</button></div>
+    const a = getA(modalCode), g = GROUPS[a.group], s = peek(a.code), kit = kitOf(a.code).filter(k => k.n), gr = groupsOf(a.code), dk = deckOf(a.code);
+    const hero = dk
+      ? `<button class="mdeck" data-view="${esc(dk.code)}" aria-label="Open presentation"><img src="${esc(dk.thumb)}" alt=""><span class="dplay">${ic("play")}</span><span class="mdeck-cta">${ic("play")}Open presentation · ${dk.pages} slides</span></button>`
+      : `<div class="mdeck none"><span class="aicon big">${ic(a.domain)}</span><span>No presentation for this activity yet</span></div>`;
+    const dayTxt = isPlanned(a.code) ? (s.day ? `${DAYFULL[s.day]} ${dayDate(s.day)}` : "Planned, no day yet") : isDone(a.code) ? "Done" : "Not planned yet";
+    $("#modal").innerHTML = `<div class="sheet-m wide" style="--c:${g.color};--l:${g.light}">
+      <div class="m-hero">${hero}<button class="m-x float" data-close aria-label="Close">${ic("x")}</button></div>
+      <div class="m-title">
+        <span class="acode">${esc(lab(a))} · ${esc(a.domain)}${a.cls ? " · Class " + a.cls : ""}</span>
+        <h2>${esc(a.title)}</h2>
+        <div class="facts"><span class="fact ${isPlanned(a.code) ? "on" : ""}">${ic("cal")}${esc(dayTxt)}${s.time ? " · " + esc(s.time) : ""}</span>
+          <span class="fact grp"><i class="gdot" style="background:${g.color}"></i>${esc(g.name)}${a.from ? ` (from ${esc(GROUPS[a.from].name)})` : ""}</span>
+          <span class="fact">${ic("users")}${gr} groups · ${gr * 2} students</span></div>
+      </div>
       <div class="m-body">
-        <div class="m-sec"><label>Which day next week?</label>
+        <div class="m-sec"><label>Day</label>
           <div class="daypick">${DAYS.map(d => `<button class="${isPlanned(a.code) && s.day === d ? "on" : ""}" data-mday="${d}"><b>${d}</b><span>${dayDate(d)}</span></button>`).join("")}</div>
           ${isPlanned(a.code) ? `<button class="linkbtn" data-unplan>${ic("x")}Remove from this week</button>` : ""}</div>
         ${groupSection(a)}
+        <div class="m-sec"><label>Hardware for ${gr} groups <a href="#kits" data-editkit="${esc(lab(a))}">Edit kit</a></label>
+          <div class="mkit">${kit.map(k => `<div><span>${esc(k.n)}<small>${esc(catOf(k.n).cat)}${k.b === "class" ? " · per class" : ""}</small></span><b>${lineTotal(k, a.code)}</b></div>`).join("") || `<p class="muted">No parts listed.</p>`}</div></div>
         <div class="m-row">
-          <div class="m-sec"><label>Groups (pairs)</label><div class="stepper"><button data-step="-1">${ic("minus")}</button><b>${gr}</b><button data-step="1">${ic("plus")}</button></div><small>${gr * 2} students</small></div>
+          <div class="m-sec"><label>Groups (pairs)</label><div class="stepper"><button data-step="-1">${ic("minus")}</button><b>${gr}</b><button data-step="1">${ic("plus")}</button></div></div>
           <div class="m-sec"><label>Time <i>optional</i></label><input data-mf="time" value="${esc(s.time)}" placeholder="e.g. 2:30 pm"></div>
           <div class="m-sec"><label>Section <i>optional</i></label><input data-mf="section" value="${esc(s.section)}" placeholder="e.g. Grade 4 B"></div>
         </div>
-        <div class="m-sec"><label>Kit for ${gr} groups <a href="#kits" data-editkit="${esc(lab(a))}">Edit kit</a></label>
-          <div class="mkit">${kit.filter(k => k.n).map(k => `<div><span>${esc(k.n)}</span><b>${lineTotal(k, a.code)}</b></div>`).join("")}</div></div>
         <div class="m-sec"><label>Notes <i>optional</i></label><input data-mf="notes" value="${esc(s.notes)}" placeholder="Anything to remember"></div>
       </div>
       <div class="m-foot">
         <div class="m-status">${statusChip(a.code)}${s.status === "Done" && s.date ? `<small>on ${fmt(new Date(s.date + "T00:00:00"), { day: "numeric", month: "short" })}</small>` : ""}</div>
         <div class="m-acts">
-          ${deckOf(a.code) ? `<button class="btn" data-view="${esc(deckOf(a.code).code)}">${ic("play")}Slides</button>` : ""}
           ${s.status === "Done" ? `<button class="btn" data-mstatus="Not started">Undo done</button>` : `<button class="btn" data-mstatus="Done">${ic("check")}Mark as done</button>`}
           <button class="btn primary" data-close>Save</button></div>
       </div></div>`;
@@ -420,26 +530,60 @@
       <span class="docthumb ${pdf ? "" : "xl"}">${pdf ? `<img loading="lazy" src="${esc(d.thumb)}" alt="">` : ic("sheet")}</span>
       <span class="docbody"><b>${esc(d.title)}</b><small>${esc(d.about)}</small><span class="dmeta">${pdf ? `${ic("file")}PDF · ${d.pages} pages` : `${ic("down")}Excel · download`}</span></span></button>`;
   }
+  /* coloured age-group tabs, shared by Curriculum and Hardware */
+  function gtabs(list, sel, attr) {
+    return `<div class="gtabs">${list.map(g => `<button class="gtab ${sel === g.code ? "on" : ""}" ${attr}="${g.code}" style="--c:${g.color};--l:${g.light}">
+      ${g.icon ? ic(g.icon) : `<span class="gtab-code">${g.code}</span>`}<span class="gtab-txt"><b>${esc(g.name)}</b><small>${esc(g.sub)}</small></span></button>`).join("")}</div>`;
+  }
+  const ageSub = g => (g.code === "F" ? "All age groups" : "Ages " + g.ages);
   function vCurriculum() {
-    const q = (UI.libQ || "").toLowerCase(), sel = UI.libG || "ALL";
-    const match = d => !q || (d.code + " " + deckTitle(d)).toLowerCase().includes(q);
-    const cards = LGROUPS.map(g => { const ds = LIB.decks.filter(d => d.group === g.code);
-      return `<button class="lgcard ${sel === g.code ? "on" : ""}" data-libg="${g.code}" style="--c:${g.color};--l:${g.light}">
-        <span class="lgthumbs">${ds.slice(0, 3).map(d => `<img loading="lazy" src="${esc(d.thumb)}" alt="">`).join("")}</span>
-        <span class="lgtxt"><span class="gbig">${g.code}</span><span><b>${esc(g.name)}</b><small>${esc(g.ages.indexOf("All") === 0 ? g.ages : "Ages " + g.ages)}</small></span></span>
-        <span class="lgcount"><b>${ds.length}</b> presentations</span></button>`; }).join("");
-    const show = LGROUPS.filter(g => sel === "ALL" || sel === g.code);
-    const sections = show.map(g => { const ds = LIB.decks.filter(d => d.group === g.code && match(d)); if (!ds.length) return "";
-      const total = g.code === "F" ? 4 : ACTS.filter(a => a.group === g.code && !/^F-/.test(a.code)).length;
-      return `<h2 class="sh lsh" style="--c:${g.color}"><i class="gdot" style="background:${g.color}"></i>${esc(g.name)} <small>${ds.length} of ${total} activities have slides</small></h2><div class="dgrid">${ds.map(deckCard).join("")}</div>`; }).join("");
-    const docs = DOCKINDS.map(([k, t, i]) => { const list = LIB.docs.map((d, n) => [d, n]).filter(([d]) => d.kind === k && (!q || d.title.toLowerCase().includes(q)));
-      return list.length ? `<h3 class="unit">${t}</h3><div class="docgrid">${list.map(([d, n]) => docCard(d, n)).join("")}</div>` : ""; }).join("");
-    return head("Curriculum", "Tap a presentation to open it full screen. Use the arrow keys or tap the sides to change slides.",
-        `<label class="search">${ic("search")}<input type="search" id="libQ" placeholder="Search presentations" value="${esc(UI.libQ || "")}"></label>`) +
-      `<div class="lgrid">${cards}</div>
-      ${sel !== "ALL" ? `<button class="linkbtn navy" data-libg="ALL">${ic("left")}Show all age groups</button>` : ""}
-      ${sections || empty("No presentation matches your search.")}
-      <h2 class="sh" id="docs">Plans, parent documents & spreadsheets</h2>${docs}`;
+    const sel = UI.libG && (LG[UI.libG] || UI.libG === "DOCS") ? UI.libG : (UI.libG = "F"), q = (UI.libQ || "").toLowerCase();
+    const tabs = LGROUPS.map(g => ({ code: g.code, name: g.name, color: g.color, light: g.light, sub: `${ageSub(g)} · ${LIB.decks.filter(d => d.group === g.code).length} slides` }))
+      .concat([{ code: "DOCS", name: "Plans & documents", color: "#C98A12", light: "#FFF4DC", icon: "book", sub: `${LIB.docs.length} files` }]);
+    let body;
+    if (sel === "DOCS") {
+      body = DOCKINDS.map(([k, t]) => { const list = LIB.docs.map((d, n) => [d, n]).filter(([d]) => d.kind === k && (!q || (d.title + " " + d.about).toLowerCase().includes(q)));
+        return list.length ? `<h3 class="unit">${t}</h3><div class="docgrid">${list.map(([d, n]) => docCard(d, n)).join("")}</div>` : ""; }).join("") || empty("Nothing matches your search.");
+    } else {
+      const g = LG[sel], ds = LIB.decks.filter(d => d.group === sel && (!q || (d.code + " " + deckTitle(d)).toLowerCase().includes(q)));
+      const total = sel === "F" ? 4 : ACTS.filter(a => a.group === sel && !/^F-/.test(a.code)).length, have = LIB.decks.filter(d => d.group === sel).length;
+      body = `<div class="lhead" style="--c:${g.color};--l:${g.light}"><b>${esc(g.name)}</b><span>${have} of ${total} activities have a presentation</span></div>` +
+        (ds.length ? `<div class="dgrid">${ds.map(deckCard).join("")}</div>` : empty(q ? "No presentation matches your search." : "No presentations for this age group yet."));
+    }
+    return head("Curriculum", "Pick an age group, then tap a presentation to open it full screen.",
+        `<label class="search">${ic("search")}<input type="search" id="libQ" placeholder="${sel === "DOCS" ? "Search documents" : "Search presentations"}" value="${esc(UI.libQ || "")}"></label>`) +
+      gtabs(tabs, sel, "data-libg") + body;
+  }
+
+  /* ---------- HARDWARE ---------- */
+  function hwCard(a) {
+    const g = GROUPS[a.group], gr = groupsOf(a.code), kit = kitOf(a.code).filter(k => k.n && lineTotal(k, a.code) > 0);
+    return `<div class="hwcard" style="--c:${g.color};--l:${g.light}">
+      <div class="hwhead"><div><span class="acode">${deckOf(a.code) ? `<i class="sbadge">${ic("play")}</i>` : ""}${esc(lab(a))}</span>${fromTag(a)}<b>${esc(a.title)}</b></div>${statusChip(a.code)}</div>
+      <div class="hwsub">${UI.hwG === "WEEK" ? `${esc(g.name)} · ` : ""}${gr} groups · ${plural(kit.length, "part")}</div>
+      <div class="hwlist">${kit.map(k => `<div><span>${esc(k.n)}<small>${esc(catOf(k.n).cat)}${k.b === "class" ? " · per class" : ""}</small></span><b>${lineTotal(k, a.code)}</b></div>`).join("") || `<p class="muted">No parts listed.</p>`}</div>
+      <div class="hwfoot"><button class="btn" data-open="${esc(a.code)}">${isPlanned(a.code) || isDone(a.code) ? "Open" : "Plan"}</button><a class="btn ghost" href="#kits" data-editkit="${esc(lab(a))}">Edit kit</a></div></div>`;
+  }
+  function vHardware() {
+    const nw = planned();
+    if (!UI.hwG) UI.hwG = nw.length ? "WEEK" : "LE";
+    const sel = UI.hwG, q = (UI.hwQ || "").toLowerCase();
+    const tabs = [{ code: "WEEK", name: "This week", color: "#C98A12", light: "#FFF4DC", icon: "cal", sub: plural(nw.length, "session") }]
+      .concat(D.groups.map(g => ({ code: g.code, name: g.name, color: g.color, light: g.light, sub: "Ages " + g.ages })));
+    let list, sub = "";
+    if (sel === "WEEK") list = nw;
+    else {
+      const all = ACTS.filter(a => a.group === sel).concat(extras().filter(a => a.group === sel));
+      const ph = UI.hwPh[sel] || (UI.hwPh[sel] = "Foundation");
+      sub = `<div class="tabs">${PHASES.map(p => `<button class="${!q && ph === p ? "on" : ""}" data-hwph="${p}">${p}<em>${all.filter(a => phaseOf(a) === p).length}</em></button>`).join("")}</div>`;
+      list = all.filter(a => q ? (a.code + " " + a.title + " " + a.domain).toLowerCase().includes(q) : phaseOf(a) === ph);
+    }
+    if (q && sel === "WEEK") list = list.filter(a => (a.code + " " + a.title).toLowerCase().includes(q));
+    return head("Hardware", `Parts each activity needs. Totals use each session's number of groups (default ${S.defaultGroups}).`,
+        `<a class="btn primary" href="#print">${ic("print")}Print lists</a>`) +
+      gtabs(tabs, sel, "data-hwg") +
+      `<div class="gtools">${sub || "<span></span>"}<label class="search">${ic("search")}<input type="search" id="hwQ" placeholder="Search activities" value="${esc(UI.hwQ || "")}"></label></div>` +
+      (list.length ? `<div class="hwgrid">${list.map(hwCard).join("")}</div>` : empty(sel === "WEEK" ? "Nothing planned this week yet." : "Nothing matches your search.", sel === "WEEK" ? `<a class="btn primary" href="#home">Start planning</a>` : ""));
   }
 
   /* ---------- PDF VIEWER (PDF.js from cdnjs; falls back to the browser's own viewer) ---------- */
@@ -523,15 +667,20 @@
 
   /* ---------- events ---------- */
   document.addEventListener("click", e => {
+    if (e.target.id === "palette") { closePalette(); return; }
     const t = e.target.closest("button, a"); if (!t) { if (e.target.id === "scrim") { closeModal(); closeNav(); } return; }
     const d = t.dataset;
+    if (d.pal != null) { palRun(+d.pal); return; }
+    if (d.palette) { openPalette(d.palette); return; }
     if (d.view) { openDeck(d.view); return; }
     if (d.vgo) { goSlide(V.page + +d.vgo); return; }
     if ("vfs" in d) { toggleFs(); return; }
     if ("vclose" in d) { closeViewer(); return; }
     if (d.doc) { const x = LIB.docs[+d.doc]; openViewer(x.file, x.title, "doc", "#F5B83D", x.about); return; }
     if (d.dl) { const x = LIB.docs[+d.dl], l = document.createElement("a"); l.href = x.file; l.download = ""; document.body.appendChild(l); l.click(); l.remove(); toast("Downloading " + esc(x.title)); return; }
-    if (d.libg) { UI.libG = d.libg === UI.libG ? "ALL" : d.libg; render(); return; }
+    if (d.libg) { UI.libG = d.libg; UI.libQ = ""; if (t.tagName !== "A") render(); return; }
+    if (d.hwg) { UI.hwG = d.hwg; UI.hwQ = ""; render(); return; }
+    if (d.hwph) { UI.hwPh[UI.hwG] = d.hwph; UI.hwQ = ""; render(); return; }
     if (d.open) { openModal(d.open); return; }
     if ("close" in d) { closeModal(); return; }
     if (d.mday) { const s = sess(modalCode); s.day = d.mday; setStatus(modalCode, "Next week"); save(); renderModal(); toast(`${esc(lab(getA(modalCode)))} planned for <b>${DAYFULL[d.mday]}</b>`); return; }
@@ -550,7 +699,7 @@
     if (d.editkit) { UI.kitCode = d.editkit; UI.kitGroup = BYCODE[d.editkit].group; document.body.classList.remove("modal-open"); modalCode = null; return; }
     if (d.phase) { UI.phase[d.g] = d.phase; UI.q[d.g] = ""; render(); return; }
     if (d.printday) { UI.pDay = d.printday; UI.pMode = "session"; return; }
-    if (d.pmode) { UI.pMode = d.pmode; render(); return; }
+    if (d.pmode) { UI.pMode = d.pmode; if (t.tagName !== "A") render(); return; }
     if (d.pday != null) { UI.pDay = d.pday; render(); return; }
     if (d.kg) { UI.kitGroup = d.kg; UI.kitCode = ACTS.find(a => a.group === d.kg).code; render(); return; }
     if (d.kcode) { UI.kitCode = d.kcode; render(); return; }
@@ -564,7 +713,7 @@
       case "resetkit": if (confirm("Go back to the original kit?")) { delete S.kits[UI.kitCode]; save(); render(); } break;
       case "togglecat": UI.catOpen = !UI.catOpen; render(); break;
       case "addpart": { const n = $("#npName").value.trim(); if (!n) return toast("Type a part name first"); S.catalog[n] = { cat: $("#npCat").value, type: $("#npType").value, spec: "" }; save(); render(); toast("Part added"); break; }
-      case "export": download(`lab-planner-backup-${iso(new Date())}.json`, JSON.stringify(S, null, 1), "application/json"); break;
+      case "export": S.lastBackup = new Date().toISOString(); save(); download(`lab-planner-backup-${iso(new Date())}.json`, JSON.stringify(S, null, 1), "application/json"); break;
       case "csv": { const rows = [["Code", "Age group", "Phase", "Class", "Activity", "Status", "Day", "Date done", "Groups", "Time", "Section", "Notes"]];
         ALL().forEach(a => { const s = peek(a.code); rows.push([lab(a) + (a.from ? " (from " + a.from + ")" : ""), GROUPS[a.group].name, phaseOf(a), a.cls || "", a.title, s.status, s.day, s.date, groupsOf(a.code), s.time, s.section, s.notes]); });
         download(`session-log-${iso(new Date())}.csv`, "﻿" + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n"), "text/csv"); break; }
@@ -588,15 +737,22 @@
   let qT;
   document.addEventListener("input", e => {
     const t = e.target, key = t.dataset.gq ? "gq" : t.id;
+    if (key === "palQ") { CMD.q = t.value; CMD.i = 0; palResults(); return; }
     if (key === "pickQ") { UI.pickQ = t.value; const pos = t.selectionStart; renderModal(); const n = $("#pickQ"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (er) { } } return; }
-    if (!["gq", "kitQ", "catQ", "libQ"].includes(key)) return;
+    if (!["gq", "kitQ", "catQ", "libQ", "hwQ"].includes(key)) return;
     clearTimeout(qT); qT = setTimeout(() => {
-      if (key === "gq") UI.q[t.dataset.gq] = t.value; else if (key === "libQ") UI.libQ = t.value; else if (key === "kitQ") UI.kitQ = t.value; else UI.catQ = t.value;
+      if (key === "gq") UI.q[t.dataset.gq] = t.value; else if (key === "libQ") UI.libQ = t.value; else if (key === "hwQ") UI.hwQ = t.value; else if (key === "kitQ") UI.kitQ = t.value; else UI.catQ = t.value;
       const pos = t.selectionStart; render(); const n = key === "gq" ? document.querySelector(`[data-gq="${t.dataset.gq}"]`) : document.getElementById(key);
       if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (er) { } }
     }, 200);
   });
   document.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); if (CMD.open) closePalette(); else openPalette("all"); return; }
+    if (CMD.open) {
+      if (e.key === "Escape") closePalette(); else if (e.key === "ArrowDown") { e.preventDefault(); palMove(1); } else if (e.key === "ArrowUp") { e.preventDefault(); palMove(-1); } else if (e.key === "Enter") { e.preventDefault(); palRun(CMD.i); }
+      return;
+    }
+    if (e.key === "/" && !V.open && !modalCode && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); openPalette("all"); return; }
     if (V.open) {
       if (e.key === "Escape") { if (!document.fullscreenElement) closeViewer(); return; }
       if (["ArrowRight", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); goSlide(V.page + 1); }

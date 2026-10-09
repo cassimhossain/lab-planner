@@ -3,44 +3,58 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Robotics Lab Planner</title>
-<meta name="description" content="Robotics & AI Club planner: plan each age group's sessions and print day-wise hardware kit lists.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230F1B2D'/%3E%3Crect x='16' y='22' width='32' height='24' rx='7' fill='none' stroke='%23fff' stroke-width='3.5'/%3E%3Ccircle cx='27' cy='34' r='3' fill='%23F5B83D'/%3E%3Ccircle cx='37' cy='34' r='3' fill='%23F5B83D'/%3E%3Cpath d='M32 22v-8' stroke='%23fff' stroke-width='3.5'/%3E%3C/svg%3E">
+<title>Robotics &amp; AI Club</title>
+<meta name="description" content="Robotics & AI Club at Pak-Turk Maarif: plan sessions, open presentations, and print day-wise hardware kit lists.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23FFC94D'/%3E%3Cstop offset='1' stop-color='%23F0784A'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='48' height='48' rx='14' fill='url(%23g)'/%3E%3Cpath d='M24 8v6' stroke='%231B2A47' stroke-width='2.6' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='7' r='2.6' fill='%23fff' stroke='%231B2A47' stroke-width='2'/%3E%3Crect x='11' y='14' width='26' height='20' rx='7' fill='%23fff' stroke='%231B2A47' stroke-width='2.6'/%3E%3Ccircle cx='19' cy='23' r='3' fill='%231B2A47'/%3E%3Ccircle cx='29' cy='23' r='3' fill='%231B2A47'/%3E%3Cpath d='M20 29.5h8M11 22H7.5M37 22h3.5M18 34v5M30 34v5' stroke='%231B2A47' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<div class="bgdoodle" aria-hidden="true"></div>
 <div class="shell">
   <aside class="sidebar" id="sidebar">
-    <a class="brand" href="#home">
-      <span class="logo"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="20" width="40" height="30" rx="9" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="25" cy="35" r="4" fill="#F5B83D"/><circle cx="39" cy="35" r="4" fill="#F5B83D"/><path d="M32 20v-9" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="32" cy="9" r="4" fill="#F5B83D"/></svg></span>
-      <span><b>Lab Planner</b><small>Robotics &amp; AI Club</small></span>
+    <a class="brand" href="#home" aria-label="Robotics and AI Club home">
+      <span class="logo"><svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFC94D"/><stop offset="1" stop-color="#F0784A"/></linearGradient></defs>
+        <rect width="48" height="48" rx="14" fill="url(#lg)"/>
+        <g stroke="#1B2A47" stroke-linecap="round" stroke-linejoin="round" fill="none">
+          <path d="M24 8v6" stroke-width="2.6"/><circle cx="24" cy="7" r="2.6" fill="#fff" stroke-width="2"/>
+          <rect x="11" y="14" width="26" height="20" rx="7" fill="#fff" stroke-width="2.6"/>
+          <path d="M20 29.5h8M11 22H7.5M37 22h3.5M18 34v5M30 34v5" stroke-width="2.4"/>
+        </g>
+        <circle cx="19" cy="23" r="3" fill="#1B2A47"/><circle cx="29" cy="23" r="3" fill="#1B2A47"/>
+        <circle cx="20" cy="22" r="1" fill="#fff"/><circle cx="30" cy="22" r="1" fill="#fff"/>
+      </svg></span>
+      <span class="brand-t"><b>Robotics &amp; AI Club</b><small>Pak-Turk Maarif</small></span>
     </a>
-    <div class="weekbox">
-      <button class="wkbtn" id="wkPrev" aria-label="Previous week">‹</button>
-      <div class="wkmid"><small>Week</small><b id="wkLabel"></b></div>
-      <button class="wkbtn" id="wkNext" aria-label="Next week">›</button>
-    </div>
     <nav class="menu" id="menu"></nav>
     <div class="side-foot">
-      <svg viewBox="0 0 160 40" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 28h28l6-12 8 24 6-12h18"/><circle cx="76" cy="28" r="5"/><path d="M81 28h18V10h26"/><circle cx="130" cy="10" r="5"/><rect x="92" y="22" width="14" height="12" rx="2"/></g></svg>
-      <span>by Qasim Mushtaq</span>
+      <svg viewBox="0 0 200 70" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 50h26l6-12 8 24 6-12h16"/><circle cx="72" cy="50" r="5"/><path d="M77 50h14V26h22"/><circle cx="118" cy="26" r="5"/>
+        <rect x="140" y="20" width="34" height="26" rx="7"/><circle cx="151" cy="33" r="2.5"/><circle cx="163" cy="33" r="2.5"/><path d="M157 20v-8"/><circle cx="157" cy="9" r="3"/><path d="M146 46v8M168 46v8"/>
+        <path d="M184 14l3 3M190 8l-2 4M30 18l2 4M24 22l4-1"/></g></svg>
+      <span>Curriculum by Qasim Mushtaq</span>
     </div>
   </aside>
 
   <div class="main">
-    <header class="mobilebar">
-      <button class="burger" id="burger" aria-label="Menu">☰</button>
-      <b>Lab Planner</b>
-      <span id="mbWeek"></span>
+    <header class="topbar">
+      <button class="burger" id="burger" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <button class="cmdk" id="cmdk" aria-label="Search"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span>Search activities, slides, documents</span><kbd>Ctrl K</kbd></button>
+      <div class="weekbox">
+        <button class="wkbtn" id="wkPrev" aria-label="Previous week"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="wkmid"><small>Planning week</small><b id="wkLabel"></b></div>
+        <button class="wkbtn" id="wkNext" aria-label="Next week"><svg class="ic" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+      <button class="btn primary tb-plan" data-palette="plan"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Plan a session</span></button>
     </header>
     <main id="app"></main>
   </div>
 </div>
 <div class="scrim" id="scrim"></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Search"></div>
 <div class="viewer" id="viewer" role="dialog" aria-modal="true"></div>
 <div id="toast" role="status"></div>
 

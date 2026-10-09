@@ -1,51 +1,47 @@
-# Robotics & AI Club: Lab Planner
+# Robotics & AI Club
 
-A small website for planning Robotics & AI Club sessions at Pak-Turk Maarif and printing the hardware list for each day.
-It is plain HTML, CSS and JavaScript: no server, no build step, no login.
+The club's planning platform for Pak-Turk Maarif: plan sessions for each age group, present the slides in class, and print the hardware lists for the lab.
+It is plain HTML, CSS and JavaScript. There is no server, no build step and no login.
 
-## What it does
+## Pages
 
-- **Home**: this week at a glance and the next classes to plan for each age group.
-- **Curriculum**: every presentation as a card per age group. Tap to open it full screen (arrow keys, space, or tap the sides to move; F for full screen). Curriculum plans, parent brochures, registration forms, planner spreadsheets and requisitions are below the presentations.
-- **Little Explorers / Junior Makers / Young Innovators / Tech Leaders**: activity cards by phase. Tap a card, choose a day, set the number of groups. Done.
-- **Swap or borrow**: in any session, tap another age group to give the activity to them (same day and time), or use *Swap with another group's session*. On a group page, *Add from another group* borrows any activity. Borrowed activities share the original kit.
-- **Timetable**: Monday to Friday. Tap a session to change it, or print one day's kit.
-- **Print lists**: per session, per day or whole week. Print or save as PDF for the lab.
-- **Kits & parts**: change the parts of any activity, add new parts.
-- **Settings**: default groups (8), your name on printouts, backup and session log.
+- **Home**: dashboard for the planning week. It shows the next session with a Present button, the week board, students and parts totals, the pack list, things that need attention (sessions without a day, sessions without slides, backups) and progress for each age group.
+- **Curriculum**: coloured tabs for Foundation, Little Explorers, Junior Makers, Young Innovators and Tech Leaders, plus **Plans & documents**. Tap a presentation to open it full screen. Move with the arrow keys or space, by tapping the sides, or by swiping on a phone. Press F for full screen.
+- **Hardware**: the same coloured tabs plus **This week**. Each activity is a card with its parts and totals.
+- **Age group pages**: activity cards by phase. Tap one to plan it.
+- **Session sheet** (tap any session or activity): the presentation is at the top, then the day, the age group and the hardware list. You can also move or swap the session to another age group from here.
+- **Timetable** and **Print lists**: the week from Monday to Friday, and kit lists per session, per day or for the whole week.
+- **Search**: press **Ctrl K** (or **/**) anywhere to find any activity, presentation, document or page.
 
-Use the arrows in the sidebar to move between weeks.
+Use the arrows in the top bar to change the planning week.
 
-## Put it on GitHub Pages
+## Adding new presentations
 
-1. On github.com, create a new repository, for example `lab-planner` (Public).
-2. Click **Add file → Upload files** and drag in everything in this folder. Click **Commit changes**.
-3. Go to **Settings → Pages**. Under *Build and deployment*, choose **Deploy from a branch**, branch **main**, folder **/ (root)**, then **Save**.
-4. After a minute or two the site is live at `https://cassimhossain.github.io/lab-planner/`.
+1. Save the PDF in `Documents/Robotics Curriculum/Presentations/<age group folder>/`, named like `JM-10_Some_Title_Slides.pdf`.
+2. In this folder, run:
+   ```
+   python3 tools/build_library.py
+   git add -A
+   git commit -m "Add new presentations"
+   git push
+   ```
+`build_library.py` copies new or changed PDFs into `library/`, makes the cover images and rebuilds `library.js`.
+Cover images need poppler (`brew install poppler`).
 
-## Important: where your data is saved
+## Where your data is saved
 
-Your plan is saved **in the browser you use** (local storage), not on GitHub.
-- Another computer, another browser, or clearing browsing data will show an empty plan.
-- Use **Settings → Download backup** every Friday, and **Load backup** on another device.
-- The curriculum and original kits live in `data.js`. Your own changes are stored separately, so updating `data.js` never deletes your plan.
+Your plan is saved **in the browser you use** (local storage), not on GitHub. Use **Settings → Download backup** every Friday. The home page reminds you when a backup is older than a week.
+
+**Note:** the repository is public, so anyone with the link can open everything in `library/`, including the INTERNAL plans and the requisitions.
 
 ## Files
 
 | File | What it is |
 |---|---|
-| `index.html` | The page |
-| `styles.css` | The look and the print layout |
-| `app.js` | All the logic |
-| `data.js` | Activities, kits and parts catalog (generated from the curriculum plan) |
-| `library.js` | List of presentations and documents in `library/` |
-| `library/slides` | Presentation PDFs |
-| `library/docs` | Plans, parent documents, forms, spreadsheets, requisitions |
-| `library/thumbs` | Cover images for the cards |
+| `index.html`, `styles.css`, `app.js` | The site |
+| `data.js` | Activities, kits and parts catalog |
+| `library.js` | List of presentations and documents (generated) |
+| `library/slides`, `library/docs`, `library/thumbs` | Presentation PDFs, documents, cover images |
+| `tools/build_library.py` | Syncs `library/` from the Robotics Curriculum folder |
 
-**Note:** the repository is public, so everything in `library/` (including the INTERNAL plans and requisitions) can be opened by anyone with the link.
-
-### Adding a new presentation
-Put the PDF in `library/slides/` named like `JM-10_Some_Title_Slides.pdf`, add a cover image in `library/thumbs/JM-10.jpg`, and add one entry to `library.js` (copy an existing one).
-
-Curriculum and planner by Qasim Mushtaq, MS Robotics and AI.
+Curriculum and platform by Qasim Mushtaq, MS Robotics and AI.

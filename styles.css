@@ -696,3 +696,24 @@ body.pal-open .palette { display: flex; }
 .mvid > .ic { color: #E63946; }
 .dvid { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 800; color: #E63946; }
 .dvid .ic { width: 12px; height: 12px; fill: currentColor; stroke: none; }
+
+/* ---------- animated robot logo ---------- */
+.logo { background: rgba(255,255,255,.14); box-shadow: 0 6px 18px rgba(0,0,0,.18); border-radius: 15px; padding: 4px; overflow: visible; }
+.logo svg.robo { width: 44px; height: 44px; overflow: visible; }
+.robo .r-head { transform-origin: 32px 60px; animation: r-bob 3.2s ease-in-out infinite; }
+.robo .r-hair { transform-origin: 32px 12px; animation: r-wiggle 1.6s ease-in-out infinite; }
+.robo .r-eye { transform-box: fill-box; transform-origin: center; animation: r-blink 4.5s infinite; }
+.robo .r-pupil { animation: r-look 6s ease-in-out infinite; }
+.robo .r-bulb { transform-box: fill-box; transform-origin: center; animation: r-glow 1.4s ease-in-out infinite; }
+.robo .r-bulb.b { animation-delay: .7s; }
+.robo .r-teeth { animation: r-talk 2.4s ease-in-out infinite; }
+.brand:hover .robo .r-head { animation: r-bob .6s ease-in-out infinite; }
+.brand:hover .robo .r-hair { animation-duration: .5s; }
+@keyframes r-bob { 0%, 100% { transform: translateY(0) rotate(0); } 25% { transform: translateY(-1.2px) rotate(-3deg); } 75% { transform: translateY(-1.2px) rotate(3deg); } }
+@keyframes r-wiggle { 0%, 100% { transform: rotate(0) scaleY(1); } 50% { transform: rotate(4deg) scaleY(1.12); } }
+@keyframes r-blink { 0%, 44%, 50%, 100% { transform: scaleY(1); } 47% { transform: scaleY(.1); } }
+@keyframes r-look { 0%, 20%, 100% { transform: translate(0, 0); } 30%, 45% { transform: translate(2px, 0); } 60%, 75% { transform: translate(-2px, -1px); } }
+@keyframes r-glow { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(.75); } }
+@keyframes r-talk { 0%, 100% { opacity: .7; } 50% { opacity: .35; } }
+.side-foot .credit { display: block; font-size: 10.5px; opacity: .7; margin-top: 2px; }
+@media (prefers-reduced-motion: reduce) { .robo * { animation: none !important; } }

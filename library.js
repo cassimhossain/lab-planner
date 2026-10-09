@@ -200,6 +200,24 @@ window.LIBRARY = {
    "kb": 506
   },
   {
+   "code": "LE-02",
+   "group": "LE",
+   "title": "Push Button Doorbell",
+   "file": "library/slides/LE-02_Push_Button_Doorbell_Slides.pdf",
+   "thumb": "library/thumbs/LE-02.jpg",
+   "pages": 15,
+   "kb": 380
+  },
+  {
+   "code": "LE-03",
+   "group": "LE",
+   "title": "Lemon Battery LED Lamp",
+   "file": "library/slides/LE-03_Lemon_Battery_LED_Lamp_Slides.pdf",
+   "thumb": "library/thumbs/LE-03.jpg",
+   "pages": 15,
+   "kb": 390
+  },
+  {
    "code": "LE-04",
    "group": "LE",
    "title": "Traffic Light Controller",
@@ -227,6 +245,51 @@ window.LIBRARY = {
    "kb": 460
   },
   {
+   "code": "LE-07",
+   "group": "LE",
+   "title": "Plant Water Alarm",
+   "file": "library/slides/LE-07_Plant_Water_Alarm_Slides.pdf",
+   "thumb": "library/thumbs/LE-07.jpg",
+   "pages": 15,
+   "kb": 367
+  },
+  {
+   "code": "LE-08",
+   "group": "LE",
+   "title": "Motion Detector Room Alarm",
+   "file": "library/slides/LE-08_Motion_Detector_Room_Alarm_Slides.pdf",
+   "thumb": "library/thumbs/LE-08.jpg",
+   "pages": 15,
+   "kb": 370
+  },
+  {
+   "code": "LE-09",
+   "group": "LE",
+   "title": "Waving Robot Arm",
+   "file": "library/slides/LE-09_Waving_Robot_Arm_Slides.pdf",
+   "thumb": "library/thumbs/LE-09.jpg",
+   "pages": 15,
+   "kb": 449
+  },
+  {
+   "code": "LE-10",
+   "group": "LE",
+   "title": "Automatic Railway Crossing Gate",
+   "file": "library/slides/LE-10_Automatic_Railway_Crossing_Gate_Slides.pdf",
+   "thumb": "library/thumbs/LE-10.jpg",
+   "pages": 15,
+   "kb": 427
+  },
+  {
+   "code": "LE-11",
+   "group": "LE",
+   "title": "Vibrating Brush Robot",
+   "file": "library/slides/LE-11_Vibrating_Brush_Robot_Slides.pdf",
+   "thumb": "library/thumbs/LE-11.jpg",
+   "pages": 15,
+   "kb": 386
+  },
+  {
    "code": "LE-12",
    "group": "LE",
    "title": "Morse Code Light Messenger",
@@ -234,6 +297,42 @@ window.LIBRARY = {
    "thumb": "library/thumbs/LE-12.jpg",
    "pages": 17,
    "kb": 529
+  },
+  {
+   "code": "LE-13",
+   "group": "LE",
+   "title": "Makey Makey Fruit Piano",
+   "file": "library/slides/LE-13_Makey_Makey_Fruit_Piano_Slides.pdf",
+   "thumb": "library/thumbs/LE-13.jpg",
+   "pages": 15,
+   "kb": 412
+  },
+  {
+   "code": "LE-14",
+   "group": "LE",
+   "title": "Animated Story App",
+   "file": "library/slides/LE-14_Animated_Story_App_Slides.pdf",
+   "thumb": "library/thumbs/LE-14.jpg",
+   "pages": 15,
+   "kb": 404
+  },
+  {
+   "code": "LE-15",
+   "group": "LE",
+   "title": "Catch the Fruit Game",
+   "file": "library/slides/LE-15_Catch_the_Fruit_Game_Slides.pdf",
+   "thumb": "library/thumbs/LE-15.jpg",
+   "pages": 15,
+   "kb": 382
+  },
+  {
+   "code": "LE-16",
+   "group": "LE",
+   "title": "Robot Sorting Rules Game",
+   "file": "library/slides/LE-16_Robot_Sorting_Rules_Game_Slides.pdf",
+   "thumb": "library/thumbs/LE-16.jpg",
+   "pages": 15,
+   "kb": 384
   },
   {
    "code": "TL-01",

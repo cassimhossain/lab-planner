@@ -16,6 +16,8 @@
   /* presentations and documents (library.js, generated from the Robotics Curriculum folder) */
   const LIB = window.LIBRARY || { decks: [], docs: [] };
   const DECK = Object.fromEntries(LIB.decks.map(d => [d.code, d]));
+  const VIDS = window.VIDEOS || {};
+  const vidOf = id => { const c = String(id).split("@")[0].split(" ")[0]; return (VIDS[c] || [])[0] || null; };
   const LGROUPS = [{ code: "F", name: "Foundation", ages: "All age groups", color: "#1B3A6B", light: "#E7ECF5" }].concat(D.groups);
   const LG = Object.fromEntries(LGROUPS.map(g => [g.code, g]));
   const deckOf = id => DECK[String(id).split("@")[0].split(" ")[0]] || null;
@@ -228,7 +230,7 @@
           ${dk ? `<button class="un-thumb" data-view="${esc(dk.code)}" aria-label="Open presentation"><img src="${esc(dk.thumb)}" alt=""><span class="dplay">${ic("play")}</span></button>` : `<div class="un-thumb none"><span class="aicon big">${ic(next.domain)}</span><small>No slides yet</small></div>`}
           <div class="un-info"><span class="acode">${esc(lab(next))}</span>${fromTag(next)}<h3>${esc(next.title)}</h3>
             <div class="facts"><span class="fact on">${ic("cal")}${s.day ? DAYFULL[s.day] + " " + dayDate(s.day) : "No day yet"}${s.time ? " · " + esc(s.time) : ""}</span><span class="fact grp"><i class="gdot" style="background:${g.color}"></i>${esc(g.name)}</span><span class="fact">${ic("users")}${groupsOf(next.code)} groups</span></div>
-            <div class="un-btns">${dk ? `<button class="btn primary" data-view="${esc(dk.code)}">${ic("play")}Present</button>` : ""}<button class="btn" data-open="${esc(next.code)}">Details & kit</button>${s.day ? `<a class="btn ghost" href="#print" data-printday="${s.day}">${ic("print")}Print ${s.day} kit</a>` : ""}</div></div>
+            <div class="un-btns">${dk ? `<button class="btn primary" data-view="${esc(dk.code)}">${ic("play")}Present</button>` : ""}${vidOf(next.code) ? `<button class="btn" data-video="${esc(lab(next))}">${ic("play")}Video</button>` : ""}<button class="btn" data-open="${esc(next.code)}">Details & kit</button>${s.day ? `<a class="btn ghost" href="#print" data-printday="${s.day}">${ic("print")}Print ${s.day} kit</a>` : ""}</div></div>
         </div></div>`;
     } else {
       upnext = `<div class="panel upnext empty-panel"><div class="panel-h"><h2>Up next</h2></div>${empty(`Nothing planned for the week of ${ws} yet.`, `<button class="btn primary" data-palette="plan">${ic("plus")}Plan a session</button>`)}</div>`;
@@ -379,9 +381,11 @@
     const hero = dk
       ? `<button class="mdeck" data-view="${esc(dk.code)}" aria-label="Open presentation"><img src="${esc(dk.thumb)}" alt=""><span class="dplay">${ic("play")}</span><span class="mdeck-cta">${ic("play")}Open presentation · ${dk.pages} slides</span></button>`
       : `<div class="mdeck none"><span class="aicon big">${ic(a.domain)}</span><span>No presentation for this activity yet</span></div>`;
+    const vv = vidOf(a.code);
+    const vrow = vv ? `<button class="mvid" data-video="${esc(lab(a))}"><span class="mvid-ic">${ic("play")}</span><span><b>Watch the video</b><small>${esc(vv.title)} · ${esc(vv.channel)} · about ${vv.mins} min</small></span>${ic("arrow")}</button>` : "";
     const dayTxt = isPlanned(a.code) ? (s.day ? `${DAYFULL[s.day]} ${dayDate(s.day)}` : "Planned, no day yet") : isDone(a.code) ? "Done" : "Not planned yet";
     $("#modal").innerHTML = `<div class="sheet-m wide" style="--c:${g.color};--l:${g.light}">
-      <div class="m-hero">${hero}<button class="m-x float" data-close aria-label="Close">${ic("x")}</button></div>
+      <div class="m-hero">${hero}${vrow}<button class="m-x float" data-close aria-label="Close">${ic("x")}</button></div>
       <div class="m-title">
         <span class="acode">${esc(lab(a))} · ${esc(a.domain)}${a.cls ? " · Class " + a.cls : ""}</span>
         <h2>${esc(a.title)}</h2>
@@ -521,7 +525,7 @@
     const st = d.group === "F" ? "" : (() => { const s = peek(d.code); return s.status === "Next week" ? `<span class="chip amber">${ic("cal")}${s.day ? DAYFULL[s.day] : "Planned"}</span>` : s.status === "Done" ? `<span class="chip green">${ic("check")}Done</span>` : ""; })();
     return `<button class="deck" data-view="${esc(d.code)}" style="--c:${g.color};--l:${g.light}">
       <span class="dthumb"><img loading="lazy" src="${esc(d.thumb)}" alt=""><span class="dplay">${ic("play")}</span><span class="dpages">${d.pages} slides</span></span>
-      <span class="dbody"><span class="dtop"><span class="acode">${esc(d.code)}</span>${st}</span><b>${esc(deckTitle(d))}</b></span></button>`;
+      <span class="dbody"><span class="dtop"><span class="acode">${esc(d.code)}</span>${st}</span><b>${esc(deckTitle(d))}</b>${vidOf(d.code) ? `<span class="dvid">${ic("play")}Video included</span>` : ""}</span></button>`;
   }
   const DOCKINDS = [["plan", "Curriculum plans", "book"], ["parent", "For parents", "users"], ["sheet", "Planner spreadsheets", "sheet"], ["req", "Requisitions", "box"]];
   function docCard(d, i) {
@@ -596,11 +600,12 @@
       sc.onerror = () => { pdfReady = null; rej(new Error("pdf.js")); }; document.head.appendChild(sc); }));
   }
   const V = { doc: null, page: 1, n: 0, mode: "slides", file: "", tok: 0, open: false };
-  async function openViewer(file, title, mode, color, sub) {
+  async function openViewer(file, title, mode, color, sub, vcode) {
     Object.assign(V, { doc: null, page: 1, n: 0, mode, file, open: true });
     const el = $("#viewer"); el.style.setProperty("--c", color || "#F5B83D");
     el.innerHTML = `<div class="vbar"><div class="vt"><b>${esc(title)}</b><span>${esc(sub || "")}<span id="vCount"></span></span></div>
       <div class="vbtns">${mode === "slides" ? `<button class="vb" data-vgo="-1" aria-label="Previous">${ic("left")}</button><button class="vb" data-vgo="1" aria-label="Next">${ic("right")}</button>` : ""}
+        ${vcode && vidOf(vcode) ? `<button class="vb wide vred" data-video="${esc(vcode)}">${ic("play")}<span>Video</span></button>` : ""}
         <button class="vb wide" data-vfs>${ic("expand")}<span>Full screen</span></button>
         <a class="vb" href="${esc(file)}" download aria-label="Download" title="Download">${ic("down")}</a>
         <a class="vb" href="${esc(file)}" target="_blank" rel="noopener" aria-label="Open in new tab" title="Open in new tab">${ic("ext")}</a>
@@ -645,7 +650,20 @@
   function toggleFs() { const el = $("#viewer"); if (document.fullscreenElement) document.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(); }
   let rsT; const reflow = () => { clearTimeout(rsT); rsT = setTimeout(() => { if (V.open && V.mode === "slides") renderSlide(); }, 120); };
   window.addEventListener("resize", reflow); document.addEventListener("fullscreenchange", reflow);
-  function openDeck(code) { const d = DECK[code]; if (!d) return; const g = LG[d.group]; openViewer(d.file, `${d.code} · ${deckTitle(d)}`, "slides", g.color, g.name); }
+  function openDeck(code) { const d = DECK[code]; if (!d) return; const g = LG[d.group]; openViewer(d.file, `${d.code} · ${deckTitle(d)}`, "slides", g.color, g.name, d.code); }
+  function openVideo(code) {
+    const v = vidOf(code); if (!v) return;
+    const c = String(code).split("@")[0].split(" ")[0], d = DECK[c], g = d ? LG[d.group] : null;
+    Object.assign(V, { doc: null, page: 1, n: 0, mode: "video", file: "", open: true }); V.tok++;
+    const el = $("#viewer"); el.style.setProperty("--c", g ? g.color : "#E63946");
+    el.innerHTML = `<div class="vbar"><div class="vt"><b>${esc(v.title)}</b><span>${esc(v.channel)} · about ${v.mins} minutes${d ? " · for " + esc(c) : ""}</span></div>
+      <div class="vbtns">${d ? `<button class="vb wide" data-view="${esc(c)}">${ic("book")}<span>Slides</span></button>` : ""}
+        <button class="vb wide" data-vfs>${ic("expand")}<span>Full screen</span></button>
+        <a class="vb" href="https://youtu.be/${esc(v.id)}" target="_blank" rel="noopener" aria-label="Open on YouTube" title="Open on YouTube">${ic("ext")}</a>
+        <button class="vb close" data-vclose aria-label="Close">${ic("x")}</button></div></div>
+      <div class="vstage video" id="vStage"><div class="vvideo"><iframe src="https://www.youtube-nocookie.com/embed/${esc(v.id)}?autoplay=1&rel=0&modestbranding=1" title="${esc(v.title)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div></div>`;
+    document.body.classList.add("viewer-open");
+  }
   let tx = null;
   document.addEventListener("touchstart", e => { if (V.open && V.mode === "slides") tx = e.touches[0].clientX; }, { passive: true });
   document.addEventListener("touchend", e => { if (tx == null) return; const dx = e.changedTouches[0].clientX - tx; tx = null; if (Math.abs(dx) > 50) goSlide(V.page + (dx < 0 ? 1 : -1)); }, { passive: true });
@@ -672,6 +690,7 @@
     const d = t.dataset;
     if (d.pal != null) { palRun(+d.pal); return; }
     if (d.palette) { openPalette(d.palette); return; }
+    if (d.video) { openVideo(d.video); return; }
     if (d.view) { openDeck(d.view); return; }
     if (d.vgo) { goSlide(V.page + +d.vgo); return; }
     if ("vfs" in d) { toggleFs(); return; }

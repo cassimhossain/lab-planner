@@ -128,6 +128,24 @@ window.LIBRARY = {
    "kb": 502
   },
   {
+   "code": "JM-10",
+   "group": "JM",
+   "title": "3D Designed Name Badge and Sensor Mount",
+   "file": "library/slides/JM-10_3D_Designed_Name_Badge_and_Sensor_Mount_Slides.pdf",
+   "thumb": "library/thumbs/JM-10.jpg",
+   "pages": 21,
+   "kb": 536
+  },
+  {
+   "code": "JM-11",
+   "group": "JM",
+   "title": "Line Following Robot",
+   "file": "library/slides/JM-11_Line_Following_Robot_Slides.pdf",
+   "thumb": "library/thumbs/JM-11.jpg",
+   "pages": 21,
+   "kb": 588
+  },
+  {
    "code": "JM-12",
    "group": "JM",
    "title": "Phone Controlled RGB Mood Lamp",
@@ -137,6 +155,15 @@ window.LIBRARY = {
    "kb": 472
   },
   {
+   "code": "JM-13",
+   "group": "JM",
+   "title": "Step Counter Fitness Tracker",
+   "file": "library/slides/JM-13_Step_Counter_Fitness_Tracker_Slides.pdf",
+   "thumb": "library/thumbs/JM-13.jpg",
+   "pages": 21,
+   "kb": 532
+  },
+  {
    "code": "JM-14",
    "group": "JM",
    "title": "Weather Report Webpage",
@@ -144,6 +171,15 @@ window.LIBRARY = {
    "thumb": "library/thumbs/JM-14.jpg",
    "pages": 16,
    "kb": 386
+  },
+  {
+   "code": "JM-15",
+   "group": "JM",
+   "title": "Pong Game with a Knob Controller",
+   "file": "library/slides/JM-15_Pong_Game_with_a_Knob_Controller_Slides.pdf",
+   "thumb": "library/thumbs/JM-15.jpg",
+   "pages": 21,
+   "kb": 533
   },
   {
    "code": "JM-16",

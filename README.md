@@ -5,15 +5,14 @@ It is plain HTML, CSS and JavaScript: no server, no build step, no login.
 
 ## What it does
 
-1. **Plan**: all 145 activities (Foundation F-00 to F-03, Phase 1 and Phase 2 for all four age groups, plus the JM-00 Art Bot). Tap a day (M T W T F) on a card to mark it for next week. Set the number of groups (pairs), time and section.
-2. **Next week**: the week at a glance, Monday to Friday.
-3. **Kit lists**: three printable lists:
-   - *Day by day, per session*: one block per session, in the kit format (Code, Category, Component, Qty, Basis, Type, Notes, Total, Packed).
-   - *Day by day, combined*: everything needed on each day, added together.
-   - *Whole week request*: reusable parts = most needed on one day, consumables = week total.
-   Press **Print / Save as PDF** and choose "Save as PDF" in the print dialog.
-4. **Kits**: change any activity's kit, add parts, or add brand-new parts to the catalog.
-5. **Settings**: default groups (8), your name for the printouts, backup download / load, CSV session log.
+- **Dashboard**: sessions planned this week, a Monday to Friday strip, and the next classes for each age group (tap a day to plan them).
+- **Little Explorers / Junior Makers / Young Innovators / Tech Leaders**: one tab per age group. Every activity in a table (Foundation, Phase 1, Phase 2) with status, day, groups, time, section and its kit.
+- **This Week**: the timetable. Move a session to another day or remove it.
+- **Kit Lists**: printable lists per session, per day (combined) or for the whole week. Filter by day, then Print / Save as PDF.
+- **Kits**: edit the parts of any activity and add new parts to the catalog.
+- **Settings**: default groups (8), your name for printouts, backup download / load, CSV session log.
+
+Use the arrows at the top right to move between weeks.
 
 ## Put it on GitHub Pages
 

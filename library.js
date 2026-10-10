@@ -7,8 +7,8 @@ window.LIBRARY = {
    "title": "Welcome to Robotics",
    "file": "library/slides/F-00_Welcome_to_Robotics_Slides.pdf",
    "thumb": "library/thumbs/F-00.jpg",
-   "pages": 29,
-   "kb": 1004
+   "pages": 30,
+   "kb": 1045
   },
   {
    "code": "F-01",
@@ -16,8 +16,8 @@ window.LIBRARY = {
    "title": "Arduino Uno Basics",
    "file": "library/slides/F-01_Arduino_Uno_Basics_Slides.pdf",
    "thumb": "library/thumbs/F-01.jpg",
-   "pages": 20,
-   "kb": 662
+   "pages": 21,
+   "kb": 694
   },
   {
    "code": "F-02",
@@ -25,8 +25,8 @@ window.LIBRARY = {
    "title": "ESP32 Basics",
    "file": "library/slides/F-02_ESP32_Basics_Slides.pdf",
    "thumb": "library/thumbs/F-02.jpg",
-   "pages": 22,
-   "kb": 798
+   "pages": 23,
+   "kb": 833
   },
   {
    "code": "F-03",
@@ -34,8 +34,8 @@ window.LIBRARY = {
    "title": "3D Modelling and Printing",
    "file": "library/slides/F-03_3D_Modelling_and_Printing_Slides.pdf",
    "thumb": "library/thumbs/F-03.jpg",
-   "pages": 25,
-   "kb": 636
+   "pages": 26,
+   "kb": 673
   },
   {
    "code": "JM-00",
@@ -43,8 +43,8 @@ window.LIBRARY = {
    "title": "Intro to Robotics Art Bot",
    "file": "library/slides/JM-00_Intro_to_Robotics_Art_Bot_Slides.pdf",
    "thumb": "library/thumbs/JM-00.jpg",
-   "pages": 29,
-   "kb": 970
+   "pages": 30,
+   "kb": 1010
   },
   {
    "code": "JM-01",
@@ -52,8 +52,8 @@ window.LIBRARY = {
    "title": "Series and Parallel Circuits",
    "file": "library/slides/JM-01_Series_and_Parallel_Circuits_Slides.pdf",
    "thumb": "library/thumbs/JM-01.jpg",
-   "pages": 16,
-   "kb": 552
+   "pages": 17,
+   "kb": 581
   },
   {
    "code": "JM-02",
@@ -61,8 +61,8 @@ window.LIBRARY = {
    "title": "Two Player Reaction Timer",
    "file": "library/slides/JM-02_Two_Player_Reaction_Timer_Slides.pdf",
    "thumb": "library/thumbs/JM-02.jpg",
-   "pages": 18,
-   "kb": 646
+   "pages": 19,
+   "kb": 678
   },
   {
    "code": "JM-03",
@@ -70,8 +70,8 @@ window.LIBRARY = {
    "title": "Mini Weather Station",
    "file": "library/slides/JM-03_Mini_Weather_Station_Slides.pdf",
    "thumb": "library/thumbs/JM-03.jpg",
-   "pages": 18,
-   "kb": 549
+   "pages": 19,
+   "kb": 581
   },
   {
    "code": "JM-04",
@@ -79,8 +79,8 @@ window.LIBRARY = {
    "title": "Smart Dustbin Fill Level",
    "file": "library/slides/JM-04_Smart_Dustbin_Fill_Level_Slides.pdf",
    "thumb": "library/thumbs/JM-04.jpg",
-   "pages": 19,
-   "kb": 590
+   "pages": 20,
+   "kb": 624
   },
   {
    "code": "JM-05",
@@ -88,8 +88,8 @@ window.LIBRARY = {
    "title": "Rain Sensing Automatic Window",
    "file": "library/slides/JM-05_Rain_Sensing_Automatic_Window_Slides.pdf",
    "thumb": "library/thumbs/JM-05.jpg",
-   "pages": 19,
-   "kb": 538
+   "pages": 20,
+   "kb": 571
   },
   {
    "code": "JM-06",
@@ -97,8 +97,8 @@ window.LIBRARY = {
    "title": "Fire and Gas Safety Alarm Panel",
    "file": "library/slides/JM-06_Fire_and_Gas_Safety_Alarm_Panel_Slides.pdf",
    "thumb": "library/thumbs/JM-06.jpg",
-   "pages": 20,
-   "kb": 545
+   "pages": 21,
+   "kb": 578
   },
   {
    "code": "JM-07",
@@ -106,8 +106,8 @@ window.LIBRARY = {
    "title": "Temperature Controlled Smart Fan",
    "file": "library/slides/JM-07_Temperature_Controlled_Smart_Fan_Slides.pdf",
    "thumb": "library/thumbs/JM-07.jpg",
-   "pages": 19,
-   "kb": 517
+   "pages": 20,
+   "kb": 550
   },
   {
    "code": "JM-08",
@@ -115,8 +115,8 @@ window.LIBRARY = {
    "title": "Sun Tracking Solar Panel",
    "file": "library/slides/JM-08_Sun_Tracking_Solar_Panel_Slides.pdf",
    "thumb": "library/thumbs/JM-08.jpg",
-   "pages": 19,
-   "kb": 536
+   "pages": 20,
+   "kb": 569
   },
   {
    "code": "JM-09",
@@ -124,8 +124,8 @@ window.LIBRARY = {
    "title": "Home Burglar Alarm Secret Code",
    "file": "library/slides/JM-09_Home_Burglar_Alarm_Secret_Code_Slides.pdf",
    "thumb": "library/thumbs/JM-09.jpg",
-   "pages": 20,
-   "kb": 570
+   "pages": 21,
+   "kb": 604
   },
   {
    "code": "JM-10",
@@ -133,8 +133,8 @@ window.LIBRARY = {
    "title": "3D Designed Name Badge and Sensor Mount",
    "file": "library/slides/JM-10_3D_Designed_Name_Badge_and_Sensor_Mount_Slides.pdf",
    "thumb": "library/thumbs/JM-10.jpg",
-   "pages": 21,
-   "kb": 536
+   "pages": 22,
+   "kb": 571
   },
   {
    "code": "JM-11",
@@ -142,8 +142,8 @@ window.LIBRARY = {
    "title": "Line Following Robot",
    "file": "library/slides/JM-11_Line_Following_Robot_Slides.pdf",
    "thumb": "library/thumbs/JM-11.jpg",
-   "pages": 21,
-   "kb": 588
+   "pages": 22,
+   "kb": 622
   },
   {
    "code": "JM-12",
@@ -151,8 +151,8 @@ window.LIBRARY = {
    "title": "Phone Controlled RGB Mood Lamp",
    "file": "library/slides/JM-12_Phone_Controlled_RGB_Mood_Lamp_Slides.pdf",
    "thumb": "library/thumbs/JM-12.jpg",
-   "pages": 19,
-   "kb": 512
+   "pages": 20,
+   "kb": 544
   },
   {
    "code": "JM-13",
@@ -160,8 +160,8 @@ window.LIBRARY = {
    "title": "Step Counter Fitness Tracker",
    "file": "library/slides/JM-13_Step_Counter_Fitness_Tracker_Slides.pdf",
    "thumb": "library/thumbs/JM-13.jpg",
-   "pages": 21,
-   "kb": 532
+   "pages": 22,
+   "kb": 567
   },
   {
    "code": "JM-14",
@@ -169,8 +169,8 @@ window.LIBRARY = {
    "title": "Weather Report Webpage",
    "file": "library/slides/JM-14_Weather_Report_Webpage_Slides.pdf",
    "thumb": "library/thumbs/JM-14.jpg",
-   "pages": 17,
-   "kb": 420
+   "pages": 18,
+   "kb": 452
   },
   {
    "code": "JM-15",
@@ -178,8 +178,8 @@ window.LIBRARY = {
    "title": "Pong Game with a Knob Controller",
    "file": "library/slides/JM-15_Pong_Game_with_a_Knob_Controller_Slides.pdf",
    "thumb": "library/thumbs/JM-15.jpg",
-   "pages": 21,
-   "kb": 533
+   "pages": 22,
+   "kb": 567
   },
   {
    "code": "JM-16",
@@ -187,8 +187,8 @@ window.LIBRARY = {
    "title": "AI Recycling Sorter",
    "file": "library/slides/JM-16_AI_Recycling_Sorter_Slides.pdf",
    "thumb": "library/thumbs/JM-16.jpg",
-   "pages": 19,
-   "kb": 441
+   "pages": 20,
+   "kb": 474
   },
   {
    "code": "JM-17",
@@ -196,8 +196,8 @@ window.LIBRARY = {
    "title": "Python Turtle Art",
    "file": "library/slides/JM-17_Python_Turtle_Art_Slides.pdf",
    "thumb": "library/thumbs/JM-17.jpg",
-   "pages": 20,
-   "kb": 520
+   "pages": 21,
+   "kb": 554
   },
   {
    "code": "JM-18",
@@ -205,8 +205,8 @@ window.LIBRARY = {
    "title": "MakeCode Arcade Platform Game",
    "file": "library/slides/JM-18_MakeCode_Arcade_Platform_Game_Slides.pdf",
    "thumb": "library/thumbs/JM-18.jpg",
-   "pages": 20,
-   "kb": 567
+   "pages": 21,
+   "kb": 601
   },
   {
    "code": "JM-19",
@@ -214,8 +214,8 @@ window.LIBRARY = {
    "title": "Binary Bracelets Secret Codes",
    "file": "library/slides/JM-19_Binary_Bracelets_Secret_Codes_Slides.pdf",
    "thumb": "library/thumbs/JM-19.jpg",
-   "pages": 20,
-   "kb": 555
+   "pages": 21,
+   "kb": 589
   },
   {
    "code": "JM-20",
@@ -223,8 +223,8 @@ window.LIBRARY = {
    "title": "Joystick Maze Game",
    "file": "library/slides/JM-20_Joystick_Maze_Game_Slides.pdf",
    "thumb": "library/thumbs/JM-20.jpg",
-   "pages": 20,
-   "kb": 538
+   "pages": 21,
+   "kb": 572
   },
   {
    "code": "JM-21",
@@ -232,8 +232,8 @@ window.LIBRARY = {
    "title": "NeoPixel Light Show",
    "file": "library/slides/JM-21_NeoPixel_Light_Show_Slides.pdf",
    "thumb": "library/thumbs/JM-21.jpg",
-   "pages": 20,
-   "kb": 527
+   "pages": 21,
+   "kb": 561
   },
   {
    "code": "JM-22",
@@ -241,8 +241,8 @@ window.LIBRARY = {
    "title": "LED Matrix Emoji Display",
    "file": "library/slides/JM-22_LED_Matrix_Emoji_Display_Slides.pdf",
    "thumb": "library/thumbs/JM-22.jpg",
-   "pages": 20,
-   "kb": 833
+   "pages": 21,
+   "kb": 867
   },
   {
    "code": "JM-23",
@@ -250,8 +250,8 @@ window.LIBRARY = {
    "title": "Ultrasonic Theremin",
    "file": "library/slides/JM-23_Ultrasonic_Theremin_Slides.pdf",
    "thumb": "library/thumbs/JM-23.jpg",
-   "pages": 20,
-   "kb": 564
+   "pages": 21,
+   "kb": 598
   },
   {
    "code": "JM-24",
@@ -259,8 +259,8 @@ window.LIBRARY = {
    "title": "Processing Drawing Machine",
    "file": "library/slides/JM-24_Processing_Drawing_Machine_Slides.pdf",
    "thumb": "library/thumbs/JM-24.jpg",
-   "pages": 20,
-   "kb": 501
+   "pages": 21,
+   "kb": 536
   },
   {
    "code": "JM-25",
@@ -268,8 +268,8 @@ window.LIBRARY = {
    "title": "Smart Traffic Junction",
    "file": "library/slides/JM-25_Smart_Traffic_Junction_Slides.pdf",
    "thumb": "library/thumbs/JM-25.jpg",
-   "pages": 20,
-   "kb": 548
+   "pages": 21,
+   "kb": 581
   },
   {
    "code": "JM-26",
@@ -277,8 +277,8 @@ window.LIBRARY = {
    "title": "Smart Kitchen Scale",
    "file": "library/slides/JM-26_Smart_Kitchen_Scale_Slides.pdf",
    "thumb": "library/thumbs/JM-26.jpg",
-   "pages": 20,
-   "kb": 526
+   "pages": 21,
+   "kb": 560
   },
   {
    "code": "JM-27",
@@ -286,8 +286,8 @@ window.LIBRARY = {
    "title": "Arcade Claw Machine",
    "file": "library/slides/JM-27_Arcade_Claw_Machine_Slides.pdf",
    "thumb": "library/thumbs/JM-27.jpg",
-   "pages": 20,
-   "kb": 564
+   "pages": 21,
+   "kb": 597
   },
   {
    "code": "JM-28",
@@ -295,8 +295,8 @@ window.LIBRARY = {
    "title": "Wind Turbine Power Lab",
    "file": "library/slides/JM-28_Wind_Turbine_Power_Lab_Slides.pdf",
    "thumb": "library/thumbs/JM-28.jpg",
-   "pages": 20,
-   "kb": 481
+   "pages": 21,
+   "kb": 514
   },
   {
    "code": "JM-29",
@@ -304,8 +304,8 @@ window.LIBRARY = {
    "title": "Python Number Guessing Game",
    "file": "library/slides/JM-29_Python_Number_Guessing_Game_Slides.pdf",
    "thumb": "library/thumbs/JM-29.jpg",
-   "pages": 20,
-   "kb": 470
+   "pages": 21,
+   "kb": 503
   },
   {
    "code": "JM-30",
@@ -313,8 +313,8 @@ window.LIBRARY = {
    "title": "Data Detectives Survey Charts",
    "file": "library/slides/JM-30_Data_Detectives_Survey_Charts_Slides.pdf",
    "thumb": "library/thumbs/JM-30.jpg",
-   "pages": 20,
-   "kb": 496
+   "pages": 21,
+   "kb": 530
   },
   {
    "code": "JM-31",
@@ -322,8 +322,8 @@ window.LIBRARY = {
    "title": "AI Emotion Mirror",
    "file": "library/slides/JM-31_AI_Emotion_Mirror_Slides.pdf",
    "thumb": "library/thumbs/JM-31.jpg",
-   "pages": 20,
-   "kb": 561
+   "pages": 21,
+   "kb": 595
   },
   {
    "code": "JM-32",
@@ -331,8 +331,8 @@ window.LIBRARY = {
    "title": "Cyber Safety Escape Room",
    "file": "library/slides/JM-32_Cyber_Safety_Escape_Room_Slides.pdf",
    "thumb": "library/thumbs/JM-32.jpg",
-   "pages": 21,
-   "kb": 508
+   "pages": 22,
+   "kb": 542
   },
   {
    "code": "LE-01",
@@ -340,8 +340,8 @@ window.LIBRARY = {
    "title": "Light-Up Paper Circuit Card",
    "file": "library/slides/LE-01_Light-Up_Paper_Circuit_Card_Slides.pdf",
    "thumb": "library/thumbs/LE-01.jpg",
-   "pages": 17,
-   "kb": 506
+   "pages": 18,
+   "kb": 538
   },
   {
    "code": "LE-02",
@@ -349,8 +349,8 @@ window.LIBRARY = {
    "title": "Push Button Doorbell",
    "file": "library/slides/LE-02_Push_Button_Doorbell_Slides.pdf",
    "thumb": "library/thumbs/LE-02.jpg",
-   "pages": 15,
-   "kb": 380
+   "pages": 16,
+   "kb": 408
   },
   {
    "code": "LE-03",
@@ -358,8 +358,8 @@ window.LIBRARY = {
    "title": "Lemon Battery LED Lamp",
    "file": "library/slides/LE-03_Lemon_Battery_LED_Lamp_Slides.pdf",
    "thumb": "library/thumbs/LE-03.jpg",
-   "pages": 15,
-   "kb": 390
+   "pages": 16,
+   "kb": 420
   },
   {
    "code": "LE-04",
@@ -367,8 +367,8 @@ window.LIBRARY = {
    "title": "Traffic Light Controller",
    "file": "library/slides/LE-04_Traffic_Light_Controller_Slides.pdf",
    "thumb": "library/thumbs/LE-04.jpg",
-   "pages": 11,
-   "kb": 2291
+   "pages": 12,
+   "kb": 2316
   },
   {
    "code": "LE-05",
@@ -376,8 +376,8 @@ window.LIBRARY = {
    "title": "Automatic Night Lamp",
    "file": "library/slides/LE-05_Automatic_Night_Lamp_Slides.pdf",
    "thumb": "library/thumbs/LE-05.jpg",
-   "pages": 15,
-   "kb": 466
+   "pages": 16,
+   "kb": 495
   },
   {
    "code": "LE-06",
@@ -385,8 +385,8 @@ window.LIBRARY = {
    "title": "Hot and Cold Temperature Indicator",
    "file": "library/slides/LE-06_Hot_and_Cold_Temperature_Indicator_Slides.pdf",
    "thumb": "library/thumbs/LE-06.jpg",
-   "pages": 17,
-   "kb": 460
+   "pages": 18,
+   "kb": 492
   },
   {
    "code": "LE-07",
@@ -394,8 +394,8 @@ window.LIBRARY = {
    "title": "Plant Water Alarm",
    "file": "library/slides/LE-07_Plant_Water_Alarm_Slides.pdf",
    "thumb": "library/thumbs/LE-07.jpg",
-   "pages": 15,
-   "kb": 367
+   "pages": 16,
+   "kb": 395
   },
   {
    "code": "LE-08",
@@ -403,8 +403,8 @@ window.LIBRARY = {
    "title": "Motion Detector Room Alarm",
    "file": "library/slides/LE-08_Motion_Detector_Room_Alarm_Slides.pdf",
    "thumb": "library/thumbs/LE-08.jpg",
-   "pages": 15,
-   "kb": 370
+   "pages": 16,
+   "kb": 398
   },
   {
    "code": "LE-09",
@@ -412,8 +412,8 @@ window.LIBRARY = {
    "title": "Waving Robot Arm",
    "file": "library/slides/LE-09_Waving_Robot_Arm_Slides.pdf",
    "thumb": "library/thumbs/LE-09.jpg",
-   "pages": 15,
-   "kb": 449
+   "pages": 16,
+   "kb": 478
   },
   {
    "code": "LE-10",
@@ -421,8 +421,8 @@ window.LIBRARY = {
    "title": "Automatic Railway Crossing Gate",
    "file": "library/slides/LE-10_Automatic_Railway_Crossing_Gate_Slides.pdf",
    "thumb": "library/thumbs/LE-10.jpg",
-   "pages": 15,
-   "kb": 427
+   "pages": 16,
+   "kb": 456
   },
   {
    "code": "LE-11",
@@ -430,8 +430,8 @@ window.LIBRARY = {
    "title": "Vibrating Brush Robot",
    "file": "library/slides/LE-11_Vibrating_Brush_Robot_Slides.pdf",
    "thumb": "library/thumbs/LE-11.jpg",
-   "pages": 15,
-   "kb": 386
+   "pages": 16,
+   "kb": 416
   },
   {
    "code": "LE-12",
@@ -439,8 +439,8 @@ window.LIBRARY = {
    "title": "Morse Code Light Messenger",
    "file": "library/slides/LE-12_Morse_Code_Light_Messenger_Slides.pdf",
    "thumb": "library/thumbs/LE-12.jpg",
-   "pages": 17,
-   "kb": 529
+   "pages": 18,
+   "kb": 561
   },
   {
    "code": "LE-13",
@@ -448,8 +448,8 @@ window.LIBRARY = {
    "title": "Makey Makey Fruit Piano",
    "file": "library/slides/LE-13_Makey_Makey_Fruit_Piano_Slides.pdf",
    "thumb": "library/thumbs/LE-13.jpg",
-   "pages": 15,
-   "kb": 412
+   "pages": 16,
+   "kb": 442
   },
   {
    "code": "LE-14",
@@ -457,8 +457,8 @@ window.LIBRARY = {
    "title": "Animated Story App",
    "file": "library/slides/LE-14_Animated_Story_App_Slides.pdf",
    "thumb": "library/thumbs/LE-14.jpg",
-   "pages": 15,
-   "kb": 404
+   "pages": 16,
+   "kb": 434
   },
   {
    "code": "LE-15",
@@ -466,8 +466,8 @@ window.LIBRARY = {
    "title": "Catch the Fruit Game",
    "file": "library/slides/LE-15_Catch_the_Fruit_Game_Slides.pdf",
    "thumb": "library/thumbs/LE-15.jpg",
-   "pages": 15,
-   "kb": 382
+   "pages": 16,
+   "kb": 411
   },
   {
    "code": "LE-16",
@@ -475,8 +475,116 @@ window.LIBRARY = {
    "title": "Robot Sorting Rules Game",
    "file": "library/slides/LE-16_Robot_Sorting_Rules_Game_Slides.pdf",
    "thumb": "library/thumbs/LE-16.jpg",
-   "pages": 15,
-   "kb": 384
+   "pages": 16,
+   "kb": 413
+  },
+  {
+   "code": "LE-17",
+   "group": "LE",
+   "title": "Robot Chef Unplugged Algorithms",
+   "file": "library/slides/LE-17_Robot_Chef_Unplugged_Algorithms_Slides.pdf",
+   "thumb": "library/thumbs/LE-17.jpg",
+   "pages": 16,
+   "kb": 444
+  },
+  {
+   "code": "LE-18",
+   "group": "LE",
+   "title": "Code org Puzzle Quest",
+   "file": "library/slides/LE-18_Code_org_Puzzle_Quest_Slides.pdf",
+   "thumb": "library/thumbs/LE-18.jpg",
+   "pages": 16,
+   "kb": 451
+  },
+  {
+   "code": "LE-19",
+   "group": "LE",
+   "title": "Robot Car Floor Maze",
+   "file": "library/slides/LE-19_Robot_Car_Floor_Maze_Slides.pdf",
+   "thumb": "library/thumbs/LE-19.jpg",
+   "pages": 16,
+   "kb": 465
+  },
+  {
+   "code": "LE-20",
+   "group": "LE",
+   "title": "ScratchJr Dance Party",
+   "file": "library/slides/LE-20_ScratchJr_Dance_Party_Slides.pdf",
+   "thumb": "library/thumbs/LE-20.jpg",
+   "pages": 16,
+   "kb": 457
+  },
+  {
+   "code": "LE-21",
+   "group": "LE",
+   "title": "Rainbow LED Ring",
+   "file": "library/slides/LE-21_Rainbow_LED_Ring_Slides.pdf",
+   "thumb": "library/thumbs/LE-21.jpg",
+   "pages": 17,
+   "kb": 478
+  },
+  {
+   "code": "LE-22",
+   "group": "LE",
+   "title": "Button Melody Maker",
+   "file": "library/slides/LE-22_Button_Melody_Maker_Slides.pdf",
+   "thumb": "library/thumbs/LE-22.jpg",
+   "pages": 16,
+   "kb": 450
+  },
+  {
+   "code": "LE-23",
+   "group": "LE",
+   "title": "Colour Detective Sensor",
+   "file": "library/slides/LE-23_Colour_Detective_Sensor_Slides.pdf",
+   "thumb": "library/thumbs/LE-23.jpg",
+   "pages": 17,
+   "kb": 468
+  },
+  {
+   "code": "LE-24",
+   "group": "LE",
+   "title": "Crank Powered Light",
+   "file": "library/slides/LE-24_Crank_Powered_Light_Slides.pdf",
+   "thumb": "library/thumbs/LE-24.jpg",
+   "pages": 16,
+   "kb": 402
+  },
+  {
+   "code": "LE-25",
+   "group": "LE",
+   "title": "My Talking Pet in Scratch",
+   "file": "library/slides/LE-25_My_Talking_Pet_in_Scratch_Slides.pdf",
+   "thumb": "library/thumbs/LE-25.jpg",
+   "pages": 16,
+   "kb": 433
+  },
+  {
+   "code": "LE-26",
+   "group": "LE",
+   "title": "Pixel Messages",
+   "file": "library/slides/LE-26_Pixel_Messages_Slides.pdf",
+   "thumb": "library/thumbs/LE-26.jpg",
+   "pages": 16,
+   "kb": 448
+  },
+  {
+   "code": "LE-27",
+   "group": "LE",
+   "title": "Pop the Bubbles with Your Hand",
+   "file": "library/slides/LE-27_Pop_the_Bubbles_with_Your_Hand_Slides.pdf",
+   "thumb": "library/thumbs/LE-27.jpg",
+   "pages": 16,
+   "kb": 429
+  },
+  {
+   "code": "LE-28",
+   "group": "LE",
+   "title": "Cardboard Automaton",
+   "file": "library/slides/LE-28_Cardboard_Automaton_Slides.pdf",
+   "thumb": "library/thumbs/LE-28.jpg",
+   "pages": 16,
+   "kb": 416
   },
   {
    "code": "TL-01",
@@ -484,8 +592,8 @@ window.LIBRARY = {
    "title": "Solar Powered Off Grid Weather Node",
    "file": "library/slides/TL-01_Solar_Powered_Off_Grid_Weather_Node_Slides.pdf",
    "thumb": "library/thumbs/TL-01.jpg",
-   "pages": 25,
-   "kb": 812
+   "pages": 26,
+   "kb": 849
   },
   {
    "code": "TL-02",
@@ -493,8 +601,8 @@ window.LIBRARY = {
    "title": "Autonomous Maze Solving Robot",
    "file": "library/slides/TL-02_Autonomous_Maze_Solving_Robot_Slides.pdf",
    "thumb": "library/thumbs/TL-02.jpg",
-   "pages": 25,
-   "kb": 701
+   "pages": 26,
+   "kb": 739
   },
   {
    "code": "TL-03",
@@ -502,8 +610,8 @@ window.LIBRARY = {
    "title": "Pick and Place Robotic Arm",
    "file": "library/slides/TL-03_Pick_and_Place_Robotic_Arm_Slides.pdf",
    "thumb": "library/thumbs/TL-03.jpg",
-   "pages": 25,
-   "kb": 661
+   "pages": 26,
+   "kb": 700
   },
   {
    "code": "TL-04",
@@ -511,8 +619,8 @@ window.LIBRARY = {
    "title": "Fall Detection Wearable",
    "file": "library/slides/TL-04_Fall_Detection_Wearable_Slides.pdf",
    "thumb": "library/thumbs/TL-04.jpg",
-   "pages": 25,
-   "kb": 677
+   "pages": 26,
+   "kb": 714
   },
   {
    "code": "TL-05",
@@ -520,8 +628,8 @@ window.LIBRARY = {
    "title": "ESP-NOW Wireless Sensor Network",
    "file": "library/slides/TL-05_ESP-NOW_Wireless_Sensor_Network_Slides.pdf",
    "thumb": "library/thumbs/TL-05.jpg",
-   "pages": 25,
-   "kb": 946
+   "pages": 26,
+   "kb": 983
   },
   {
    "code": "TL-06",
@@ -529,8 +637,8 @@ window.LIBRARY = {
    "title": "Smart Home Cloud Control Hub",
    "file": "library/slides/TL-06_Smart_Home_Cloud_Control_Hub_Slides.pdf",
    "thumb": "library/thumbs/TL-06.jpg",
-   "pages": 25,
-   "kb": 591
+   "pages": 26,
+   "kb": 628
   },
   {
    "code": "TL-07",
@@ -538,8 +646,8 @@ window.LIBRARY = {
    "title": "Smart Parking Occupancy Dashboard",
    "file": "library/slides/TL-07_Smart_Parking_Occupancy_Dashboard_Slides.pdf",
    "thumb": "library/thumbs/TL-07.jpg",
-   "pages": 25,
-   "kb": 736
+   "pages": 26,
+   "kb": 772
   },
   {
    "code": "TL-08",
@@ -547,8 +655,8 @@ window.LIBRARY = {
    "title": "Two Factor Smart Locker",
    "file": "library/slides/TL-08_Two_Factor_Smart_Locker_Slides.pdf",
    "thumb": "library/thumbs/TL-08.jpg",
-   "pages": 25,
-   "kb": 590
+   "pages": 26,
+   "kb": 627
   },
   {
    "code": "TL-09",
@@ -556,8 +664,8 @@ window.LIBRARY = {
    "title": "Sensor Data Logging Analysis Pipeline",
    "file": "library/slides/TL-09_Sensor_Data_Logging_Analysis_Pipeline_Slides.pdf",
    "thumb": "library/thumbs/TL-09.jpg",
-   "pages": 20,
-   "kb": 587
+   "pages": 21,
+   "kb": 621
   },
   {
    "code": "TL-10",
@@ -565,8 +673,8 @@ window.LIBRARY = {
    "title": "Machine Learning Rain Predictor",
    "file": "library/slides/TL-10_Machine_Learning_Rain_Predictor_Slides.pdf",
    "thumb": "library/thumbs/TL-10.jpg",
-   "pages": 20,
-   "kb": 450
+   "pages": 21,
+   "kb": 484
   },
   {
    "code": "TL-11",
@@ -574,8 +682,8 @@ window.LIBRARY = {
    "title": "AI Fake News Detector",
    "file": "library/slides/TL-11_AI_Fake_News_Detector_Slides.pdf",
    "thumb": "library/thumbs/TL-11.jpg",
-   "pages": 20,
-   "kb": 520
+   "pages": 21,
+   "kb": 553
   },
   {
    "code": "TL-12",
@@ -583,8 +691,8 @@ window.LIBRARY = {
    "title": "Web Controlled Devices REST API",
    "file": "library/slides/TL-12_Web_Controlled_Devices_REST_API_Slides.pdf",
    "thumb": "library/thumbs/TL-12.jpg",
-   "pages": 20,
-   "kb": 555
+   "pages": 21,
+   "kb": 588
   },
   {
    "code": "TL-13",
@@ -592,8 +700,8 @@ window.LIBRARY = {
    "title": "Securing an IoT Device",
    "file": "library/slides/TL-13_Securing_an_IoT_Device_Slides.pdf",
    "thumb": "library/thumbs/TL-13.jpg",
-   "pages": 20,
-   "kb": 508
+   "pages": 21,
+   "kb": 543
   },
   {
    "code": "TL-14",
@@ -601,8 +709,8 @@ window.LIBRARY = {
    "title": "Autonomous Fire Fighting Robot",
    "file": "library/slides/TL-14_Autonomous_Fire_Fighting_Robot_Slides.pdf",
    "thumb": "library/thumbs/TL-14.jpg",
-   "pages": 21,
-   "kb": 588
+   "pages": 22,
+   "kb": 622
   },
   {
    "code": "TL-15",
@@ -610,8 +718,8 @@ window.LIBRARY = {
    "title": "Parametric Robot Gripper Design",
    "file": "library/slides/TL-15_Parametric_Robot_Gripper_Design_Slides.pdf",
    "thumb": "library/thumbs/TL-15.jpg",
-   "pages": 20,
-   "kb": 539
+   "pages": 21,
+   "kb": 573
   },
   {
    "code": "TL-16",
@@ -619,8 +727,8 @@ window.LIBRARY = {
    "title": "Motion Controlled Game",
    "file": "library/slides/TL-16_Motion_Controlled_Game_Slides.pdf",
    "thumb": "library/thumbs/TL-16.jpg",
-   "pages": 21,
-   "kb": 549
+   "pages": 22,
+   "kb": 584
   },
   {
    "code": "YI-01",
@@ -628,8 +736,8 @@ window.LIBRARY = {
    "title": "555 Timer Alarm Siren",
    "file": "library/slides/YI-01_555_Timer_Alarm_Siren_Slides.pdf",
    "thumb": "library/thumbs/YI-01.jpg",
-   "pages": 17,
-   "kb": 665
+   "pages": 18,
+   "kb": 696
   },
   {
    "code": "YI-02",
@@ -637,8 +745,8 @@ window.LIBRARY = {
    "title": "Heart Rate Monitoring System",
    "file": "library/slides/YI-02_Heart_Rate_Monitoring_System_Slides.pdf",
    "thumb": "library/thumbs/YI-02.jpg",
-   "pages": 20,
-   "kb": 502
+   "pages": 21,
+   "kb": 536
   },
   {
    "code": "YI-03",
@@ -646,8 +754,8 @@ window.LIBRARY = {
    "title": "Smart Classroom Energy Saver",
    "file": "library/slides/YI-03_Smart_Classroom_Energy_Saver_Slides.pdf",
    "thumb": "library/thumbs/YI-03.jpg",
-   "pages": 19,
-   "kb": 576
+   "pages": 20,
+   "kb": 609
   },
   {
    "code": "YI-04",
@@ -655,8 +763,8 @@ window.LIBRARY = {
    "title": "Stepper Motor Drawing Plotter",
    "file": "library/slides/YI-04_Stepper_Motor_Drawing_Plotter_Slides.pdf",
    "thumb": "library/thumbs/YI-04.jpg",
-   "pages": 18,
-   "kb": 515
+   "pages": 19,
+   "kb": 548
   },
   {
    "code": "YI-05",
@@ -664,8 +772,8 @@ window.LIBRARY = {
    "title": "Obstacle Avoiding Robot Scanning Sonar",
    "file": "library/slides/YI-05_Obstacle_Avoiding_Robot_Scanning_Sonar_Slides.pdf",
    "thumb": "library/thumbs/YI-05.jpg",
-   "pages": 20,
-   "kb": 665
+   "pages": 21,
+   "kb": 698
   },
   {
    "code": "YI-06",
@@ -673,8 +781,8 @@ window.LIBRARY = {
    "title": "Bluetooth Robot Car Phone App",
    "file": "library/slides/YI-06_Bluetooth_Robot_Car_Phone_App_Slides.pdf",
    "thumb": "library/thumbs/YI-06.jpg",
-   "pages": 18,
-   "kb": 505
+   "pages": 19,
+   "kb": 537
   },
   {
    "code": "YI-07",
@@ -682,8 +790,8 @@ window.LIBRARY = {
    "title": "Gesture Controlled Robot Arm",
    "file": "library/slides/YI-07_Gesture_Controlled_Robot_Arm_Slides.pdf",
    "thumb": "library/thumbs/YI-07.jpg",
-   "pages": 20,
-   "kb": 575
+   "pages": 21,
+   "kb": 609
   },
   {
    "code": "YI-08",
@@ -691,8 +799,8 @@ window.LIBRARY = {
    "title": "RFID Smart Door Lock",
    "file": "library/slides/YI-08_RFID_Smart_Door_Lock_Slides.pdf",
    "thumb": "library/thumbs/YI-08.jpg",
-   "pages": 19,
-   "kb": 505
+   "pages": 20,
+   "kb": 538
   },
   {
    "code": "YI-09",
@@ -700,8 +808,8 @@ window.LIBRARY = {
    "title": "Rechargeable Power Pack",
    "file": "library/slides/YI-09_Rechargeable_Power_Pack_Slides.pdf",
    "thumb": "library/thumbs/YI-09.jpg",
-   "pages": 18,
-   "kb": 471
+   "pages": 19,
+   "kb": 502
   },
   {
    "code": "YI-10",
@@ -709,8 +817,8 @@ window.LIBRARY = {
    "title": "Wireless Doorbell Visitor Counter",
    "file": "library/slides/YI-10_Wireless_Doorbell_Visitor_Counter_Slides.pdf",
    "thumb": "library/thumbs/YI-10.jpg",
-   "pages": 19,
-   "kb": 499
+   "pages": 20,
+   "kb": 532
   },
   {
    "code": "YI-11",
@@ -718,8 +826,8 @@ window.LIBRARY = {
    "title": "WiFi Plant Watering System",
    "file": "library/slides/YI-11_WiFi_Plant_Watering_System_Slides.pdf",
    "thumb": "library/thumbs/YI-11.jpg",
-   "pages": 17,
-   "kb": 649
+   "pages": 18,
+   "kb": 680
   },
   {
    "code": "YI-12",
@@ -727,8 +835,8 @@ window.LIBRARY = {
    "title": "Plant Monitor Mobile App",
    "file": "library/slides/YI-12_Plant_Monitor_Mobile_App_Slides.pdf",
    "thumb": "library/thumbs/YI-12.jpg",
-   "pages": 18,
-   "kb": 428
+   "pages": 19,
+   "kb": 461
   },
   {
    "code": "YI-13",
@@ -736,8 +844,8 @@ window.LIBRARY = {
    "title": "Python Maths Quiz Game",
    "file": "library/slides/YI-13_Python_Maths_Quiz_Game_Slides.pdf",
    "thumb": "library/thumbs/YI-13.jpg",
-   "pages": 19,
-   "kb": 418
+   "pages": 20,
+   "kb": 451
   },
   {
    "code": "YI-14",
@@ -745,8 +853,8 @@ window.LIBRARY = {
    "title": "Personal Portfolio Website",
    "file": "library/slides/YI-14_Personal_Portfolio_Website_Slides.pdf",
    "thumb": "library/thumbs/YI-14.jpg",
-   "pages": 19,
-   "kb": 495
+   "pages": 20,
+   "kb": 528
   },
   {
    "code": "YI-15",
@@ -754,8 +862,8 @@ window.LIBRARY = {
    "title": "School Helpdesk Chatbot",
    "file": "library/slides/YI-15_School_Helpdesk_Chatbot_Slides.pdf",
    "thumb": "library/thumbs/YI-15.jpg",
-   "pages": 19,
-   "kb": 445
+   "pages": 20,
+   "kb": 478
   },
   {
    "code": "YI-16",
@@ -763,8 +871,8 @@ window.LIBRARY = {
    "title": "3D Printed Plant Monitor Enclosure",
    "file": "library/slides/YI-16_3D_Printed_Plant_Monitor_Enclosure_Slides.pdf",
    "thumb": "library/thumbs/YI-16.jpg",
-   "pages": 18,
-   "kb": 447
+   "pages": 19,
+   "kb": 479
   }
  ],
  "docs": [

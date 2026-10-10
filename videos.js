@@ -423,6 +423,102 @@ window.VIDEOS = {
    "mins": 3
   }
  ],
+ "LE-17": [
+  {
+   "id": "578hB0E6y4o",
+   "title": "What are Algorithms?",
+   "channel": "Ms. Dorismond's Virtual Corner",
+   "mins": 3
+  }
+ ],
+ "LE-18": [
+  {
+   "id": "zW3YZdPmCnM",
+   "title": "Sequencing",
+   "channel": "Scratch Garden",
+   "mins": 4
+  }
+ ],
+ "LE-19": [
+  {
+   "id": "UuPAImipntw",
+   "title": "Fun Facts About Robots!",
+   "channel": "Nat Geo Kids",
+   "mins": 2
+  }
+ ],
+ "LE-20": [
+  {
+   "id": "T8Df3VZCKUc",
+   "title": "The Robot Dance!",
+   "channel": "Danny Go!",
+   "mins": 3
+  }
+ ],
+ "LE-21": [
+  {
+   "id": "nCPPLhPTAIk",
+   "title": "How Is A Rainbow Formed",
+   "channel": "The Dr. Binocs Show",
+   "mins": 4
+  }
+ ],
+ "LE-22": [
+  {
+   "id": "YjFIlLKjmkI",
+   "title": "Musical Notes! Learning about music",
+   "channel": "KLT Wild",
+   "mins": 4
+  }
+ ],
+ "LE-23": [
+  {
+   "id": "9Vsl0Iom3S0",
+   "title": "The Science of Light and Color for Kids",
+   "channel": "Free School",
+   "mins": 5
+  }
+ ],
+ "LE-24": [
+  {
+   "id": "X8iV_TkkbBg",
+   "title": "How is Electricity made?",
+   "channel": "Maddie's Do You Know?",
+   "mins": 6
+  }
+ ],
+ "LE-25": [
+  {
+   "id": "x2X4vRUb_y0",
+   "title": "How to Take Care of Pets",
+   "channel": "Explore Planet English",
+   "mins": 4
+  }
+ ],
+ "LE-26": [
+  {
+   "id": "1ptJaJT8jAM",
+   "title": "What Are Pixels?",
+   "channel": "Science Kids",
+   "mins": 2
+  }
+ ],
+ "LE-27": [
+  {
+   "id": "j918PoWWaB0",
+   "title": "How Do Our Bodies Move?",
+   "channel": "SciShow Kids",
+   "mins": 4
+  }
+ ],
+ "LE-28": [
+  {
+   "id": "tk9iUjMEnaY",
+   "title": "What Are Simple Machines?",
+   "channel": "The Dr. Binocs Show",
+   "mins": 6
+  }
+ ],
  "TL-01": [
   {
    "id": "xKxrkht7CpY",

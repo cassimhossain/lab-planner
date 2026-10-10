@@ -272,6 +272,33 @@ window.LIBRARY = {
    "kb": 548
   },
   {
+   "code": "JM-26",
+   "group": "JM",
+   "title": "Smart Kitchen Scale",
+   "file": "library/slides/JM-26_Smart_Kitchen_Scale_Slides.pdf",
+   "thumb": "library/thumbs/JM-26.jpg",
+   "pages": 20,
+   "kb": 526
+  },
+  {
+   "code": "JM-27",
+   "group": "JM",
+   "title": "Arcade Claw Machine",
+   "file": "library/slides/JM-27_Arcade_Claw_Machine_Slides.pdf",
+   "thumb": "library/thumbs/JM-27.jpg",
+   "pages": 20,
+   "kb": 564
+  },
+  {
+   "code": "JM-28",
+   "group": "JM",
+   "title": "Wind Turbine Power Lab",
+   "file": "library/slides/JM-28_Wind_Turbine_Power_Lab_Slides.pdf",
+   "thumb": "library/thumbs/JM-28.jpg",
+   "pages": 20,
+   "kb": 481
+  },
+  {
    "code": "LE-01",
    "group": "LE",
    "title": "Light-Up Paper Circuit Card",

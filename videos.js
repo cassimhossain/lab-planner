@@ -239,6 +239,30 @@ window.VIDEOS = {
    "mins": 4
   }
  ],
+ "JM-26": [
+  {
+   "id": "IZafPys6x5M",
+   "title": "How does a Weighing Machine Work?",
+   "channel": "3D Requiem",
+   "mins": 4
+  }
+ ],
+ "JM-27": [
+  {
+   "id": "KnMKCHqXLow",
+   "title": "It is not you. Claw machines are rigged.",
+   "channel": "Vox",
+   "mins": 4
+  }
+ ],
+ "JM-28": [
+  {
+   "id": "ia1LJE9sOxQ",
+   "title": "How Do Wind Turbines Work?",
+   "channel": "The Dr. Binocs Show",
+   "mins": 6
+  }
+ ],
  "LE-01": [
   {
    "id": "HOFp8bHTN30",

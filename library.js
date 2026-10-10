@@ -945,6 +945,114 @@ window.LIBRARY = {
    "thumb": "library/thumbs/YI-20.jpg",
    "pages": 20,
    "kb": 592
+  },
+  {
+   "code": "YI-21",
+   "group": "YI",
+   "title": "Python Data Lab Is Our Classroom Too Hot",
+   "file": "library/slides/YI-21_Python_Data_Lab_Is_Our_Classroom_Too_Hot_Slides.pdf",
+   "thumb": "library/thumbs/YI-21.jpg",
+   "pages": 19,
+   "kb": 518
+  },
+  {
+   "code": "YI-22",
+   "group": "YI",
+   "title": "Smart Posture Corrector Wearable",
+   "file": "library/slides/YI-22_Smart_Posture_Corrector_Wearable_Slides.pdf",
+   "thumb": "library/thumbs/YI-22.jpg",
+   "pages": 19,
+   "kb": 496
+  },
+  {
+   "code": "YI-23",
+   "group": "YI",
+   "title": "Li-Fi Messenger Sending Text with Light",
+   "file": "library/slides/YI-23_Li-Fi_Messenger_Sending_Text_with_Light_Slides.pdf",
+   "thumb": "library/thumbs/YI-23.jpg",
+   "pages": 19,
+   "kb": 491
+  },
+  {
+   "code": "YI-24",
+   "group": "YI",
+   "title": "Python Code Breakers Caesar to Vigenere",
+   "file": "library/slides/YI-24_Python_Code_Breakers_Caesar_to_Vigenere_Slides.pdf",
+   "thumb": "library/thumbs/YI-24.jpg",
+   "pages": 19,
+   "kb": 474
+  },
+  {
+   "code": "YI-25",
+   "group": "YI",
+   "title": "Robot Sumo Challenge",
+   "file": "library/slides/YI-25_Robot_Sumo_Challenge_Slides.pdf",
+   "thumb": "library/thumbs/YI-25.jpg",
+   "pages": 19,
+   "kb": 570
+  },
+  {
+   "code": "YI-26",
+   "group": "YI",
+   "title": "Walking Linkage Robot",
+   "file": "library/slides/YI-26_Walking_Linkage_Robot_Slides.pdf",
+   "thumb": "library/thumbs/YI-26.jpg",
+   "pages": 19,
+   "kb": 558
+  },
+  {
+   "code": "YI-27",
+   "group": "YI",
+   "title": "Energy Detective Gadget Power",
+   "file": "library/slides/YI-27_Energy_Detective_Gadget_Power_Slides.pdf",
+   "thumb": "library/thumbs/YI-27.jpg",
+   "pages": 19,
+   "kb": 442
+  },
+  {
+   "code": "YI-28",
+   "group": "YI",
+   "title": "Python Control Panel for Arduino",
+   "file": "library/slides/YI-28_Python_Control_Panel_for_Arduino_Slides.pdf",
+   "thumb": "library/thumbs/YI-28.jpg",
+   "pages": 19,
+   "kb": 508
+  },
+  {
+   "code": "YI-29",
+   "group": "YI",
+   "title": "p5js Flappy Voice Game",
+   "file": "library/slides/YI-29_p5js_Flappy_Voice_Game_Slides.pdf",
+   "thumb": "library/thumbs/YI-29.jpg",
+   "pages": 19,
+   "kb": 531
+  },
+  {
+   "code": "YI-30",
+   "group": "YI",
+   "title": "Python Weather API Dashboard",
+   "file": "library/slides/YI-30_Python_Weather_API_Dashboard_Slides.pdf",
+   "thumb": "library/thumbs/YI-30.jpg",
+   "pages": 19,
+   "kb": 519
+  },
+  {
+   "code": "YI-31",
+   "group": "YI",
+   "title": "Sign Language Alphabet Recogniser",
+   "file": "library/slides/YI-31_Sign_Language_Alphabet_Recogniser_Slides.pdf",
+   "thumb": "library/thumbs/YI-31.jpg",
+   "pages": 19,
+   "kb": 508
+  },
+  {
+   "code": "YI-32",
+   "group": "YI",
+   "title": "Build Your Own Game Controller",
+   "file": "library/slides/YI-32_Build_Your_Own_Game_Controller_Slides.pdf",
+   "thumb": "library/thumbs/YI-32.jpg",
+   "pages": 19,
+   "kb": 543
   }
  ],
  "docs": [

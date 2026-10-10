@@ -838,5 +838,101 @@ window.VIDEOS = {
    "channel": "Wildlife Conservation Trust",
    "mins": 4
   }
+ ],
+ "YI-21": [
+  {
+   "id": "SGHRz8wpj3E",
+   "title": "Why Does Humidity Make It Feel Hotter?",
+   "channel": "SciShow",
+   "mins": 3
+  }
+ ],
+ "YI-22": [
+  {
+   "id": "OyK0oE5rwFY",
+   "title": "The benefits of good posture",
+   "channel": "TED-Ed",
+   "mins": 4
+  }
+ ],
+ "YI-23": [
+  {
+   "id": "iHWIZsIBj3Q",
+   "title": "Forget Wi-Fi. Meet the new Li-Fi Internet",
+   "channel": "TED",
+   "mins": 7
+  }
+ ],
+ "YI-24": [
+  {
+   "id": "sMOZf4GN3oc",
+   "title": "The Caesar cipher | Journey into cryptography",
+   "channel": "Khan Academy",
+   "mins": 3
+  }
+ ],
+ "YI-25": [
+  {
+   "id": "mS-L2fpV1Is",
+   "title": "The Freakishly Fast World of Robot Sumo",
+   "channel": "Great Big Story",
+   "mins": 3
+  }
+ ],
+ "YI-26": [
+  {
+   "id": "Pj-NqWDH2qE",
+   "title": "Theo Jansen's Wind-Powered Sculptures",
+   "channel": "The New Yorker",
+   "mins": 2
+  }
+ ],
+ "YI-27": [
+  {
+   "id": "zRYESRObKqA",
+   "title": "What is a kilowatt hour? Understanding home energy use",
+   "channel": "Enphase Energy",
+   "mins": 3
+  }
+ ],
+ "YI-28": [
+  {
+   "id": "qBfa-onviDA",
+   "title": "The inner workings of Serial Communication Explained",
+   "channel": "Programming Electronics Academy",
+   "mins": 5
+  }
+ ],
+ "YI-29": [
+  {
+   "id": "dzDye6mi-6M",
+   "title": "Microphones, Loudspeakers & Headphones",
+   "channel": "FuseSchool",
+   "mins": 4
+  }
+ ],
+ "YI-30": [
+  {
+   "id": "bxuYDT-BWaI",
+   "title": "APIs Explained (in 4 Minutes)",
+   "channel": "Aced",
+   "mins": 4
+  }
+ ],
+ "YI-31": [
+  {
+   "id": "ros3INVOQEU",
+   "title": "How AI Can Bridge the Deaf and Hearing Worlds",
+   "channel": "TED",
+   "mins": 8
+  }
+ ],
+ "YI-32": [
+  {
+   "id": "9fcK19CAjWM",
+   "title": "Introducing the Xbox Adaptive Controller",
+   "channel": "XBOX",
+   "mins": 3
+  }
  ]
 };

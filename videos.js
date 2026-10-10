@@ -199,6 +199,46 @@ window.VIDEOS = {
    "mins": 2
   }
  ],
+ "JM-21": [
+  {
+   "id": "QEWJMo2NH7Q",
+   "title": "Mixing Colors of Light",
+   "channel": "4UKIDS TV",
+   "mins": 3
+  }
+ ],
+ "JM-22": [
+  {
+   "id": "0B79dGR19Tg",
+   "title": "How Pixels Work",
+   "channel": "In One Lesson",
+   "mins": 3
+  }
+ ],
+ "JM-23": [
+  {
+   "id": "KDG15-iTJLw",
+   "title": "An Untouched Instrument: The Theremin Explained",
+   "channel": "SciShow",
+   "mins": 4
+  }
+ ],
+ "JM-24": [
+  {
+   "id": "eJOObl-Zd2A",
+   "title": "What is Creative Coding?",
+   "channel": "Yeti Learn",
+   "mins": 4
+  }
+ ],
+ "JM-25": [
+  {
+   "id": "nWY7ZcOjGXc",
+   "title": "How do traffic lights work?",
+   "channel": "Fun Kids Learn",
+   "mins": 4
+  }
+ ],
  "LE-01": [
   {
    "id": "HOFp8bHTN30",

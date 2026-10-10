@@ -227,6 +227,51 @@ window.LIBRARY = {
    "kb": 538
   },
   {
+   "code": "JM-21",
+   "group": "JM",
+   "title": "NeoPixel Light Show",
+   "file": "library/slides/JM-21_NeoPixel_Light_Show_Slides.pdf",
+   "thumb": "library/thumbs/JM-21.jpg",
+   "pages": 20,
+   "kb": 527
+  },
+  {
+   "code": "JM-22",
+   "group": "JM",
+   "title": "LED Matrix Emoji Display",
+   "file": "library/slides/JM-22_LED_Matrix_Emoji_Display_Slides.pdf",
+   "thumb": "library/thumbs/JM-22.jpg",
+   "pages": 20,
+   "kb": 833
+  },
+  {
+   "code": "JM-23",
+   "group": "JM",
+   "title": "Ultrasonic Theremin",
+   "file": "library/slides/JM-23_Ultrasonic_Theremin_Slides.pdf",
+   "thumb": "library/thumbs/JM-23.jpg",
+   "pages": 20,
+   "kb": 564
+  },
+  {
+   "code": "JM-24",
+   "group": "JM",
+   "title": "Processing Drawing Machine",
+   "file": "library/slides/JM-24_Processing_Drawing_Machine_Slides.pdf",
+   "thumb": "library/thumbs/JM-24.jpg",
+   "pages": 20,
+   "kb": 501
+  },
+  {
+   "code": "JM-25",
+   "group": "JM",
+   "title": "Smart Traffic Junction",
+   "file": "library/slides/JM-25_Smart_Traffic_Junction_Slides.pdf",
+   "thumb": "library/thumbs/JM-25.jpg",
+   "pages": 20,
+   "kb": 548
+  },
+  {
    "code": "LE-01",
    "group": "LE",
    "title": "Light-Up Paper Circuit Card",

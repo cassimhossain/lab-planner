@@ -263,6 +263,38 @@ window.VIDEOS = {
    "mins": 6
   }
  ],
+ "JM-29": [
+  {
+   "id": "8TNLRK_FyFc",
+   "title": "Binary Search",
+   "channel": "BBC Bitesize",
+   "mins": 2
+  }
+ ],
+ "JM-30": [
+  {
+   "id": "J2DKgCf353k",
+   "title": "Bar Graph",
+   "channel": "Periwinkle",
+   "mins": 4
+  }
+ ],
+ "JM-31": [
+  {
+   "id": "agGEDdj05U0",
+   "title": "How Does Facial Recognition Work?",
+   "channel": "Hashem Al-Ghaili",
+   "mins": 4
+  }
+ ],
+ "JM-32": [
+  {
+   "id": "XsOWczwRVuc",
+   "title": "What Is Phishing? And How to Avoid the Bait",
+   "channel": "iluli by Mike Lamb",
+   "mins": 4
+  }
+ ],
  "LE-01": [
   {
    "id": "HOFp8bHTN30",

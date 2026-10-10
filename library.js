@@ -299,6 +299,42 @@ window.LIBRARY = {
    "kb": 481
   },
   {
+   "code": "JM-29",
+   "group": "JM",
+   "title": "Python Number Guessing Game",
+   "file": "library/slides/JM-29_Python_Number_Guessing_Game_Slides.pdf",
+   "thumb": "library/thumbs/JM-29.jpg",
+   "pages": 20,
+   "kb": 470
+  },
+  {
+   "code": "JM-30",
+   "group": "JM",
+   "title": "Data Detectives Survey Charts",
+   "file": "library/slides/JM-30_Data_Detectives_Survey_Charts_Slides.pdf",
+   "thumb": "library/thumbs/JM-30.jpg",
+   "pages": 20,
+   "kb": 496
+  },
+  {
+   "code": "JM-31",
+   "group": "JM",
+   "title": "AI Emotion Mirror",
+   "file": "library/slides/JM-31_AI_Emotion_Mirror_Slides.pdf",
+   "thumb": "library/thumbs/JM-31.jpg",
+   "pages": 20,
+   "kb": 561
+  },
+  {
+   "code": "JM-32",
+   "group": "JM",
+   "title": "Cyber Safety Escape Room",
+   "file": "library/slides/JM-32_Cyber_Safety_Escape_Room_Slides.pdf",
+   "thumb": "library/thumbs/JM-32.jpg",
+   "pages": 21,
+   "kb": 508
+  },
+  {
    "code": "LE-01",
    "group": "LE",
    "title": "Light-Up Paper Circuit Card",

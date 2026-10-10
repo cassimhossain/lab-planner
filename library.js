@@ -587,6 +587,42 @@ window.LIBRARY = {
    "kb": 416
   },
   {
+   "code": "LE-29",
+   "group": "LE",
+   "title": "Teach the Computer Our Sounds",
+   "file": "library/slides/LE-29_Teach_the_Computer_Our_Sounds_Slides.pdf",
+   "thumb": "library/thumbs/LE-29.jpg",
+   "pages": 16,
+   "kb": 395
+  },
+  {
+   "code": "LE-30",
+   "group": "LE",
+   "title": "Follow-Me Robot Pet",
+   "file": "library/slides/LE-30_Follow-Me_Robot_Pet_Slides.pdf",
+   "thumb": "library/thumbs/LE-30.jpg",
+   "pages": 18,
+   "kb": 495
+  },
+  {
+   "code": "LE-31",
+   "group": "LE",
+   "title": "Safety Helper Robot Design",
+   "file": "library/slides/LE-31_Safety_Helper_Robot_Design_Slides.pdf",
+   "thumb": "library/thumbs/LE-31.jpg",
+   "pages": 16,
+   "kb": 417
+  },
+  {
+   "code": "LE-32",
+   "group": "LE",
+   "title": "Countdown Rocket Launch",
+   "file": "library/slides/LE-32_Countdown_Rocket_Launch_Slides.pdf",
+   "thumb": "library/thumbs/LE-32.jpg",
+   "pages": 17,
+   "kb": 454
+  },
+  {
    "code": "TL-01",
    "group": "TL",
    "title": "Solar Powered Off Grid Weather Node",
@@ -873,6 +909,42 @@ window.LIBRARY = {
    "thumb": "library/thumbs/YI-16.jpg",
    "pages": 19,
    "kb": 479
+  },
+  {
+   "code": "YI-17",
+   "group": "YI",
+   "title": "Processing Generative Art Poster",
+   "file": "library/slides/YI-17_Processing_Generative_Art_Poster_Slides.pdf",
+   "thumb": "library/thumbs/YI-17.jpg",
+   "pages": 19,
+   "kb": 705
+  },
+  {
+   "code": "YI-18",
+   "group": "YI",
+   "title": "Processing Arduino Live Sensor Radar",
+   "file": "library/slides/YI-18_Processing_Arduino_Live_Sensor_Radar_Slides.pdf",
+   "thumb": "library/thumbs/YI-18.jpg",
+   "pages": 19,
+   "kb": 532
+  },
+  {
+   "code": "YI-19",
+   "group": "YI",
+   "title": "Python Pygame Catch the Falling Stars",
+   "file": "library/slides/YI-19_Python_Pygame_Catch_the_Falling_Stars_Slides.pdf",
+   "thumb": "library/thumbs/YI-19.jpg",
+   "pages": 19,
+   "kb": 509
+  },
+  {
+   "code": "YI-20",
+   "group": "YI",
+   "title": "ESP32-CAM Wildlife Camera",
+   "file": "library/slides/YI-20_ESP32-CAM_Wildlife_Camera_Slides.pdf",
+   "thumb": "library/thumbs/YI-20.jpg",
+   "pages": 20,
+   "kb": 592
   }
  ],
  "docs": [

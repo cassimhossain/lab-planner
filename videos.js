@@ -519,6 +519,38 @@ window.VIDEOS = {
    "mins": 6
   }
  ],
+ "LE-29": [
+  {
+   "id": "2RRT1YuyBCo",
+   "title": "How Voice Recognition Works",
+   "channel": "iluli by Mike Lamb",
+   "mins": 5
+  }
+ ],
+ "LE-30": [
+  {
+   "id": "tLjtOMBWvTo",
+   "title": "Sony's robot dog Aibo vs. a real puppy",
+   "channel": "Washington Post",
+   "mins": 4
+  }
+ ],
+ "LE-31": [
+  {
+   "id": "CqH2QYt6oOc",
+   "title": "Safety Tips for Kids",
+   "channel": "learning junction",
+   "mins": 5
+  }
+ ],
+ "LE-32": [
+  {
+   "id": "Lti6a_YYQl0",
+   "title": "How Do Rockets Fly?",
+   "channel": "SciShow Kids",
+   "mins": 5
+  }
+ ],
  "TL-01": [
   {
    "id": "xKxrkht7CpY",
@@ -773,6 +805,38 @@ window.VIDEOS = {
    "title": "What Is 3D Printing and How Does It Work?",
    "channel": "Mashable Explains",
    "mins": 2
+  }
+ ],
+ "YI-17": [
+  {
+   "id": "UsIF5r8rAvk",
+   "title": "I Tried Making Generative Art (p5js)",
+   "channel": "phase space",
+   "mins": 5
+  }
+ ],
+ "YI-18": [
+  {
+   "id": "ywDE57CtaTM",
+   "title": "How does RADAR work? | James May Q&A",
+   "channel": "BBC Earth Science",
+   "mins": 6
+  }
+ ],
+ "YI-19": [
+  {
+   "id": "lzHLPaU7UUE",
+   "title": "2 YEARS of PYTHON Game Development in 5 Minutes!",
+   "channel": "Coding With Russ",
+   "mins": 5
+  }
+ ],
+ "YI-20": [
+  {
+   "id": "Mnw8F0HAyBA",
+   "title": "The Art & Science Of Camera Trapping",
+   "channel": "Wildlife Conservation Trust",
+   "mins": 4
   }
  ]
 };

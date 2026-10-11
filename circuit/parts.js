@@ -2,8 +2,8 @@
    kind: board | bb (sits on the breadboard) | module (wired with jumper wires)
    pw: power pins { vcc:[...], gnd:[...] } used by the auto-layout and the "is it powered" check
    code: a ready-made example for the part. {PIN:name} is replaced by the board pin it is wired to. */
-import "./elements.js?v=3";
-export { P as PITCH, BB, BB_GROUPS, bbGroupOf, bbLayout } from "./elements.js?v=3";
+import "./elements.js?v=4";
+export { P as PITCH, BB, BB_GROUPS, bbGroupOf, bbLayout } from "./elements.js?v=4";
 
 const COLORS = ["red", "green", "yellow", "blue", "white", "orange"];
 export const CATS = ["Boards", "Basics", "Input", "Sensors", "Displays", "Light & sound", "Motion", "Power", "Communication"];

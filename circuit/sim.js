@@ -1,9 +1,9 @@
 /* Circuit Lab - netlist + microcontroller simulation (avr8js, MIT). */
 import { CPU, avrInstruction, AVRTimer, AVRIOPort, AVRUSART, AVRADC, AVRTWI, AVREEPROM, EEPROMMemoryBackend, PinState } from "../vendor/avr8js.mjs";
-import { CARDS, PARTS } from "./parts.js?v=3";
-import { bbLayout } from "./elements.js?v=3";
-import { BOARDS, ESP_ADC_PINS } from "./boards.js?v=3";
-import { BATT } from "./elements.js?v=3";
+import { CARDS, PARTS } from "./parts.js?v=4";
+import { bbLayout } from "./elements.js?v=4";
+import { BOARDS, ESP_ADC_PINS } from "./boards.js?v=4";
+import { BATT } from "./elements.js?v=4";
 
 const F = 16e6, US = F / 1e6, MS = F / 1e3;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));

@@ -1,16 +1,17 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf } from "./parts.js?v=3";
-import { Netlist, Sim } from "./sim.js?v=3";
-import { BOARDS, loadHex } from "./boards.js?v=3";
-import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=3";
-import { layoutCircuit } from "./layout.js?v=3";
-import { SNIPPETS } from "./snippets.js?v=3";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=3";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf } from "./parts.js?v=4";
+import { Netlist, Sim } from "./sim.js?v=4";
+import { BOARDS, loadHex } from "./boards.js?v=4";
+import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=4";
+import { layoutCircuit } from "./layout.js?v=4";
+import { SNIPPETS } from "./snippets.js?v=4";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=4";
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const KEY = "circuitlab.v2", LIST = "circuitlab.projects.v2";
+const KEY = "circuitlab.v2", LIST = "circuitlab.projects.v2", LKEY = "circuitlab.lesson.";
+/* Your own work autosaves to KEY. A lesson autosaves to its own slot (LKEY + code), so opening Circuit Lab never brings back a lesson. */
 const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } } };
 const BUILD_URL = (() => { try { return localStorage.getItem("circuitlab.buildUrl") || "https://hexi.wokwi.com/build"; } catch (e) { return "https://hexi.wokwi.com/build"; } })();
 const WIRE_COLORS = ["#2B2D42", "#E63946", "#F08C00", "#F5B83D", "#2E9E5B", "#20B8A6", "#1F6FD1", "#7B3FC4", "#D6336C", "#8D6E63", "#FFFFFF"];
@@ -39,13 +40,15 @@ let sim = null, running = false, raf = 0, lastT = 0;
 let undoStack = [], redoStack = [], editor;
 let muted = false, catFilter = "All";
 
-function load() { const p = store.get(KEY); return p && p.parts ? p : null; }
-function save() { project.code = editor ? editor.getValue() : project.code; store.set(KEY, project); }
+function load() { const p = store.get(KEY); return p && p.parts && !p.lessonKey ? p : null; }
+function save() { project.code = editor ? editor.getValue() : project.code; store.set(project.lessonKey ? LKEY + project.lessonKey : KEY, project); }
+const sameWork = (a, b) => JSON.stringify([a.parts, a.wires, a.code]) === JSON.stringify([b.parts, b.wires, b.code]);
+function setHash(h) { try { history.replaceState(null, "", location.pathname + location.search + (h ? "#" + h : "")); } catch (e) { } }
 function snapshot() { undoStack.push(JSON.stringify(project)); if (undoStack.length > 80) undoStack.shift(); redoStack = []; }
 function undo() { if (running || !undoStack.length) return; redoStack.push(JSON.stringify(project)); project = JSON.parse(undoStack.pop()); rebuildAll(true); save(); toast("Undone"); }
 function redo() { if (running || !redoStack.length) return; undoStack.push(JSON.stringify(project)); project = JSON.parse(redoStack.pop()); rebuildAll(true); save(); toast("Redone"); }
 const uid = t => { let i = 1; while (project.parts.some(p => p.id === t + i)) i++; return t + i; };
-function toast(m, kind = "") { const t = $("#toast"); t.innerHTML = m; t.className = "toast on " + kind; clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("on"), 2600); }
+function toast(m, kind = "", ms = 2600) { const t = $("#toast"); t.innerHTML = m; t.className = "toast on " + kind; clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("on"), ms); }
 const boardPart = () => project.parts.find(p => BOARDS[p.type]);
 const boardType = () => { const b = boardPart(); return b ? b.type : null; };
 const partLabel = p => p.label || PARTS[p.type].label;
@@ -500,7 +503,7 @@ async function buildFromSpec(spec) {
   });
   return out;
 }
-async function openLesson(code, quiet) {
+async function openLesson(code, quiet, fresh) {
   const spec = LESSONS[code] || STARTERS.find(s => s.key === code); if (!spec) return toast("No ready-made circuit for " + esc(code));
   stopSim();
   let built;
@@ -508,8 +511,13 @@ async function openLesson(code, quiet) {
   else { try { built = await buildFromSpec(spec); } catch (e) { console.error(e); return toast("Could not build this circuit: " + esc(e.message)); } }
   snapshot();
   project = { v: 2, name: spec.lesson ? `${spec.lesson} ${spec.title}` : spec.title, parts: built.parts, wires: built.wires, code: spec.code || specCode(spec) || (built.board ? CODE_UNO : "// No board: this circuit runs without code.\n"), lesson: spec.lesson ? spec.lesson : null, lessonKey: code };
-  rebuildAll(); save();
-  if (!quiet) toast(`Opened <b>${esc(project.name)}</b>. Press Start simulation.`);
+  // always open the ready-made circuit; earlier changes to this lesson can be brought back from the toast
+  const prior = store.get(LKEY + code);
+  if (fresh) { try { localStorage.removeItem(LKEY + code); } catch (e) { } }
+  rebuildAll(); setHash((LESSONS[code] ? "lesson=" : "ex=") + code);
+  restoreable = !fresh && prior && prior.parts && !sameWork(prior, project) ? prior : null;
+  if (restoreable) toast(`Opened the ready-made <b>${esc(project.name)}</b>. <button class="tbtn" data-act="restorelesson">Bring back my changes</button>`, "act", 9000);
+  else if (!quiet) toast(`Opened <b>${esc(project.name)}</b>. Press Start simulation.`);
   if (spec.lesson) { $("#lessontab").hidden = false; }
 }
 /* code for a starter that only lists parts: use the first part's example with the spec's pins */
@@ -597,8 +605,10 @@ function tab(t) {
   $$(".tpane").forEach(p => p.classList.toggle("on", p.id === "t-" + t));
   if (t === "code") editor.refresh(); if (t === "serial") { $("[data-tab=serial]").classList.remove("ping"); plot.draw(); } if (t === "phone") $("#phonetab").classList.remove("ping");
 }
+let restoreable = null;
 function setProject(p, msg) {
   stopSim(); snapshot(); project = JSON.parse(JSON.stringify(p)); delete project.saved;
+  setHash(project.lessonKey ? (LESSONS[project.lessonKey] ? "lesson=" : "ex=") + project.lessonKey : "");
   project.parts.forEach(q => { q.rot = q.rot || 0; });
   rebuildAll(); save(); if (msg) toast(msg);
 }
@@ -757,7 +767,8 @@ function boot() {
       case "mqsend": if (sim) { sim.mqttSend($("#mqtopic").value, $("#mqmsg").value); phone.log.push({ t: `MQTT ${$("#mqtopic").value} → ${$("#mqmsg").value}`, level: "mqtt" }); renderPhone(); } return;
       case "nowsend": if (sim) { sim.nowSend($("#nowmsg").value); phone.log.push({ t: `ESP-NOW received: ${$("#nowmsg").value}`, level: "mqtt" }); renderPhone(); } return;
       case "hidecard": project.hideCard = true; save(); $("#lessoncard").classList.remove("on"); return;
-      case "resetlesson": if (confirm("Throw away your changes and rebuild the original circuit?")) openLesson(project.lessonKey); return;
+      case "resetlesson": if (confirm("Throw away your changes and rebuild the original circuit?")) openLesson(project.lessonKey, false, true); return;
+      case "restorelesson": if (restoreable) { const r = restoreable; restoreable = null; setProject(r, "Your changes are back"); } return;
     }
   });
   $("#fileup").addEventListener("change", e => {

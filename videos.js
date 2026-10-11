@@ -679,6 +679,70 @@ window.VIDEOS = {
    "mins": 4
   }
  ],
+ "TL-17": [
+  {
+   "id": "2hXG8v8p0KM",
+   "title": "How Computer Vision Works",
+   "channel": "CodeAI",
+   "mins": 6
+  }
+ ],
+ "TL-18": [
+  {
+   "id": "PRg5RNU_JLk",
+   "title": "How do self-driving cars see?",
+   "channel": "TED-Ed",
+   "mins": 5
+  }
+ ],
+ "TL-19": [
+  {
+   "id": "Y1qwcPqxkp0",
+   "title": "What is TinyML?",
+   "channel": "Arm",
+   "mins": 6
+  }
+ ],
+ "TL-20": [
+  {
+   "id": "QbUPfMXXQIY",
+   "title": "How do Boids Work? A Flocking Simulation",
+   "channel": "dante",
+   "mins": 4
+  }
+ ],
+ "TL-21": [
+  {
+   "id": "71CEj4gKDnE",
+   "title": "A* Search and Heuristics Intuition in 2 minutes",
+   "channel": "Anish Krishnan",
+   "mins": 2
+  }
+ ],
+ "TL-22": [
+  {
+   "id": "e9lnsKot_SQ",
+   "title": "How Git Works: Explained in 4 Minutes",
+   "channel": "ByteByteGo",
+   "mins": 4
+  }
+ ],
+ "TL-23": [
+  {
+   "id": "IVlIPoV3Va4",
+   "title": "What are Microgrids?",
+   "channel": "The B1M",
+   "mins": 4
+  }
+ ],
+ "TL-24": [
+  {
+   "id": "b6xeOLjeKs0",
+   "title": "How Shazam IDs Over 23,000 Songs Each Minute",
+   "channel": "The Wall Street Journal",
+   "mins": 7
+  }
+ ],
  "YI-01": [
   {
    "id": "fLaexx-NMj8",

@@ -767,6 +767,78 @@ window.LIBRARY = {
    "kb": 584
   },
   {
+   "code": "TL-17",
+   "group": "TL",
+   "title": "Computer Vision OpenCV Colour Tracking",
+   "file": "library/slides/TL-17_Computer_Vision_OpenCV_Colour_Tracking_Slides.pdf",
+   "thumb": "library/thumbs/TL-17.jpg",
+   "pages": 20,
+   "kb": 544
+  },
+  {
+   "code": "TL-18",
+   "group": "TL",
+   "title": "Vision-Guided Robot Car",
+   "file": "library/slides/TL-18_Vision-Guided_Robot_Car_Slides.pdf",
+   "thumb": "library/thumbs/TL-18.jpg",
+   "pages": 20,
+   "kb": 594
+  },
+  {
+   "code": "TL-19",
+   "group": "TL",
+   "title": "TinyML Gesture Recogniser ESP32",
+   "file": "library/slides/TL-19_TinyML_Gesture_Recogniser_ESP32_Slides.pdf",
+   "thumb": "library/thumbs/TL-19.jpg",
+   "pages": 20,
+   "kb": 604
+  },
+  {
+   "code": "TL-20",
+   "group": "TL",
+   "title": "Processing Flocking Simulation Boids",
+   "file": "library/slides/TL-20_Processing_Flocking_Simulation_Boids_Slides.pdf",
+   "thumb": "library/thumbs/TL-20.jpg",
+   "pages": 20,
+   "kb": 564
+  },
+  {
+   "code": "TL-21",
+   "group": "TL",
+   "title": "Pathfinding Visualiser BFS and Astar",
+   "file": "library/slides/TL-21_Pathfinding_Visualiser_BFS_and_Astar_Slides.pdf",
+   "thumb": "library/thumbs/TL-21.jpg",
+   "pages": 20,
+   "kb": 766
+  },
+  {
+   "code": "TL-22",
+   "group": "TL",
+   "title": "Git and GitHub for Engineering Teams",
+   "file": "library/slides/TL-22_Git_and_GitHub_for_Engineering_Teams_Slides.pdf",
+   "thumb": "library/thumbs/TL-22.jpg",
+   "pages": 20,
+   "kb": 539
+  },
+  {
+   "code": "TL-23",
+   "group": "TL",
+   "title": "Smart Microgrid Model",
+   "file": "library/slides/TL-23_Smart_Microgrid_Model_Slides.pdf",
+   "thumb": "library/thumbs/TL-23.jpg",
+   "pages": 20,
+   "kb": 552
+  },
+  {
+   "code": "TL-24",
+   "group": "TL",
+   "title": "Noise Pollution Analyser FFT",
+   "file": "library/slides/TL-24_Noise_Pollution_Analyser_FFT_Slides.pdf",
+   "thumb": "library/thumbs/TL-24.jpg",
+   "pages": 20,
+   "kb": 582
+  },
+  {
    "code": "YI-01",
    "group": "YI",
    "title": "555 Timer Alarm Siren",

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code Lab · Robotics &amp; AI Club</title>
+<meta name="description" content="Write and run Python and C++ in the browser, with input, error help, plots and ready-made examples.">
+<link rel="icon" type="image/svg+xml" href="../logo.svg">
+<!-- lets Python's input() wait for typing: adds the cross-origin isolation headers GitHub Pages can't set -->
+<script src="coi-serviceworker.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" crossorigin="anonymous">
+<link rel="stylesheet" href="vendor/codemirror.css?v=1">
+<link rel="stylesheet" href="codelab.css?v=1">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html#sims" title="Back to the portal"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg><img src="../logo.svg" alt=""><span><b>Code Lab</b><small>Robotics &amp; AI Club</small></span></a>
+  <div class="langs" role="tablist" aria-label="Language">
+    <button role="tab" data-lang="python" class="on"><span class="lg py">Py</span>Python</button>
+    <button role="tab" data-lang="cpp"><span class="lg cpp">C++</span>C++</button>
+  </div>
+  <nav class="tb">
+    <button class="tbtn" data-act="examples" title="Ready-made programs"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7M8 11h5"/></svg><span>Examples</span></button>
+    <button class="tbtn" data-act="new" title="Start a new program"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>New</span></button>
+    <button class="tbtn icon" data-act="download" title="Download the program"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
+    <button class="tbtn icon" data-act="upload" title="Open a .py or .cpp file"><svg class="ic" viewBox="0 0 24 24"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></svg></button>
+  </nav>
+  <div class="grow"></div>
+  <span id="engine" class="engine"></span>
+  <button id="runbtn" class="run" data-act="run" title="Run (Ctrl+Enter)"><svg class="ic" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg><span>Run</span></button>
+</header>
+
+<main class="main">
+  <section class="edpane">
+    <div class="edbar">
+      <input id="fname" class="fname" aria-label="File name" value="main.py">
+      <div class="grow"></div>
+      <button class="cbtn icon" data-act="smaller" title="Smaller text">A-</button>
+      <button class="cbtn icon" data-act="bigger" title="Bigger text">A+</button>
+      <button class="cbtn" data-act="format" title="Tidy up indentation">Tidy</button>
+      <button class="cbtn" data-act="copy" title="Copy the code"><svg class="ic" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Copy</button>
+    </div>
+    <div id="editor" class="editor"></div>
+  </section>
+  <div id="gutter" class="gutter" title="Drag to resize"></div>
+  <section class="iopane">
+    <div class="iobar">
+      <b>Output</b><span id="runstate" class="runstate"></span>
+      <div class="grow"></div>
+      <button class="cbtn" data-act="clear" title="Clear the output">Clear</button>
+    </div>
+    <div id="term" class="term" tabindex="0" aria-live="polite"></div>
+    <div class="stdin">
+      <div class="stdinh"><b>Input</b><small id="stdinhelp">Optional. Lines typed here are read first by input(). Leave it empty to type answers while the program runs.</small></div>
+      <textarea id="stdin" spellcheck="false" placeholder="One value per line"></textarea>
+    </div>
+  </section>
+</main>
+
+<div id="modal" class="modal"><div class="mbox" id="mbox"></div></div>
+<div id="toast" class="toast"></div>
+<input id="fileup" type="file" accept=".py,.cpp,.cc,.c,.h,.txt" hidden>
+
+<script src="vendor/codemirror.min.js?v=1"></script>
+<script type="module" src="app.js?v=1"></script>
+</body>
+</html>

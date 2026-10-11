@@ -2,8 +2,8 @@
    kind: board | bb (sits on the breadboard) | module (wired with jumper wires)
    pw: power pins { vcc:[...], gnd:[...] } used by the auto-layout and the "is it powered" check
    code: a ready-made example for the part. {PIN:name} is replaced by the board pin it is wired to. */
-import "./elements.js?v=4";
-export { P as PITCH, BB, BB_GROUPS, bbGroupOf, bbLayout } from "./elements.js?v=4";
+import "./elements.js?v=5";
+export { P as PITCH, BB, BB_GROUPS, bbGroupOf, bbLayout } from "./elements.js?v=5";
 
 const COLORS = ["red", "green", "yellow", "blue", "white", "orange"];
 export const CATS = ["Boards", "Basics", "Input", "Sensors", "Displays", "Light & sound", "Motion", "Power", "Communication"];
@@ -721,5 +721,122 @@ void loop() {
 /* RFID cards students can tap */
 export const CARDS = [{ name: "Blue tag", uid: [0xA3, 0x5F, 0x1C, 0x2B] }, { name: "White card", uid: [0x7E, 0x22, 0x91, 0x04] }, { name: "Unknown card", uid: [0x13, 0x37, 0xBE, 0xEF] }];
 /* default pin values for code examples when a pin is not wired yet */
+
+/* example code for parts that had none */
+Object.assign(PARTS.slideswitch, { defaults: { "2": 7 }, code: `// Slide switch turns the built-in LED on and off
+const int SWITCH = {2};   // middle pin
+// pin 1 to 5V, pin 3 to GND: the middle pin follows the slider
+
+void setup() {
+  pinMode(SWITCH, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  bool on = digitalRead(SWITCH) == HIGH;
+  digitalWrite(LED_BUILTIN, on);
+  Serial.println(on ? "Switch: ON" : "Switch: OFF");
+  delay(300);
+}
+` });
+Object.assign(PARTS.tilt, { defaults: { OUT: 4 }, code: `// Tilt alarm: shows when the sensor is tipped over
+const int TILT = {OUT};
+
+void setup() {
+  pinMode(TILT, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  bool tilted = digitalRead(TILT) == HIGH;
+  digitalWrite(LED_BUILTIN, tilted);
+  Serial.println(tilted ? "Tilted!" : "Level");
+  delay(250);
+}
+` });
+Object.assign(PARTS.seg7, { defaults: { A: 2, B: 3, C: 4, D: 5, E: 6, F: 7, G: 8, DP: 9 }, code: `// Count 0 to 9 on a common-cathode 7-segment digit
+// COM to GND (through the digit), each segment through a 220 ohm resistor
+const int SEG[7] = {{A}, {B}, {C}, {D}, {E}, {F}, {G}};   // A B C D E F G
+const byte DIGITS[10] = {
+  0b1111110, 0b0110000, 0b1101101, 0b1111001, 0b0110011,
+  0b1011011, 0b1011111, 0b1110000, 0b1111111, 0b1111011 };
+
+void show(int n) {
+  for (int s = 0; s < 7; s++) digitalWrite(SEG[s], bitRead(DIGITS[n], 6 - s));
+}
+
+void setup() {
+  for (int s = 0; s < 7; s++) pinMode(SEG[s], OUTPUT);
+}
+
+void loop() {
+  for (int n = 0; n < 10; n++) { show(n); delay(700); }
+}
+` });
+Object.assign(PARTS.neopixel, { defaults: { DIN: 6 }, code: `// One NeoPixel fades through the rainbow
+#include <Adafruit_NeoPixel.h>
+Adafruit_NeoPixel px(1, {DIN}, NEO_GRB + NEO_KHZ800);
+
+void setup() {
+  px.begin();
+  px.setBrightness(120);
+}
+
+void loop() {
+  for (long hue = 0; hue < 65536; hue += 512) {
+    px.setPixelColor(0, px.gamma32(px.ColorHSV(hue)));
+    px.show();
+    delay(10);
+  }
+}
+` });
+Object.assign(PARTS.stepper, { defaults: { "A+": 8, "A-": 9, "B+": 10, "B-": 11 }, code: `// Bipolar stepper: one turn forward, one turn back
+#include <Stepper.h>
+const int STEPS = 200;   // 1.8 degrees per step
+Stepper motor(STEPS, {A+}, {A-}, {B+}, {B-});
+
+void setup() {
+  motor.setSpeed(30);    // RPM
+  Serial.begin(9600);
+}
+
+void loop() {
+  Serial.println("Forward");
+  motor.step(STEPS);
+  delay(500);
+  Serial.println("Back");
+  motor.step(-STEPS);
+  delay(500);
+}
+` });
+Object.assign(PARTS.vibe, { defaults: { IN: 5 }, code: `// Vibration motor: short buzzes like a phone
+const int MOTOR = {IN};
+
+void buzz(int ms) { digitalWrite(MOTOR, HIGH); delay(ms); digitalWrite(MOTOR, LOW); delay(150); }
+
+void setup() { pinMode(MOTOR, OUTPUT); }
+
+void loop() {
+  buzz(200); buzz(200);
+  delay(1500);
+}
+` });
+
+Object.assign(PARTS.rfid, { defaults: Object.assign({ SDA: 10, RST: 9 }, PARTS.rfid.defaults || {}) });
+Object.assign(PARTS.hx711, { defaults: Object.assign({ DT: 3, SCK: 2 }, PARTS.hx711.defaults || {}) });
+Object.assign(PARTS.max7219, { defaults: Object.assign({ DIN: 12, CLK: 11, CS: 10 }, PARTS.max7219.defaults || {}) });
 export const DEFAULT_PINS = { A: 13, R: 9, G: 10, B: 11, "1.l": 2, SIG: "A0", HORZ: "A0", VERT: "A1", SEL: 2, TRIG: 9, ECHO: 10, OUT: 2, AO: "A0", DO: 2, SDA: 2, S: "A0", DT: 3, SCK: 2,
   DIN: 6, CS: 10, CLK: 11, "2": 8, PWM: 9, ENA: 5, IN1: 7, IN2: 8, ENB: 6, IN3: 9, IN4: 11, IN: 7, TXD: 2, RXD: 3, RST: 9, R1: 9, R2: 8, R3: 7, R4: 6, C1: 5, C2: 4, C3: 3, C4: 2 };
+
+/* pins used in example code when a part is not wired yet (ESP32 avoids flash and boot pins) */
+export const ESP_DEFAULT_PINS = { A: 2, R: 25, G: 26, B: 27, "1.l": 4, "2": 4, SIG: 34, AO: 34, S: 34, HORZ: 34, VERT: 35, SEL: 27, TRIG: 5, ECHO: 18, OUT: 27, DO: 27,
+  SDA: 5, RST: 17, DT: 16, SCK: 4, DIN: 23, CS: 5, CLK: 18, PWM: 13, ENA: 14, IN1: 27, IN2: 26, ENB: 32, IN3: 25, IN4: 33, IN: 26, TXD: 16, RXD: 17,
+  R1: 13, R2: 12, R3: 14, R4: 27, C1: 26, C2: 25, C3: 33, C4: 32, "A+": 25, "A-": 26, "B+": 27, "B-": 14 };
+Object.assign(PARTS.seg7, { defaultsEsp: { A: 13, B: 12, C: 14, D: 27, E: 26, F: 25, G: 33, DP: 32 } });
+Object.assign(PARTS.max7219, { defaultsEsp: { DIN: 23, CLK: 18, CS: 5 } });
+export function defaultPin(d, k, board) {
+  if (board === "esp32") return (d.defaultsEsp || {})[k] ?? ESP_DEFAULT_PINS[k] ?? 4;
+  return (d.defaults || {})[k] ?? DEFAULT_PINS[k] ?? 2;
+}

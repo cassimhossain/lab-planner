@@ -52,6 +52,7 @@
     left: '<path d="M15 5l-7 7 7 7"/>',
     right: '<path d="M9 5l7 7-7 7"/>',
     flask: '<path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7.5 15h9"/>',
+    code: '<path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/>',
     chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/><circle cx="12" cy="12" r="2"/>',
     bolt: '<path d="M13 2L5 14h6l-1 8 8-12h-6z"/>',
     cube: '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
@@ -157,7 +158,8 @@
       item("week", "Timetable", ic("week"), badge(nw.length)) +
       `<div class="mlabel">Virtual labs</div>` +
       item("sims", "Simulators", ic("flask"), `<em class="soft">${SIM.list.length}</em>`) +
-      `<a href="circuit.html" class="mi">${ic("chip")}<span>Circuit Lab</span><em class="soft new">New</em></a>` +
+      `<a href="circuit.html" class="mi">${ic("chip")}<span>Circuit Lab</span></a>` +
+      `<a href="codelab/" class="mi">${ic("code")}<span>Code Lab</span><em class="soft new">New</em></a>` +
       `<div class="mlabel">Lab &amp; kit</div>` +
       item("hardware", "Hardware", ic("parts")) +
       item("print", "Print kit lists", ic("print")) +
@@ -678,11 +680,11 @@
   }
   /* ---------- VIRTUAL LABS ---------- */
   const SIM = window.SIMS || { list: [], circuits: [], byKey: {}, forLesson: () => [] };
-  const simIcon = s => s.kind === "build" ? "chip" : s.kind === "cad" ? "cube" : "bolt";
+  const simIcon = s => s.kind === "build" ? "chip" : s.kind === "code" ? "code" : s.kind === "cad" ? "cube" : "bolt";
   const simHref = s => s.href || "sim.html?s=" + s.key;
-  const simTag = s => s.kind === "build" ? "Needs internet to compile" : s.online ? "Needs internet" : "Works offline";
+  const simTag = s => s.kind === "build" ? "Needs internet to compile" : s.kind === "code" ? "Python in the browser · C++ online" : s.online ? "Needs internet" : "Works offline";
   function simTiles() {
-    const pick = ["circuit-lab", "cck-dc", "ohms-law", "blockscad"].map(k => SIM.byKey[k]).filter(Boolean);
+    const pick = ["circuit-lab", "code-lab", "cck-dc", "blockscad"].map(k => SIM.byKey[k]).filter(Boolean);
     return `<div class="labgrid">${pick.map(s => `<a class="labtile simtile" href="${simHref(s)}" style="--sc:${s.color}"><span class="lt-ic">${ic(simIcon(s))}</span><b>${esc(s.name)}</b><small>${esc(s.about)}</small></a>`).join("")}</div>`;
   }
   function vSims() {
@@ -691,20 +693,23 @@
     const exChips = (SIM.circuits || []).map(c => { const a = byCode(c), g = a && GROUPS[a.group];
       return `<a class="exchip" href="circuit.html#lesson=${c}" style="--c:${g ? g.color : "#2E6BE6"}"><b>${esc(c)}</b>${esc(a ? a.title : c)}</a>`; }).join("");
     const card = s => `<a class="simcard" href="${simHref(s)}" style="--sc:${s.color}">
-        <span class="sim-art">${ic(simIcon(s))}<em>${s.kind === "phet" ? "PhET" : s.kind === "cad" ? "3D design" : "Arduino"}</em></span>
+        <span class="sim-art">${ic(simIcon(s))}<em>${s.kind === "phet" ? "PhET" : s.kind === "cad" ? "3D design" : s.kind === "code" ? "Python · C++" : "Arduino"}</em></span>
         <span class="sim-b"><b>${esc(s.name)}</b><small>${esc(s.about)}</small>
           <span class="sim-good"><i>Good for</i>${esc(s.good)}</span>
           <span class="sim-meta"><span>Ages ${esc(s.ages)}</span><span class="${s.online || s.kind === "build" ? "on" : "off"}">${esc(simTag(s))}</span></span></span></a>`;
-    const phet = SIM.list.filter(s => s.kind === "phet"), cad = SIM.list.filter(s => s.kind === "cad");
+    const phet = SIM.list.filter(s => s.kind === "phet"), cad = SIM.list.filter(s => s.kind === "cad"), code = SIM.byKey["code-lab"];
     return `${head("Virtual labs", "Simulators for trying ideas before touching real parts. Each lesson also shows the matching simulator when you open it.")}
       ${cl ? `<section class="sec t-sim"><div class="sec-h"><span class="sec-ic">${ic("chip")}</span><div><h2>Circuit Lab</h2><p>Our Arduino simulator: wire parts on a breadboard, write code, press Run.</p></div><a class="btn primary sec-link" href="circuit.html">${ic("play")}Open Circuit Lab</a></div>
         <div class="clhero"><a class="clshot" href="circuit.html"><span>${ic("chip")}</span><b>Arduino Uno · ESP32 · breadboard · 55+ parts</b><small>OLED, LCD, MQ-2 and MQ-135 gas, flame, DHT22, ultrasonic, PIR, MPU6050, RFID, keypad, HX711, relays, L298N, steppers, NeoPixel, Wi-Fi and Bluetooth in a pretend phone</small></a>
           <div class="clex"><h3>Ready-made circuits for lessons <small class="muted">${(SIM.circuits || []).length} lessons, wired and coded</small></h3><div class="exchips">${exChips}</div></div></div></section>` : ""}
+      ${code ? `<section class="sec t-code"><div class="sec-h"><span class="sec-ic">${ic("code")}</span><div><h2>Code Lab</h2><p>Write and run Python and C++ right here. Python runs in the browser; C++ compiles with g++ online.</p></div><a class="btn primary sec-link" href="codelab/">${ic("play")}Open Code Lab</a></div>
+        <div class="codehero"><a class="codecard" href="codelab/#python" style="--cc:#3776AB"><span class="cc-lg py">Py</span><b>Python 3</b><small>input() waits for typing, friendly error help, numpy, pandas and matplotlib plots. 19 ready-made examples from "Hello" to a perceptron.</small></a>
+          <a class="codecard" href="codelab/#cpp" style="--cc:#00599C"><span class="cc-lg cpp">C++</span><b>C++ (g++ 13)</b><small>Real compiler errors with plain-English hints, an Input box for cin, and 13 examples: loops, arrays, vectors, classes, recursion.</small></a></div></section>` : ""}
       <section class="sec t-phet"><div class="sec-h"><span class="sec-ic">${ic("bolt")}</span><div><h2>Electricity explorers</h2><p>PhET simulations from the University of Colorado Boulder. Stored on this site, so they work without internet.</p></div></div>
         <div class="simgrid">${phet.map(card).join("")}</div></section>
       <section class="sec t-cad"><div class="sec-h"><span class="sec-ic">${ic("cube")}</span><div><h2>3D design</h2><p>Model parts with blocks, then export STL files for the 3D printer.</p></div></div>
         <div class="simgrid">${cad.map(card).join("")}</div></section>
-      <p class="muted small simcredit">PhET simulations: PhET Interactive Simulations, University of Colorado Boulder, phet.colorado.edu (CC BY 4.0). BlocksCAD: blockscad3d.com (open source, GPL v3). Circuit Lab uses Wokwi Elements and AVR8js (MIT).</p>`;
+      <p class="muted small simcredit">PhET simulations: PhET Interactive Simulations, University of Colorado Boulder, phet.colorado.edu (CC BY 4.0). BlocksCAD: blockscad3d.com (open source, GPL v3). Circuit Lab uses Wokwi Elements and AVR8js (MIT). Code Lab uses Pyodide (MPL 2.0), CodeMirror (MIT) and the Wandbox and Compiler Explorer online compilers.</p>`;
   }
 
   function vHardware() {

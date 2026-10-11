@@ -3,8 +3,8 @@
 export const P = 9.6;
 const F = 'font-family="Inter,Segoe UI,Arial,sans-serif"';
 const MONO = 'font-family="JetBrains Mono,Consolas,monospace"';
-const svgEl = (w, h, body) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="display:block;overflow:visible">${body}</svg>`;
-const txt = (x, y, s, size = 6, fill = "#fff", extra = "") => `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" ${F} ${extra}>${s}</text>`;
+const svgEl = (w, h, body) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" text-rendering="geometricPrecision" style="display:block;overflow:visible">${body}</svg>`;
+const txt = (x, y, s, size = 6, fill = "#fff", extra = "") => { const z = size; return `<text x="${x}" y="${y}" font-size="${z}" fill="${fill}" ${F} ${z <= 7.5 && !/font-weight/.test(extra) ? 'font-weight="600"' : ""} ${extra}>${s}</text>`; };
 const hole = (x, y, r = 2.6) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#F4F1EA" stroke="#C9C3B5" stroke-width=".8"/>`;
 const pcb = (x, y, w, h, c = "#1F57A8", r = 4) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${c}"/><rect x="${x + 1.5}" y="${y + 1.5}" width="${w - 3}" height="${h - 3}" rx="${r - 1}" fill="none" stroke="rgba(255,255,255,.12)"/>`;
 const smd = (x, y, w = 5, h = 2.6, c = "#2B2B2B") => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx=".4" fill="${c}"/><rect x="${x}" y="${y}" width="1.1" height="${h}" fill="#C9B26B"/><rect x="${x + w - 1.1}" y="${y}" width="1.1" height="${h}" fill="#C9B26B"/>`;
@@ -12,12 +12,12 @@ const chip = (x, y, w, h, label = "", n = 4) => { let s = `<rect x="${x}" y="${y
 /* male header on the left edge: pins at x=0, labels inside the board */
 function leftHeader(names, y0, labelX = 13, labelColor = "#fff") {
   let s = `<rect x="2" y="${y0 - P / 2}" width="7" height="${names.length * P}" rx="1" fill="#1A1A1A"/>`;
-  const pins = names.map((n, i) => { const y = y0 + i * P; s += `<rect x="-3" y="${y - 1}" width="9" height="2" rx=".5" fill="#D6B656"/><rect x="4" y="${y - 1.6}" width="3.2" height="3.2" fill="#C9A227"/>` + txt(labelX, y + 2, n, 5.4, labelColor); return { name: n, x: 0, y }; });
+  const pins = names.map((n, i) => { const y = y0 + i * P; s += `<rect x="-3" y="${y - 1}" width="9" height="2" rx=".5" fill="#D6B656"/><rect x="4" y="${y - 1.6}" width="3.2" height="3.2" fill="#C9A227"/>` + txt(labelX, y + 2.3, n, 6.4, labelColor, 'font-weight="700"'); return { name: n, x: 0, y }; });
   return { s, pins };
 }
 function bottomHeader(names, x0, y, labels = true, color = "#fff") {
   let s = `<rect x="${x0 - P / 2}" y="${y - 9}" width="${names.length * P}" height="7" rx="1" fill="#1A1A1A"/>`;
-  const pins = names.map((n, i) => { const x = x0 + i * P; s += `<rect x="${x - 1}" y="${y - 6}" width="2" height="9" rx=".5" fill="#D6B656"/>` + (labels ? `<text x="${x}" y="${y - 12}" font-size="5" fill="${color}" ${F} text-anchor="end" transform="rotate(-90 ${x + 1.8} ${y - 12})">${n}</text>` : ""); return { name: n, x, y }; });
+  const pins = names.map((n, i) => { const x = x0 + i * P; s += `<rect x="${x - 1}" y="${y - 6}" width="2" height="9" rx=".5" fill="#D6B656"/>` + (labels ? `<text x="${x}" y="${y - 12}" font-size="6.2" font-weight="600" fill="${color}" ${F} text-anchor="end" transform="rotate(-90 ${x + 2.1} ${y - 12})">${n}</text>` : ""); return { name: n, x, y }; });
   return { s, pins };
 }
 const termBlock = (x, y, n, c = "#1F6FD1") => { let s = ""; for (let i = 0; i < n; i++) s += `<rect x="${x}" y="${y + i * P - P / 2}" width="12" height="${P}" fill="${c}" stroke="rgba(0,0,0,.35)" stroke-width=".6"/><circle cx="${x + 6}" cy="${y + i * P}" r="3" fill="#C8CED8" stroke="#8E96A3" stroke-width=".6"/><line x1="${x + 4}" y1="${y + i * P}" x2="${x + 8}" y2="${y + i * P}" stroke="#7A8290" stroke-width=".9"/>`; return s; };
@@ -31,7 +31,7 @@ class CL extends HTMLElement {
   attributeChangedCallback() { if (this._done) this.render(); }
   draw(w, h, s, pins) { this.innerHTML = svgEl(w, h, s); this._pins = pins.map(p => Object.assign({ signals: [] }, p)); this.dispatchEvent(new CustomEvent("pininfo-change")); }
   q(sel) { return this.querySelector(sel); }
-  led(cls, on) { const l = this.q("." + cls); if (l) { l.setAttribute("fill", on ? l.dataset.on : "#4A1A1A"); l.style.filter = on ? `drop-shadow(0 0 2.5px ${l.dataset.on})` : ""; } }
+  led(cls, on) { const l = this.q("." + cls); if (l) { l.setAttribute("fill", on ? l.dataset.on : "#4A1A1A"); l.setAttribute("stroke", on ? l.dataset.on : "rgba(0,0,0,.3)"); l.setAttribute("stroke-opacity", on ? ".4" : "1"); l.setAttribute("stroke-width", on ? "2.6" : ".4"); } }
 }
 
 /* ---------- breadboard (30 = half size, 60 = full size) ---------- */
@@ -102,29 +102,41 @@ class ClResistor extends CL {
 /* ---------- OLED 0.96" I2C (SSD1306) ---------- */
 class ClOled extends CL {
   static get observedAttributes() { return ["color"]; }
+  /* the 128x64 pixels are drawn as one vector path (1 world unit per pixel), so text stays sharp at every zoom */
   render() {
-    const W = 104, H = 102;
-    let s = pcb(0, 0, W, H, "#1B3F7A", 5) + mount(6, 6) + mount(W - 6, 6) + mount(6, H - 6) + mount(W - 6, H - 6);
+    const W = 150, H = 138, GX = 11, GY = 36;
+    let s = pcb(0, 0, W, H, "#1B3F7A", 6) + mount(7, 7) + mount(W - 7, 7) + mount(7, H - 7) + mount(W - 7, H - 7);
     const names = ["GND", "VCC", "SCL", "SDA"], x0 = W / 2 - 1.5 * P;
     s += `<rect x="${x0 - P / 2}" y="2" width="${4 * P}" height="7" rx="1" fill="#1A1A1A"/>`;
-    const pins = names.map((n, i) => { const x = x0 + i * P; s += `<rect x="${x - 1}" y="-3" width="2" height="9" rx=".5" fill="#D6B656"/>` + txt(x, 16, n, 4.8, "#fff", 'text-anchor="middle"'); return { name: n, x, y: 0 }; });
-    s += `<rect x="4" y="22" width="${W - 8}" height="62" rx="2" fill="#0B0B0D"/><rect x="8" y="26" width="${W - 16}" height="${(W - 16) / 2}" fill="#050506"/>`;
-    s += `<foreignObject x="8" y="26" width="${W - 16}" height="${(W - 16) / 2}"><canvas xmlns="http://www.w3.org/1999/xhtml" width="128" height="64" style="width:${W - 16}px;height:${(W - 16) / 2}px;image-rendering:pixelated;display:block"></canvas></foreignObject>`;
-    s += txt(W / 2, H - 7, "0.96\" OLED · I2C", 5, "#9DB4DA", 'text-anchor="middle"');
+    const pins = names.map((n, i) => { const x = x0 + i * P; s += `<rect x="${x - 1}" y="-3" width="2" height="9" rx=".5" fill="#D6B656"/><text x="${x + 2.2}" y="12" font-size="6.4" font-weight="700" fill="#fff" ${F} text-anchor="end" transform="rotate(-90 ${x + 2.2} 12)">${n}</text>`; return { name: n, x, y: 0 }; });
+    s += txt(10, 26, "I2C", 6.5, "#9DB4DA", 'font-weight="700"') + txt(W - 10, 26, "0x3C", 6.5, "#9DB4DA", 'font-weight="700" text-anchor="end"');
+    s += `<rect x="${GX - 5}" y="${GY - 5}" width="${128 + 10}" height="${64 + 14}" rx="2.5" fill="#0B0B0D"/><rect x="${GX}" y="${GY}" width="128" height="64" fill="#050608"/>`;
+    s += `<g transform="translate(${GX} ${GY})" shape-rendering="crispEdges"><path class="px1" d=""/><path class="px2" d=""/></g>`;
+    s += txt(W / 2, H - 9, "0.96\" OLED 128x64", 6.5, "#9DB4DA", 'text-anchor="middle" font-weight="600"');
     this.draw(W, H, s, pins);
-    this.ctx = this.q("canvas").getContext("2d");
+    this.p1 = this.q(".px1"); this.p2 = this.q(".px2"); this.paint();
   }
-  color() { const c = this.getAttribute("color") || "white"; return c === "blue" ? [64, 200, 255] : c === "yellow" ? [255, 220, 60] : [235, 245, 255]; }
+  color() { const c = this.getAttribute("color") || "white"; return c === "blue" ? "#40C8FF" : c === "yellow" ? "#FFDC3C" : "#EAF4FF"; }
+  paint() {
+    if (!this.p1) return;
+    const two = this.getAttribute("color") === "yellowblue";
+    this.p1.setAttribute("fill", two ? "#FFDC3C" : this.color()); this.p2.setAttribute("fill", "#40C8FF");
+    if (this._last) { this.p1.setAttribute("d", this._last[0]); this.p2.setAttribute("d", this._last[1]); }
+  }
   show(buf, w = 128, h = 64, invert = false, on = true) {
-    if (!this.ctx) return;
-    const img = this.ctx.createImageData(128, 64), [r, g, b] = this.color(), two = this.getAttribute("color") === "yellowblue";
-    for (let y = 0; y < Math.min(64, h); y++) for (let x = 0; x < Math.min(128, w); x++) {
-      let bit = buf ? (buf[x + (y >> 3) * w] >> (y & 7)) & 1 : 0; if (invert) bit ^= 1; if (!on) bit = 0;
-      const i = (y * 128 + x) * 4;
-      if (bit) { const c = two && y < 16 ? [255, 220, 60] : two ? [64, 200, 255] : [r, g, b]; img.data[i] = c[0]; img.data[i + 1] = c[1]; img.data[i + 2] = c[2]; img.data[i + 3] = 255; }
-      else { img.data[i] = 5; img.data[i + 1] = 5; img.data[i + 2] = 8; img.data[i + 3] = 255; }
+    if (!this.p1) return;
+    const two = this.getAttribute("color") === "yellowblue", d = ["", ""];
+    if (on) for (let y = 0; y < Math.min(64, h); y++) {
+      const k = two && y >= 16 ? 1 : 0; let run = -1;
+      for (let x = 0; x <= Math.min(128, w); x++) {
+        let bit = 0;
+        if (x < Math.min(128, w)) { bit = buf ? (buf[x + (y >> 3) * w] >> (y & 7)) & 1 : 0; if (invert) bit ^= 1; }
+        if (bit && run < 0) run = x;
+        else if (!bit && run >= 0) { d[k] += `M${run} ${y}h${x - run}v1h${run - x}z`; run = -1; }
+      }
     }
-    this.ctx.putImageData(img, 0, 0);
+    if (this._last && this._last[0] === d[0] && this._last[1] === d[1]) return;
+    this._last = d; this.paint();
   }
   clear() { this.show(null); }
 }
@@ -142,7 +154,7 @@ const modGuts = (x, y) => `<rect x="${x}" y="${y}" width="11" height="11" rx="1.
 
 class ClLdr extends CL {
   render() {
-    const W = 104, H = 44, m = moduleBase(W, H, ["VCC", "GND", "DO", "AO"], "LDR MODULE");
+    const W = 104, H = 52, m = moduleBase(W, H, ["VCC", "GND", "DO", "AO"], "LDR MODULE");
     let s = m.s + modGuts(36, 7) + ledDot("pwr", 40, 30, "#FF3B3B") + ledDot("sig", 50, 30, "#3CFF6B");
     s += `<g transform="translate(84 22)"><circle r="9" fill="#F1E6C8" stroke="#BFA97A"/><path d="M-6 -3 h3 v6 h3 v-6 h3 v6 h3" stroke="#C0392B" stroke-width="1.3" fill="none"/></g>`;
     s += smd(64, 6) + smd(64, 32);
@@ -221,7 +233,7 @@ class ClIrLine extends CL {
 }
 class ClIrObstacle extends CL {
   render() {
-    const W = 104, H = 36, m = moduleBase(W, H, ["VCC", "GND", "OUT"], "IR OBSTACLE");
+    const W = 104, H = 46, m = moduleBase(W, H, ["VCC", "GND", "OUT"], "IR OBSTACLE");
     let s = m.s + modGuts(34, 6) + ledDot("pwr", 56, 28, "#FF3B3B") + ledDot("sig", 66, 28, "#3CFF6B");
     s += `<rect x="78" y="5" width="12" height="9" rx="2" fill="#E8EEF8" stroke="#555" stroke-width=".6"/><rect x="78" y="22" width="12" height="9" rx="2" fill="#1A1A1A"/><circle cx="94" cy="9.5" r="5" fill="#DDE6F5" stroke="#777" stroke-width=".6"/><circle cx="94" cy="26.5" r="5" fill="#111" stroke="#444" stroke-width=".6"/>`;
     s += `<g class="obs" style="display:none"><rect x="104" y="2" width="6" height="32" rx="1" fill="#8A5A00"/></g>`;
@@ -251,7 +263,7 @@ class ClVibe extends CL {
 class ClRelay extends CL {
   static get observedAttributes() { return ["channels"]; }
   render() {
-    const n = +(this.getAttribute("channels") || 1), W = 120, rowH = 40, H = Math.max(56, n * rowH + 16);
+    const n = +(this.getAttribute("channels") || 1), W = 128, rowH = 40, H = Math.max(56, n * rowH + 16);
     const names = ["VCC", "GND"].concat(Array.from({ length: n }, (_, i) => n === 1 ? "IN" : "IN" + (i + 1)));
     const m = moduleBase(W, H, names, n === 1 ? "1-CHANNEL RELAY" : n + "-CHANNEL RELAY", "#1C4F96");
     let s = m.s, pins = m.pins.slice();
@@ -319,12 +331,12 @@ class ClRfid extends CL {
 }
 class ClTcs extends CL {
   render() {
-    const W = 84, H = 60, m = moduleBase(W, H, ["VIN", "GND", "SCL", "SDA", "LED"], "TCS34725", "#5B2A9B");
+    const W = 84, H = 70, m = moduleBase(W, H, ["VIN", "GND", "SCL", "SDA", "LED"], "TCS34725", "#5B2A9B");
     let s = m.s + `<rect x="50" y="20" width="14" height="14" rx="2" fill="#E8E6EF"/><rect x="54" y="24" width="6" height="6" fill="#3B3355"/>` + `<circle class="wl" cx="70" cy="27" r="4" fill="#C9C6D6"/>`;
     s += `<rect class="obj" x="46" y="40" width="34" height="12" rx="3" fill="#E63946"/>`;
     this.draw(W, H, s, m.pins);
   }
-  setColor(c, led) { const o = this.q(".obj"), w = this.q(".wl"); if (o) o.setAttribute("fill", c); if (w) { w.setAttribute("fill", led ? "#FFFFFF" : "#C9C6D6"); w.style.filter = led ? "drop-shadow(0 0 3px #fff)" : ""; } }
+  setColor(c, led) { const o = this.q(".obj"), w = this.q(".wl"); if (o) o.setAttribute("fill", c); if (w) { w.setAttribute("fill", led ? "#FFFFFF" : "#C9C6D6"); w.setAttribute("stroke", led ? "#fff" : "none"); w.setAttribute("stroke-opacity", ".5"); w.setAttribute("stroke-width", led ? "3" : "0"); } }
 }
 class ClIna219 extends CL {
   render() {
@@ -349,12 +361,12 @@ class ClHx711 extends CL {
 }
 class ClMax7219 extends CL {
   render() {
-    const W = 132, H = 112, m = moduleBase(W, H, ["VCC", "GND", "DIN", "CS", "CLK"], "MAX7219", "#1A4E9E");
-    let s = m.s + `<rect x="26" y="6" width="100" height="100" rx="3" fill="#141414"/>`;
-    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) s += `<circle class="d${r}_${c}" cx="${33 + c * 12.2}" cy="${13 + r * 12.2}" r="4.6" fill="#3A1616"/>`;
+    const W = 140, H = 120, m = moduleBase(W, H, ["VCC", "GND", "DIN", "CS", "CLK"], "MAX7219", "#1A4E9E");
+    let s = m.s + `<rect x="34" y="6" width="100" height="100" rx="3" fill="#141414"/>`;
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) s += `<circle class="d${r}_${c}" cx="${41 + c * 12.2}" cy="${13 + r * 12.2}" r="4.6" fill="#3A1616"/>`;
     this.draw(W, H, s, m.pins);
   }
-  setRows(rows) { for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) { const d = this.q(`.d${r}_${c}`); if (!d) continue; const on = (rows[r] >> (7 - c)) & 1; d.setAttribute("fill", on ? "#FF2D2D" : "#3A1616"); d.style.filter = on ? "drop-shadow(0 0 2px #ff3030)" : ""; } }
+  setRows(rows) { for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) { const d = this.q(`.d${r}_${c}`); if (!d) continue; const on = (rows[r] >> (7 - c)) & 1; d.setAttribute("fill", on ? "#FF2D2D" : "#3A1616"); d.setAttribute("stroke", on ? "#ff3030" : "none"); d.setAttribute("stroke-opacity", ".35"); d.setAttribute("stroke-width", on ? "2.4" : "0"); } }
 }
 class ClStepper28 extends CL {
   render() {
@@ -371,23 +383,23 @@ class ClStepper28 extends CL {
 }
 class ClMpu extends CL {
   render() {
-    const W = 84, H = 82, m = moduleBase(W, H, ["VCC", "GND", "SCL", "SDA", "XDA", "XCL", "AD0", "INT"], "GY-521", "#1A4E9E");
+    const W = 84, H = 82, m = moduleBase(W, H, ["VCC", "GND", "SCL", "SDA", "XDA", "XCL", "AD0", "INT"], "", "#1A4E9E");
     let s = m.s + `<rect x="44" y="26" width="18" height="18" rx="1.5" fill="#1E1E22"/>` + txt(53, 37, "MPU", 4.5, "#888", 'text-anchor="middle"') + mount(W - 8, 8) + mount(W - 8, H - 8);
     s += `<g transform="translate(53 60)" stroke="#E8EEF8" stroke-width="1" fill="none"><path d="M0 0 h12 M0 0 v-12"/><path d="M12 0 l-3 -2 M12 0 l-3 2 M0 -12 l-2 3 M0 -12 l2 3"/></g>` + txt(67, 62, "X", 5, "#E8EEF8") + txt(50, 46, "Y", 5, "#E8EEF8");
-    s += ledDot("pwr", 36, 72, "#3CFF6B");
+    s += ledDot("pwr", 36, 72, "#3CFF6B") + txt(W - 16, H - 5, "GY-521", 5, "rgba(255,255,255,.75)", 'text-anchor="end"');
     this.draw(W, H, s, m.pins);
   }
 }
 class ClLedStrip extends CL {
   static get observedAttributes() { return ["pixels"]; }
   render() {
-    const n = +(this.getAttribute("pixels") || 8), W = 26 + n * 18, H = 30, hd = leftHeader(["5V", "DIN", "GND"], 15 - P);
+    const n = +(this.getAttribute("pixels") || 8), W = 38 + n * 18, H = 30, hd = leftHeader(["5V", "DIN", "GND"], 15 - P, 12, "#334155");
     let s = `<rect x="10" y="3" width="${W - 10}" height="24" rx="3" fill="#F2F2F2" stroke="#D0D0D0"/>` + hd.s;
-    for (let i = 0; i < n; i++) s += `<rect x="${22 + i * 18}" y="9" width="12" height="12" rx="1.5" fill="#FAFAFA" stroke="#C8C8C8"/><circle class="px" data-i="${i}" cx="${28 + i * 18}" cy="15" r="4" fill="#E2E2E2"/>`;
+    for (let i = 0; i < n; i++) s += `<rect x="${34 + i * 18}" y="9" width="12" height="12" rx="1.5" fill="#FAFAFA" stroke="#C8C8C8"/><circle class="px" data-i="${i}" cx="${40 + i * 18}" cy="15" r="4" fill="#E2E2E2"/>`;
     this.draw(W, H, s, hd.pins);
   }
-  setPixel(i, { r, g, b }) { const p = this.querySelectorAll(".px")[i]; if (!p) return; const on = r + g + b > 0.02; p.setAttribute("fill", on ? `rgb(${r * 255 | 0},${g * 255 | 0},${b * 255 | 0})` : "#E2E2E2"); p.style.filter = on ? `drop-shadow(0 0 3px rgb(${r * 255 | 0},${g * 255 | 0},${b * 255 | 0}))` : ""; }
-  reset() { this.querySelectorAll(".px").forEach(p => { p.setAttribute("fill", "#E2E2E2"); p.style.filter = ""; }); }
+  setPixel(i, { r, g, b }) { const p = this.querySelectorAll(".px")[i]; if (!p) return; const on = r + g + b > 0.02; p.setAttribute("fill", on ? `rgb(${r * 255 | 0},${g * 255 | 0},${b * 255 | 0})` : "#E2E2E2"); p.setAttribute("stroke", on ? `rgb(${r * 255 | 0},${g * 255 | 0},${b * 255 | 0})` : "none"); p.setAttribute("stroke-opacity", ".35"); p.setAttribute("stroke-width", on ? "3" : "0"); }
+  reset() { this.querySelectorAll(".px").forEach(p => { p.setAttribute("fill", "#E2E2E2"); p.setAttribute("stroke", "none"); }); }
 }
 class ClSolar extends CL {
   render() {
@@ -446,7 +458,7 @@ class ClL298n extends CL {
 }
 class ClDcMotor extends CL {
   render() {
-    const W = 120, H = 70, hd = leftHeader(["M1", "M2"], 40);
+    const W = 120, H = 70, hd = leftHeader(["M1", "M2"], 40, 13, "#3D2E00");
     let s = `<rect x="12" y="24" width="64" height="30" rx="5" fill="#F2C230" stroke="#9C7A0E"/><rect x="74" y="30" width="10" height="18" rx="2" fill="#E0E3EA" stroke="#8D93A3"/>` + hd.s;
     s += `<g class="wheel" style="transform-origin:96px 39px"><circle cx="96" cy="39" r="23" fill="#2B2D42"/><circle cx="96" cy="39" r="16" fill="#F5F7FB"/>`;
     for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; s += `<line x1="96" y1="39" x2="${96 + 15 * Math.cos(a)}" y2="${39 + 15 * Math.sin(a)}" stroke="#6B7589" stroke-width="2"/>`; }

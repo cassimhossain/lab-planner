@@ -1,12 +1,16 @@
 /* Virtual labs: simulators available in the portal.
    PhET simulations: PhET Interactive Simulations, University of Colorado Boulder, https://phet.colorado.edu (CC BY 4.0). Stored in sims/phet so they work without internet.
    BlocksCAD: https://www.blockscad3d.com (open source, GPL v3). Loaded from the official site, needs internet.
-   Circuit Lab: our own Arduino simulator (circuit.html). */
+   Circuit Lab: our own Arduino simulator (circuit.html).
+   Code Lab: Python (Pyodide, runs in the browser) and C++ (g++ on the Wandbox online compiler), in codelab/. */
 window.SIMS = {
   list: [
     { key: "circuit-lab", name: "Circuit Lab", by: "Robotics & AI Club", kind: "build", href: "circuit.html", offline: false,
       about: "Build Arduino circuits with LEDs, buttons, sensors, servos and motors, write the code and run it.",
       good: "Arduino lessons: blink, traffic lights, sensors, servos, motors", ages: "8+", color: "#2E6BE6" },
+    { key: "code-lab", name: "Code Lab", by: "Robotics & AI Club", kind: "code", href: "codelab/", offline: false,
+      about: "Write and run Python and C++ in the browser. input() waits for typing, errors are explained, and plots show up.",
+      good: "Python and C++ practice, algorithms, AI and data projects (numpy, matplotlib)", ages: "10+", color: "#7C3AED" },
     { key: "cck-dc", name: "Circuit Construction Kit: DC", by: "PhET", kind: "phet", src: "sims/phet/circuit-construction-kit-dc_en.html", web: "https://phet.colorado.edu/en/simulations/circuit-construction-kit-dc",
       about: "Batteries, bulbs, switches and resistors. Build series and parallel circuits and measure them with a meter.",
       good: "Series and parallel circuits, open and closed circuits, conductors and insulators", ages: "8+", color: "#F2A31B" },
@@ -40,7 +44,8 @@ window.SIMS = {
     [/resistor|ohm/i, ["ohms-law", "resistance-wire"]],
     [/555|timer|capacitor/i, ["capacitor", "cck-ac"]],
     [/motor|generator|electromagnet|relay|solenoid|dynamo/i, ["em-lab", "faradays-law"]],
-    [/3d|cad|enclosure|gripper|gearbox|badge|mount|printed/i, ["blockscad"]]
+    [/3d|cad|enclosure|gripper|gearbox|badge|mount|printed/i, ["blockscad"]],
+    [/python|c\+\+|coding|programm|algorithm|machine learning|neural|tinyml|\bAI\b|data|game|turtle|chatbot/i, ["code-lab"]]
   ]
 };
 window.SIMS.byKey = Object.fromEntries(window.SIMS.list.map(s => [s.key, s]));
@@ -51,6 +56,6 @@ window.SIMS.forLesson = function (code, title, domain) {
   code = String(code || "").replace(/\s*\(.*\)$/, "");
   if (S.circuits.includes(code)) add("circuit-lab", "circuit.html#lesson=" + code, "Ready-made circuit and code for this lesson");
   const txt = (title || "") + " " + (domain || "");
-  S.rules.forEach(([re, ks]) => { if (re.test(txt)) ks.forEach(k => add(k, "sim.html?s=" + k, S.byKey[k].good)); });
+  S.rules.forEach(([re, ks]) => { if (re.test(txt)) ks.forEach(k => S.byKey[k] && add(k, S.byKey[k].href || "sim.html?s=" + k, S.byKey[k].good)); });
   return out;
 };

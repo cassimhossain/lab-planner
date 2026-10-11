@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="vendor/codemirror/codemirror.css?v=4">
-<link rel="stylesheet" href="circuit/circuit.css?v=4">
+<link rel="stylesheet" href="vendor/codemirror/codemirror.css?v=5">
+<link rel="stylesheet" href="circuit/circuit.css?v=5">
 </head>
 <body>
 <header class="top">
@@ -40,7 +40,7 @@
   </aside>
 
   <section id="stage" class="stage">
-    <div id="world" class="world"><div id="parts"></div><svg id="wires" class="wires"></svg><svg id="pins" class="pinsl"></svg></div>
+    <div id="world" class="world"><div id="parts"></div><svg id="wires" class="wires"></svg><svg id="fields" class="fields"></svg><svg id="pins" class="pinsl"></svg></div>
     <div class="ctools" role="toolbar">
       <button data-act="rotate" title="Rotate (R)"><svg class="ic" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
       <button data-act="delete" title="Delete (Del)"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
@@ -96,14 +96,14 @@
     <div id="t-help" class="tpane help">
       <h3>Build</h3>
       <ol><li>Drag parts from <b>Components</b> onto the canvas, or open a ready-made circuit from the <b>Library</b>.</li>
-        <li>Make a wire: click a pin, then another pin. Click empty space on the way to add bends. <kbd>Esc</kbd> cancels.</li>
+        <li>Make a wire: drag from one pin to another, or click a pin and then another. Wires snap to the nearest pin. Click empty space on the way to add bends. <kbd>Esc</kbd> cancels.</li>
         <li>Put legs on the breadboard to connect them. Hover a hole to see which holes are joined (green).</li></ol>
       <h3>Code and run</h3>
       <ol><li>Write code on the Code tab, or start from the <b>Code library</b> or <b>Code for this part</b>.</li>
-        <li>Press <b>Start simulation</b>. While it runs, click a sensor to change what it senses, press buttons and turn knobs.</li>
+        <li>Press <b>Start simulation</b>. While it runs, press buttons and turn knobs. Click a sensor to change what it senses: for the ultrasonic, PIR, IR and flame sensors, drag the object inside the sensing cone.</li>
         <li>ESP32 web pages, Bluetooth and MQTT open in the <b>Phone</b> tab.</li></ol>
       <h3>Keys</h3>
-      <ul><li><kbd>R</kbd> rotate · <kbd>Del</kbd> delete · <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd> undo / redo</li><li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> start / stop · <kbd>Ctrl</kbd>+<kbd>S</kbd> save · mouse wheel zooms, drag empty space to move</li></ul>
+      <ul><li><kbd>R</kbd> rotate · <kbd>Del</kbd> delete · <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd> undo / redo</li><li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> start / stop · <kbd>Ctrl</kbd>+<kbd>S</kbd> save</li><li>Mouse wheel or pinch zooms, two-finger scroll or drag empty space moves · <kbd>+</kbd> / <kbd>-</kbd> zoom · <kbd>0</kbd> fit · <kbd>F</kbd> zoom to the selected part · double-click a part to zoom in, double-click empty space to see everything</li></ul>
       <h3>Libraries</h3>
       <p id="liblist" class="small"></p>
       <h3>Good to know</h3>
@@ -118,8 +118,8 @@
 <div id="stagebox" class="stagebox" aria-hidden="true"></div>
 <input type="file" id="fileup" accept=".json,application/json" hidden>
 
-<script src="vendor/wokwi-elements.js?v=4"></script>
-<script src="vendor/codemirror/codemirror.min.js?v=4"></script>
-<script type="module" src="circuit/app.js?v=4"></script>
+<script src="vendor/wokwi-elements.js?v=5"></script>
+<script src="vendor/codemirror/codemirror.min.js?v=5"></script>
+<script type="module" src="circuit/app.js?v=5"></script>
 </body>
 </html>

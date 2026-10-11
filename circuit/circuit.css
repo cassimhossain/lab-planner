@@ -72,14 +72,13 @@ kbd { font: 600 11px "JetBrains Mono", monospace; background: #fff; border: 1px 
 #parts { position: relative; }
 .part { position: absolute; cursor: move; user-select: none; }
 .part > :first-child { display: block; }
-.part.module > :first-child, .part.board > :first-child { filter: drop-shadow(0 2px 3px rgba(15, 29, 54, .22)); }
+.part.board { border-radius: 7px; box-shadow: 0 3px 10px rgba(15, 29, 54, .16); }
 .part.sel { outline: 2px dashed #2E6BE6; outline-offset: 5px; border-radius: 4px; }
 .part .plabel { position: absolute; left: 0; top: -17px; font-size: 10.5px; font-weight: 700; color: #475569; white-space: nowrap; background: rgba(255, 255, 255, .85); padding: 1px 6px; border-radius: 6px; pointer-events: none; }
 body.running .part { cursor: pointer; }
 .wires, .pinsl { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; }
 .wires { pointer-events: none; }
 .wire { fill: none; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
-.wire.light { filter: drop-shadow(0 0 .6px rgba(0, 0, 0, .55)); }
 .wire-o { fill: none; stroke: rgba(15, 29, 54, .28); stroke-width: 4.8; stroke-linecap: round; stroke-linejoin: round; }
 .wire-o.on { stroke: #2E6BE6; stroke-width: 8; opacity: .45; }
 .wire.ghost { stroke: #2E6BE6; stroke-dasharray: 6 5; stroke-width: 2.4; }
@@ -302,3 +301,17 @@ body.mopen .modal { display: grid; }
 
 @media (max-width: 1180px) { .main { grid-template-columns: 210px 1fr 6px minmax(320px, 38vw); } .pname { width: 150px; } .tbtn span { display: none; } }
 @media (max-width: 860px) { .main { grid-template-columns: 1fr; grid-template-rows: 1fr 40%; } .comps, .gutter { display: none; } .brand span { display: none; } .run span { display: none; } }
+
+/* sensing fields */
+.fields { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
+.fcone { fill: rgba(46, 107, 230, .07); stroke: rgba(46, 107, 230, .45); stroke-width: 1; stroke-dasharray: 4 3; }
+.fcone.hit { fill: rgba(22, 163, 74, .09); stroke: rgba(22, 163, 74, .55); }
+.fring { fill: none; stroke: rgba(46, 107, 230, .22); stroke-width: .8; }
+.ftick { font: 600 7px Inter, Arial, sans-serif; fill: #64748B; }
+.fbeam { stroke: #16A34A; stroke-width: 1.4; stroke-dasharray: 3 3; }
+.fobj { pointer-events: all; cursor: grab; }
+.fobj:active { cursor: grabbing; }
+.fobj:hover > :first-child { filter: brightness(1.08); }
+.fval { fill: #fff; stroke: #CBD5E1; }
+.fval.hit { fill: #DCFCE7; stroke: #86EFAC; }
+.fvalt { font: 700 8.5px Inter, Arial, sans-serif; fill: #0F172A; text-anchor: middle; }

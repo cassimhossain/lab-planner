@@ -1,8 +1,8 @@
 /* Circuit Lab - ready-made circuits for the club's lessons. Generated layouts come from layout.js. */
-import LE from "./lessons-le.js?v=4";
-import JM from "./lessons-jm.js?v=4";
-import YI from "./lessons-yi.js?v=4";
-import TL from "./lessons-tl.js?v=4";
+import LE from "./lessons-le.js?v=5";
+import JM from "./lessons-jm.js?v=5";
+import YI from "./lessons-yi.js?v=5";
+import TL from "./lessons-tl.js?v=5";
 export const GROUPS = {
   F: { name: "Foundation", color: "#475569" },
   LE: { name: "Little Explorers", color: "#16A34A" },
@@ -250,7 +250,7 @@ export const NOT_SIMULATED = {
   "YI-20": "The ESP32-CAM camera can't be simulated.",
   "TL-18": "The ESP32-CAM camera can't be simulated.",
 };
-import { SNIPPETS } from "./snippets.js?v=4";
+import { SNIPPETS } from "./snippets.js?v=5";
 const snip = t => SNIPPETS.find(x => x.title === t).code;
 export const STARTERS = [
   { key: "blink", cat: "Basics", title: "Blink", goal: "The classic first program: the on-board LED blinks.", parts: [], board: "uno", code: snip("Blink") },

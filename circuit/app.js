@@ -1,11 +1,11 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf } from "./parts.js?v=4";
-import { Netlist, Sim } from "./sim.js?v=4";
-import { BOARDS, loadHex } from "./boards.js?v=4";
-import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=4";
-import { layoutCircuit } from "./layout.js?v=4";
-import { SNIPPETS } from "./snippets.js?v=4";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=4";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin } from "./parts.js?v=5";
+import { Netlist, Sim } from "./sim.js?v=5";
+import { BOARDS, loadHex } from "./boards.js?v=5";
+import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=5";
+import { layoutCircuit } from "./layout.js?v=5";
+import { SNIPPETS } from "./snippets.js?v=5";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=5";
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -61,6 +61,8 @@ function makePart(p) {
   const el = document.createElement(def.tag);
   applyAttrs(el, Object.assign({}, def.attrs, p.attrs));
   wrap.appendChild(el);
+  // ESP32 pin names are printed very small on the real board: make them bigger and bold so they read at normal zoom
+  if (p.type === "esp32") requestAnimationFrame(() => { const sr = el.shadowRoot; if (sr && !sr.querySelector("style.cl")) { const st = document.createElement("style"); st.className = "cl"; st.textContent = 'text[font-size="3.72px"]{font-size:4.6px;font-weight:700;letter-spacing:-.15px}'; sr.appendChild(st); } });
   if (p.label) { const lb = document.createElement("span"); lb.className = "plabel"; lb.textContent = p.label; wrap.appendChild(lb); }
   $("#parts").appendChild(wrap);
   p.sim = Object.assign({}, def.sim || {}, p.sim || {});
@@ -131,6 +133,98 @@ function roundPath(pts, r = 4) {
   }
   const l = pts[pts.length - 1]; return d + ` L${l.x.toFixed(1)} ${l.y.toFixed(1)}`;
 }
+/* ---------- sensing fields: drag an object in front of a sensor (like Tinkercad) ---------- */
+// range: how far the sensor sees (cm), px: world units per cm, half: half-angle of the cone (deg)
+const FIELDS = {
+  hcsr04: { range: 400, px: 0.55, half: 15, obj: "ball", tip: "Drag the ball: distance" },
+  pir: { range: 700, px: 0.3, half: 55, obj: "person", tip: "Move the person inside the cone to trigger motion" },
+  ir: { range: 30, px: 3.2, half: 18, obj: "box", tip: "Drag the object in front of the sensor" },
+  flame: { range: 100, px: 1.6, half: 30, obj: "flame", tip: "Bring the flame closer" },
+};
+function fieldGeom(p) {
+  const r = rt[p.id], pins = pinsWorld(p); if (!r || !pins.length) return null;
+  const cx = p.x + r.w / 2, cy = p.y + r.h / 2;
+  let mx = 0, my = 0; pins.forEach(q => { mx += q.x; my += q.y; }); mx /= pins.length; my /= pins.length;
+  let dx = cx - mx, dy = cy - my; const L = Math.hypot(dx, dy) || 1; dx /= L; dy /= L;
+  const rot = (p.rot || 0) % 180 !== 0, w = rot ? r.h : r.w, h = rot ? r.w : r.h;
+  const reach = Math.abs(dx) * w / 2 + Math.abs(dy) * h / 2;
+  return { ox: cx + dx * reach, oy: cy + dy * reach, dx, dy, ang: Math.atan2(dy, dx) };
+}
+function fieldState(p) {
+  const F = FIELDS[p.type], s = p.sim || (p.sim = {});
+  if (s.fd == null) {
+    const active = p.type === "hcsr04" ? true : p.type === "ir" ? !!s.obstacle : p.type === "flame" ? +s.flame > 0 : false;
+    s.fd = p.type === "hcsr04" ? Math.min(+s.dist || 40, F.range) : p.type === "flame" && active ? F.range * (1 - s.flame / 100) : active ? F.range * 0.5 : F.range * 1.1; s.fa = 0; s.fout = false;
+  }
+  return s;
+}
+function applyField(p, moved) {
+  const F = FIELDS[p.type], s = fieldState(p), inside = !s.fout && Math.abs(s.fa) <= F.half && s.fd <= F.range;
+  if (p.type === "hcsr04") s.dist = inside ? Math.max(2, Math.round(s.fd)) : 400;
+  if (p.type === "ir") s.obstacle = inside;
+  if (p.type === "flame") s.flame = inside ? Math.round(100 * Math.max(0, 1 - s.fd / F.range)) : 0;
+  if (p.type === "pir") { if (!(inside && moved)) return inside; s.motion = true; }
+  if (sim) sim.simChanged(p.id);
+  return inside;
+}
+function drawFields() {
+  const svg = $("#fields"); if (!svg) return;
+  const p = sel && sel.kind === "part" ? project.parts.find(q => q.id === sel.id) : null;
+  if (!p || !FIELDS[p.type] || drag) { svg.innerHTML = ""; if (!p) drawFields._for = null; return; }
+  const F = FIELDS[p.type], g = fieldGeom(p); if (!g) { svg.innerHTML = ""; return; }
+  const s = fieldState(p), R = F.range * F.px, h = F.half * Math.PI / 180;
+  if (drawFields._for !== p.id) { drawFields._for = p.id; setTimeout(() => showField(p, g, R + 30), 0); }
+  if (p.type === "hcsr04" && !s.fout && Math.abs(s.fa) <= F.half && +s.dist < 400 && Math.abs(s.fd - s.dist) > 1) s.fd = +s.dist;   // follow the slider
+  const pt = (a, d) => [g.ox + Math.cos(g.ang + a) * d, g.oy + Math.sin(g.ang + a) * d];
+  const [ax, ay] = pt(-h, R), [bx, by] = pt(h, R);
+  const inside = !s.fout && Math.abs(s.fa) <= F.half && s.fd <= F.range;
+  const fa = s.fa * Math.PI / 180, [px, py] = pt(fa, Math.min(s.fd, F.range * 1.15) * F.px);
+  let rings = ""; for (let k = 1; k <= 4; k++) { const rr = R * k / 4, [r1x, r1y] = pt(-h, rr), [r2x, r2y] = pt(h, rr); rings += `<path d="M${r1x} ${r1y} A${rr} ${rr} 0 0 1 ${r2x} ${r2y}" class="fring"/>`; const [tx, ty] = pt(h + 0.06, rr); rings += `<text x="${tx}" y="${ty}" class="ftick">${Math.round(F.range * k / 4)} cm</text>`; }
+  const objs = {
+    ball: `<circle r="11" fill="url(#fball)" stroke="#9A3412" stroke-width="1.2"/>`,
+    person: `<g fill="#1E293B"><circle cy="-15" r="6"/><path d="M-8 14 L-5 -5 Q0 -9 5 -5 L8 14 Z"/></g><circle r="20" fill="none" stroke="rgba(30,41,59,.25)" stroke-dasharray="3 3"/>`,
+    box: `<rect x="-10" y="-10" width="20" height="20" rx="3" fill="#8A5A00" stroke="#5C3D00"/>`,
+    flame: `<path d="M0 -16 C8 -6 10 2 6 9 C3 14 -3 14 -6 9 C-10 2 -6 -6 0 -16 Z" fill="#FF7A1A"/><path d="M0 -5 C4 0 4 5 2 8 C0 10 -2 10 -3 8 C-4 5 -3 0 0 -5 Z" fill="#FFE066"/>`,
+  };
+  const val = p.type === "hcsr04" ? (inside ? `${Math.round(s.fd)} cm` : "nothing in range") : p.type === "pir" ? (inside ? "in view: move to trigger" : "out of view") : p.type === "ir" ? (inside ? "object detected" : "nothing in front") : (inside ? `flame ${s.flame}%` : "no flame");
+  svg.innerHTML = `<defs><radialGradient id="fball" cx=".35" cy=".35"><stop offset="0" stop-color="#FDBA74"/><stop offset="1" stop-color="#EA580C"/></radialGradient></defs>
+    <path d="M${g.ox} ${g.oy} L${ax} ${ay} A${R} ${R} 0 0 1 ${bx} ${by} Z" class="fcone ${inside ? "hit" : ""}"/>${rings}
+    ${inside ? `<line x1="${g.ox}" y1="${g.oy}" x2="${px}" y2="${py}" class="fbeam"/>` : ""}
+    <g class="fobj" data-fpart="${p.id}" transform="translate(${px} ${py})">${objs[F.obj]}<title>${F.tip}</title></g>
+    <g transform="translate(${px} ${py + 26})"><rect x="-48" y="-9" width="96" height="17" rx="8.5" class="fval ${inside ? "hit" : ""}"/><text y="3.5" class="fvalt">${val}</text></g>`;
+}
+/* pan (and zoom out if needed) so the whole sensing cone is on screen */
+function showField(p, g, R) {
+  const r = rt[p.id], st = $("#stage").getBoundingClientRect(); if (!r) return;
+  const xs = [p.x, p.x + r.w, g.ox + g.dx * R, g.ox + (g.dx - g.dy * 0.5) * R, g.ox + (g.dx + g.dy * 0.5) * R], ys = [p.y, p.y + r.h, g.oy + g.dy * R, g.oy + (g.dy + g.dx * 0.5) * R, g.oy + (g.dy - g.dx * 0.5) * R];
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), pad = 30;
+  const sx0 = x0 * view.z + view.x, sx1 = x1 * view.z + view.x, sy0 = y0 * view.z + view.y, sy1 = y1 * view.z + view.y;
+  if (sx0 >= pad && sx1 <= st.width - pad && sy0 >= 60 && sy1 <= st.height - pad) return;
+  const z = Math.min(view.z, (st.width - pad * 2) / (x1 - x0), (st.height - 60 - pad) / (y1 - y0));
+  animateView({ z, x: st.width / 2 - (x0 + x1) / 2 * z, y: 60 + (st.height - 60 - pad) / 2 - (y0 + y1) / 2 * z }, 320);
+}
+let fdrag = null;
+function fieldPointer(e) {
+  const o = e.target.closest(".fobj"); if (!o) return false;
+  e.preventDefault(); e.stopPropagation();
+  fdrag = { id: o.dataset.fpart, last: 0 }; o.setPointerCapture && o.setPointerCapture(e.pointerId);
+  return true;
+}
+function fieldMove(e) {
+  if (!fdrag) return false;
+  const p = project.parts.find(q => q.id === fdrag.id); if (!p) { fdrag = null; return false; }
+  const F = FIELDS[p.type], g = fieldGeom(p), [wx, wy] = toWorld(e.clientX, e.clientY), s = fieldState(p);
+  const dx = wx - g.ox, dy = wy - g.oy, d = Math.hypot(dx, dy) / F.px;
+  let a = (Math.atan2(dy, dx) - g.ang) * 180 / Math.PI; a = ((a + 540) % 360) - 180;
+  s.fd = Math.min(F.range * 1.15, Math.max(p.type === "hcsr04" ? 2 : 1, d)); s.fa = Math.max(-80, Math.min(80, a)); s.fout = d > F.range * 1.12 || Math.abs(a) > 75;
+  applyField(p, true); drawFields();
+  if (p.type === "hcsr04") { const r = $('#inspector input[data-prop="dist"]'); if (r) { r.value = s.dist; r.closest("label").querySelector("b").textContent = s.dist + " cm"; } }
+  if (p.type === "flame") { const r = $('#inspector input[data-prop="flame"]'); if (r) { r.value = s.flame; r.closest("label").querySelector("b").textContent = s.flame + " %"; } }
+  if (p.type === "ir") { const r = $('#inspector input[data-prop="obstacle"]'); if (r) r.checked = !!s.obstacle; }
+  return true;
+}
+function fieldUp() { if (!fdrag) return false; fdrag = null; save(); return true; }
+
 function drawWires() {
   const svg = $("#wires"); let s = "";
   project.wires.forEach((w, i) => {
@@ -145,7 +239,7 @@ function drawWires() {
     if (a && m) { const pts = [a, ...wiring.pts.map(([x, y]) => ({ x, y }))]; const last = pts[pts.length - 1]; pts.push({ x: m[0], y: last.y }, { x: m[0], y: m[1] }); s += `<path class="wire ghost" d="${roundPath(pts)}"/>`; }
   }
   svg.innerHTML = s;
-  drawPins();
+  drawPins(); drawFields();
 }
 function drawPins() {
   const g = $("#pins"); if (running) { g.innerHTML = ""; return; }
@@ -167,13 +261,29 @@ function pinTitle(node) {
 }
 
 /* ---------- view ---------- */
-function applyView() { $("#world").style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.z})`; $("#zoomv").textContent = Math.round(view.z * 100) + "%"; positionInspector(); }
+function applyView() { const r = window.devicePixelRatio || 1, sx = Math.round(view.x * r) / r, sy = Math.round(view.y * r) / r; $("#world").style.transform = `translate(${sx}px, ${sy}px) scale(${view.z})`; $("#zoomv").textContent = Math.round(view.z * 100) + "%"; positionInspector(); }
 function toWorld(cx, cy) { const r = $("#stage").getBoundingClientRect(); return [(cx - r.left - view.x) / view.z, (cy - r.top - view.y) / view.z]; }
 function zoomAt(f, cx, cy) {
   const r = $("#stage").getBoundingClientRect(); cx = cx ?? r.left + r.width / 2; cy = cy ?? r.top + r.height / 2;
-  const [wx, wy] = toWorld(cx, cy); view.z = Math.max(0.25, Math.min(3, view.z * f));
+  const [wx, wy] = toWorld(cx, cy); view.z = Math.max(0.25, Math.min(4, view.z * f));
   view.x = cx - r.left - wx * view.z; view.y = cy - r.top - wy * view.z; applyView();
 }
+/* smooth move of the camera (double-click a part to zoom to it, double-click empty space to see everything) */
+function animateView(to, ms = 240) {
+  const from = Object.assign({}, view), t0 = performance.now();
+  cancelAnimationFrame(animateView._r);
+  const step = t => { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+    view.x = from.x + (to.x - from.x) * e; view.y = from.y + (to.y - from.y) * e; view.z = from.z + (to.z - from.z) * e; applyView();
+    if (k < 1) animateView._r = requestAnimationFrame(step); };
+  animateView._r = requestAnimationFrame(step);
+}
+function zoomToPart(id) {
+  const r = rt[id], p = project.parts.find(q => q.id === id); if (!r || !p) return;
+  const st = $("#stage").getBoundingClientRect(), rot = (p.rot || 0) % 180 !== 0, w = rot ? r.h : r.w, h = rot ? r.w : r.h, cx = p.x + r.w / 2, cy = p.y + r.h / 2;
+  const z = Math.max(0.5, Math.min(3.2, Math.min(st.width * 0.55 / w, st.height * 0.6 / h)));
+  animateView({ z, x: st.width / 2 - cx * z, y: st.height / 2 - cy * z });
+}
+function fitAnimated() { const keep = Object.assign({}, view); fit(); const to = Object.assign({}, view); Object.assign(view, keep); applyView(); animateView(to); }
 function bounds() {
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
   project.parts.forEach(p => { const r = rt[p.id]; const w = r ? r.w : 50, h = r ? r.h : 50, rot = (p.rot || 0) % 180 !== 0; const vw = rot ? h : w, vh = rot ? w : h, cx = p.x + w / 2, cy = p.y + h / 2; x0 = Math.min(x0, cx - vw / 2); y0 = Math.min(y0, cy - vh / 2); x1 = Math.max(x1, cx + vw / 2); y1 = Math.max(y1, cy + vh / 2); });
@@ -242,12 +352,12 @@ function partCode(p) {
     if (!pinNames.includes(k)) return m;
     const n = net ? net.mcuPinOf(p.id, k) : null;
     if (n != null) return codeName(n, b);
-    missing.push(k); return String(DEFAULT_PINS[k] ?? 2);
+    missing.push(k); return String(defaultPin(d, k, b));
   });
   return { code: b === "esp32" ? code.replace(/Serial\.begin\(9600\)/g, "Serial.begin(115200)") : code, missing };
 }
 function showInspector() {
-  const box = $("#inspector");
+  const box = $("#inspector"); drawFields();
   $("#partcodebtn").hidden = !(sel && sel.kind === "part" && PARTS[(project.parts.find(q => q.id === sel.id) || {}).type || ""]?.code);
   $("#wcolors").innerHTML = sel && sel.kind === "wire" && !running ? WIRE_COLORS.map(c => `<button class="sw ${project.wires[sel.id] && project.wires[sel.id].color === c ? "on" : ""}" data-wcolor="${c}" style="--c:${c}" title="Wire colour"></button>`).join("") : "";
   if (!sel || sel.kind !== "part") { box.classList.remove("on"); box.innerHTML = ""; return; }
@@ -276,10 +386,16 @@ function positionInspector() {
   const box = $("#inspector"); if (!box.classList.contains("on") || !sel || sel.kind !== "part") return;
   const r = rt[sel.id]; if (!r) return;
   const pr = r.wrap.getBoundingClientRect(), st = $("#stage").getBoundingClientRect(), bw = box.offsetWidth || 270, bh = box.offsetHeight || 200;
-  let x = pr.right - st.left + 14, y = pr.top - st.top;
-  if (x + bw > st.width - 10) x = pr.left - st.left - bw - 14;
-  if (x < 10) x = Math.min(st.width - bw - 10, Math.max(10, pr.left - st.left));
-  y = Math.max(56, Math.min(st.height - bh - 10, y));
+  const L = pr.left - st.left, R = pr.right - st.left, T = pr.top - st.top, B = pr.bottom - st.top, gap = 14, top = 56;
+  // try right, left, below, above; never on the side a sensing cone points to
+  const fp = project.parts.find(q => q.id === sel.id), fg = fp && FIELDS[fp.type] ? fieldGeom(fp) : null;
+  const banned = fg ? (Math.abs(fg.dx) > Math.abs(fg.dy) ? (fg.dx > 0 ? "right" : "left") : (fg.dy > 0 ? "below" : "above")) : "";
+  const cands = [["right", R + gap, T], ["left", L - bw - gap, T], ["below", L, B + gap], ["above", L, T - bh - gap]].filter(c => c[0] !== banned);
+  const fits = ([, x, y]) => x >= 8 && x + bw <= st.width - 8 && y >= top - 40 && y + bh <= st.height - 8;
+  let c = cands.find(c => fits([c[0], c[1], Math.max(top, Math.min(st.height - bh - 10, c[2]))]) && (c[0] === "below" || c[0] === "above" ? true : true));
+  let x, y;
+  if (c) { x = c[1]; y = c[2]; } else { x = R + gap; y = T; }
+  x = Math.max(8, Math.min(st.width - bw - 8, x)); y = Math.max(top, Math.min(st.height - bh - 10, y));
   box.style.left = x + "px"; box.style.top = y + "px";
 }
 
@@ -615,18 +731,22 @@ function setProject(p, msg) {
 
 /* ---------- pointer interaction ---------- */
 let drag = null;
+const PRESS_ONLY = new Set(["button", "slideswitch", "keypad"]);
 function onDown(e) {
   if (e.target.closest(".insp, .ctools, .zoombar, .lessoncard, .warns, .empty")) return;
   const handle = e.target.closest(".whandle");
   if (handle && !running) { snapshot(); drag = { kind: "handle", wire: +handle.dataset.wire, pt: +handle.dataset.pt }; e.preventDefault(); return; }
   const pin = e.target.closest(".pin");
-  if (pin && !running) { e.stopPropagation(); clickPin(pin.dataset.pin); return; }
+  if (pin && !running) { e.stopPropagation(); const was = !!wiring; clickPin(pin.dataset.pin); pinDown = !was && wiring ? { sx: e.clientX, sy: e.clientY } : null; return; }
+  // while wiring, a click close to a pin finishes on that pin (magnet)
+  if (wiring && hoverPin && !running && e.button === 0) { clickPin(hoverPin); return; }
   const wh = e.target.closest(".whit");
   if (wh && !running && !wiring) { sel = { kind: "wire", id: +wh.dataset.wire }; project.parts.forEach(placePart); drawWires(); showInspector(); return; }
   const part = e.target.closest(".part");
   if (part && !wiring) {
     const id = part.dataset.id;
     const isBB = project.parts.find(q => q.id === id).type === "breadboard";
+    if (running && PRESS_ONLY.has(project.parts.find(q => q.id === id).type)) return;   // pressing a button just presses it
     if (!(running && sel && sel.id === id)) { sel = { kind: "part", id }; project.parts.forEach(placePart); showInspector(); drawWires(); }
     if (running) return;
     const p = project.parts.find(q => q.id === id), [wx, wy] = toWorld(e.clientX, e.clientY);
@@ -641,10 +761,17 @@ function onDown(e) {
 function onBoard(q, bb) { const r = rt[bb.id]; return r && q.x > bb.x - 30 && q.x < bb.x + r.w + 10 && q.y > bb.y - 60 && q.y < bb.y + r.h + 10; }
 function onMove(e) {
   const [wx, wy] = toWorld(e.clientX, e.clientY);
-  if (wiring) { wiring.mouse = [wx, wy]; drawWires(); }
+  let magnet = null;
+  if (wiring) {
+    // snap to the nearest pin within ~10 screen px
+    let best = 10 / view.z;
+    project.parts.forEach(p => pinsWorld(p).forEach(q => { const d = Math.hypot(q.x - wx, q.y - wy); if (d < best) { best = d; magnet = { node: p.id + ":" + q.name, x: q.x, y: q.y }; } }));
+    if (magnet && magnet.node === wiring.from) magnet = null;
+    wiring.mouse = magnet ? [magnet.x, magnet.y] : [wx, wy];
+  }
   if (!drag) {
     const pin = e.target.closest && e.target.closest(".pin");
-    const node = pin ? pin.dataset.pin : null;
+    const node = pin ? pin.dataset.pin : magnet ? magnet.node : null;
     if (node !== hoverPin) {
       hoverPin = node; const tip = $("#tip");
       if (node) { tip.innerHTML = pinTitle(node); tip.classList.add("on"); } else tip.classList.remove("on");
@@ -652,6 +779,7 @@ function onMove(e) {
       project.parts.filter(p => p.type === "breadboard").forEach(p => { const el = rt[p.id] && rt[p.id].el; if (!el || !el.highlight) return; el.highlight(node && node.startsWith(p.id + ":") ? bbGroupOf(node.split(":")[1], (p.attrs || {}).cols || 30) : null); });
       $$(".pin.hot").forEach(c => c.classList.remove("hot")); if (pin) pin.classList.add("hot");
     }
+    if (wiring) drawWires();
     if (node) { const st = $("#stage").getBoundingClientRect(); const tip = $("#tip"); tip.style.left = (e.clientX - st.left + 14) + "px"; tip.style.top = (e.clientY - st.top + 16) + "px"; }
     const part = e.target.closest && e.target.closest(".part"); const id = part ? part.dataset.id : (pin ? hoverPart : null);
     if (id !== hoverPart && !running) { hoverPart = id; drawPins(); }
@@ -669,13 +797,17 @@ function onMove(e) {
     drawWires();
   }
 }
-function onUp() {
+let pinDown = null;
+function onUp(e) {
+  // press on a pin, drag, release on another pin = one wire
+  if (pinDown && wiring && e && Math.hypot(e.clientX - pinDown.sx, e.clientY - pinDown.sy) > 6 && hoverPin && hoverPin !== wiring.from) { pinDown = null; clickPin(hoverPin); return; }
+  pinDown = null;
   if (drag && drag.kind === "pan" && !drag.moved && !wiring) { sel = null; project.parts.forEach(placePart); showInspector(); drawWires(); }
   if (drag && ((drag.kind === "part" && drag.moved) || drag.kind === "handle")) { save(); $("#inspector").classList.remove("fade"); positionInspector(); }
   drag = null;
 }
 function clickPin(node) {
-  if (!wiring) { wiring = { from: node, pts: [], mouse: null }; document.body.classList.add("wiring"); hint("Click another pin to finish the wire. Click empty space to add a bend. Esc cancels."); drawWires(); return; }
+  if (!wiring) { wiring = { from: node, pts: [], mouse: null }; document.body.classList.add("wiring"); hint("Click (or drag to) another pin to finish the wire. Click empty space to add a bend. Esc cancels."); drawWires(); return; }
   if (node === wiring.from) { cancelWire(); return; }
   snapshot();
   project.wires.push({ from: wiring.from, to: node, pts: wiring.pts, color: autoColor(wiring.from, node) });
@@ -694,10 +826,23 @@ function boot() {
   rebuildAll(); applyView();
 
   const stage = $("#stage");
-  stage.addEventListener("pointerdown", onDown);
-  window.addEventListener("pointermove", onMove);
-  window.addEventListener("pointerup", onUp);
-  stage.addEventListener("wheel", e => { if (e.target.closest(".insp, .lessoncard")) return; e.preventDefault(); zoomAt(e.deltaY < 0 ? 1.1 : 1 / 1.1, e.clientX, e.clientY); }, { passive: false });
+  $("#fields").addEventListener("pointerdown", e => { fieldPointer(e); });
+  stage.addEventListener("pointerdown", e => { if (fdrag) return; onDown(e); });
+  window.addEventListener("pointermove", e => { if (fieldMove(e)) return; onMove(e); });
+  window.addEventListener("pointerup", e => { if (fieldUp()) return; onUp(e); });
+  // mouse wheel and trackpad pinch zoom; two-finger trackpad scroll pans
+  stage.addEventListener("wheel", e => {
+    if (e.target.closest(".insp, .lessoncard")) return; e.preventDefault(); cancelAnimationFrame(animateView._r);
+    const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY, dx = e.deltaMode === 1 ? e.deltaX * 16 : e.deltaX;
+    const trackpad = !e.ctrlKey && e.deltaMode === 0 && (dx !== 0 || (dy % 1 !== 0) || Math.abs(dy) < 30);
+    if (trackpad) { view.x -= dx; view.y -= dy; applyView(); return; }
+    zoomAt(Math.exp(-Math.max(-60, Math.min(60, dy)) * (e.ctrlKey ? 0.012 : 0.0022)), e.clientX, e.clientY);
+  }, { passive: false });
+  stage.addEventListener("dblclick", e => {
+    if (e.target.closest(".insp, .lessoncard, .ctools, .zoombar, .warns")) return;
+    const part = e.target.closest(".part"); if (part && !running) return zoomToPart(part.dataset.id);
+    if (part && running) return; fitAnimated();
+  });
   stage.addEventListener("dragover", e => e.preventDefault());
   stage.addEventListener("drop", e => { e.preventDefault(); const t = e.dataTransfer.getData("text/plain"); if (PARTS[t]) { const [x, y] = toWorld(e.clientX, e.clientY); addPart(t, x - 30, y - 30); } });
   $("#plist").addEventListener("dragstart", e => { const b = e.target.closest("[data-add]"); if (b) e.dataTransfer.setData("text/plain", b.dataset.add); });
@@ -713,7 +858,7 @@ function boot() {
     if (!t.dataset.prop || !sel) return;
     const p = project.parts.find(q => q.id === sel.id), def = PARTS[p.type], x = (def.props || []).find(z => z.k === t.dataset.prop);
     const v = t.type === "checkbox" ? t.checked : t.value;
-    if (x.sim) { p.sim[x.k] = t.type === "range" ? +v : v; if (sim) sim.simChanged(p.id); if (t.type === "range") t.closest("label").querySelector("b").textContent = v + (x.unit || ""); save(); return; }
+    if (x.sim) { p.sim[x.k] = t.type === "range" ? +v : v; if (sim) sim.simChanged(p.id); if (FIELDS[p.type]) { p.sim.fd = null; drawFields(); } if (t.type === "range") t.closest("label").querySelector("b").textContent = v + (x.unit || ""); save(); return; }
     snapshot(); p.attrs = Object.assign({}, p.attrs, { [x.k]: v }); rt[p.id].el.setAttribute(x.k, v);
     if (x.k === "pixels") rt[p.id].el.pixels = +v;
     save(); setTimeout(() => { measure(p.id); drawWires(); positionInspector(); }, 80);
@@ -745,7 +890,7 @@ function boot() {
       case "deselect": sel = null; project.parts.forEach(placePart); drawWires(); return showInspector();
       case "zin": return zoomAt(1.2);
       case "zout": return zoomAt(1 / 1.2);
-      case "fit": return fit();
+      case "fit": return fitAnimated();
       case "undo": return undo();
       case "redo": return redo();
       case "new": return showNew();
@@ -786,6 +931,10 @@ function boot() {
     if (e.key === "Escape") { if (document.body.classList.contains("mopen")) closeModal(); else if (wiring) cancelWire(); else { sel = null; project.parts.forEach(placePart); showInspector(); drawWires(); } }
     if ((e.key === "Delete" || e.key === "Backspace") && sel) { e.preventDefault(); deleteSel(); }
     if (e.key.toLowerCase() === "r" && sel) rotateSel();
+    if (e.key === "0") fitAnimated();
+    if (e.key === "=" || e.key === "+") zoomAt(1.25);
+    if (e.key === "-" || e.key === "_") zoomAt(1 / 1.25);
+    if (e.key.toLowerCase() === "f") sel && sel.kind === "part" ? zoomToPart(sel.id) : fitAnimated();
   });
   // resizable code panel
   const gut = $("#gutter"); let gx = null;
@@ -800,7 +949,7 @@ function boot() {
     if ((m = h.match(/^new=(uno|esp32|none)$/))) return setProject(blank(m[1] === "none" ? null : m[1]), "New circuit");
   };
   fromHash(); window.addEventListener("hashchange", fromHash);
-  window.CL = { get project() { return project; }, get sim() { return sim; }, rt, pinsWorld, runSim, stopSim, setProject, openLesson, LESSONS, STARTERS, buildFromSpec, fit, phoneGo, partCode, get running() { return running; } };
+  window.CL = { get project() { return project; }, get sim() { return sim; }, rt, PARTS, DEFAULT_PINS, defaultPin, pinsWorld, runSim, stopSim, setProject, openLesson, LESSONS, STARTERS, buildFromSpec, fit, phoneGo, partCode, get running() { return running; } };
 }
 function sendSerial() { const i = $("#serialin"); if (!sim || !i.value) return; sim.serialIn(i.value + "\n"); const o = $("#serialout"); o.textContent += "› " + i.value + "\n"; i.value = ""; }
 function btSend(text) {

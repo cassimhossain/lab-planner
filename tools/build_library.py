@@ -53,6 +53,20 @@ def thumb(src, dst_dir, name, force):
     return "library/thumbs/" + name + ".jpg" if os.path.exists(jpg) else ""
 
 
+def banner(src, dst_dir, code, force):
+    """Hand-drawn strip for the activity card, cut from the deck's title-slide drawing."""
+    jpg = os.path.join(dst_dir, code + ".jpg")
+    if force or not os.path.exists(jpg) or os.path.getmtime(jpg) < os.path.getmtime(src):
+        try:
+            import sys
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            import banner as B
+            B.make(src, dst_dir, code)
+        except Exception as e:
+            print("  banner skipped for", code, "-", e)
+    return "library/banners/" + code + ".jpg" if os.path.exists(jpg) else ""
+
+
 def copy(src, dst):
     if not os.path.exists(dst) or os.path.getsize(dst) != os.path.getsize(src) or os.path.getmtime(dst) < os.path.getmtime(src):
         shutil.copy2(src, dst)
@@ -68,7 +82,7 @@ def main():
     a = ap.parse_args()
     src, repo = os.path.expanduser(a.src), os.path.expanduser(a.repo)
     lib = os.path.join(repo, "library")
-    for d in ("slides", "docs", "thumbs"):
+    for d in ("slides", "docs", "thumbs", "banners"):
         os.makedirs(os.path.join(lib, d), exist_ok=True)
     decks, docs, changed = [], [], []
     for folder in sorted(glob.glob(os.path.join(src, "Presentations", "*"))):
@@ -84,7 +98,8 @@ def main():
             if copy(f, os.path.join(lib, "slides", base)):
                 changed.append(base)
             decks.append({"code": code, "group": g, "title": m.group(2).replace("_", " "), "file": "library/slides/" + base,
-                          "thumb": thumb(f, os.path.join(lib, "thumbs"), code, a.force_thumbs), "pages": pages(f), "kb": os.path.getsize(f) // 1024})
+                          "thumb": thumb(f, os.path.join(lib, "thumbs"), code, a.force_thumbs),
+                          "banner": banner(f, os.path.join(lib, "banners"), code, a.force_thumbs), "pages": pages(f), "kb": os.path.getsize(f) // 1024})
     for rel, title, kind, about in DOCS:
         f = os.path.join(src, rel)
         if not os.path.exists(f):

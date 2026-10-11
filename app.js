@@ -143,17 +143,18 @@
     const item = (k, label, icon, extra = "") => `<a href="#${k}" class="mi ${r === k ? "on" : ""}">${icon}<span>${label}</span>${extra}</a>`;
     const badge = n => (n ? `<em>${n}</em>` : "");
     $("#menu").innerHTML =
-      item("home", "Home", ic("home")) +
-      item("curriculum", "Curriculum", ic("book"), `<em class="soft">${LIB.decks.length}</em>`) +
-      item("hardware", "Hardware", ic("parts")) +
-      `<div class="mlabel">Age groups</div>` +
+      item("home", "Overview", ic("home")) +
+      `<div class="mlabel">Curriculum</div>` +
+      item("curriculum", "Lesson library", ic("book"), `<em class="soft">${LIB.decks.length}</em>`) +
       D.groups.map(g => item(g.code, g.name, `<i class="gdot" style="background:${g.color}"></i>`, badge(nw.filter(a => a.group === g.code).length))).join("") +
-      `<div class="mlabel">This week</div>` +
+      `<div class="mlabel">Teaching</div>` +
       item("week", "Timetable", ic("week"), badge(nw.length)) +
-      item("print", "Print lists", ic("print")) +
-      `<div class="mlabel">Setup</div>` +
+      `<div class="mlabel">Lab &amp; kit</div>` +
+      item("hardware", "Hardware", ic("parts")) +
+      item("print", "Print kit lists", ic("print")) +
       item("kits", "Edit kits & parts", ic("box")) +
-      item("settings", "Settings", ic("gear"));
+      `<div class="mlabel">Setup</div>` +
+      item("settings", "Settings & backup", ic("gear"));
     const a = addDays(S.weekStart, 0), b = addDays(S.weekStart, 4);
     $("#wkLabel").textContent = `${fmt(a, { day: "numeric", month: "short" })} to ${fmt(b, { day: "numeric", month: "short" })}`;
   }
@@ -181,10 +182,12 @@
   }
   function actCard(a) {
     const g = GROUPS[a.group], s = peek(a.code);
-    return `<button class="acard ${isPlanned(a.code) ? "is-planned" : ""} ${isDone(a.code) ? "is-done" : ""}" data-open="${esc(a.code)}" style="--c:${g.color};--l:${g.light}">
-      <span class="acard-top"><span class="aicon">${ic(a.domain)}</span>${fromTag(a)}<span class="acode">${deckOf(a.code) ? `<i class="sbadge" title="Has slides">${ic("play")}</i>` : ""}${esc(lab(a))}</span></span>
+    const dk = deckOf(a.code);
+    const ban = dk && dk.banner ? `<span class="abanner"><img loading="lazy" src="${esc(dk.banner)}" alt=""></span>` : `<span class="abanner none"><span class="aicon">${ic(a.domain)}</span></span>`;
+    return `<button class="acard has-ban ${isPlanned(a.code) ? "is-planned" : ""} ${isDone(a.code) ? "is-done" : ""}" data-open="${esc(a.code)}" style="--c:${g.color};--l:${g.light}">
+      ${ban}<span class="acard-top"><span class="adomain">${esc(a.domain)}</span>${fromTag(a)}<span class="acode">${deckOf(a.code) ? `<i class="sbadge" title="Has slides">${ic("play")}</i>` : ""}${esc(lab(a))}</span></span>
       <span class="atitle">${esc(a.title)}</span>
-      <span class="adom">${esc(a.domain)}${a.cls ? " · Class " + a.cls : ""}</span>
+      <span class="adom">${[a.cls ? "Class " + a.cls : "", dk ? dk.pages + " slides" : "", vidOf(a.code) ? "video" : ""].filter(Boolean).join(" · ") || "No slides yet"}</span>
       <span class="afoot">${statusChip(a.code)}<span class="aplan">${isPlanned(a.code) || isDone(a.code) ? "Open" : "Plan"} ${ic("arrow")}</span></span>
     </button>`;
   }
@@ -271,18 +274,37 @@
       <a href="#curriculum">${ic("book")}<span>Presentations</span></a><a href="#curriculum" data-libg="DOCS">${ic("file")}<span>Parent docs</span></a>
       <a href="#hardware">${ic("parts")}<span>Hardware</span></a><a href="#print">${ic("print")}<span>Print lists</span></a></div></div>`;
 
-    return `<section class="welcome">
+    const sec = (icon, title, sub, link, body, tone = "") => `<section class="sec ${tone}"><div class="sec-h"><span class="sec-ic">${ic(icon)}</span><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ""}</div>${link || ""}</div>${body}</section>`;
+    const pathCards = D.groups.map(g => {
+      const c = coreOf(g.code), dn = c.filter(a => isDone(a.code)).length, pct = Math.round(100 * dn / c.length), up = c.find(a => peek(a.code).status === "Not started");
+      const all = ALL().filter(a => a.group === g.code), withDeck = all.filter(a => deckOf(a.code)).length;
+      const dk = up ? deckOf(up.code) : null;
+      return `<div class="pcard" style="--c:${g.color};--l:${g.light}">
+        <a class="pcard-h" href="#${g.code}"><span class="pbadge">${g.code}</span><span class="pt"><b>${esc(g.name)}</b><small>Ages ${esc(g.ages)} · ${withDeck} lessons with slides</small></span>${ring(pct, g.color, 48)}</a>
+        ${up ? `<button class="pnext" data-open="${esc(up.code)}">${dk && dk.banner ? `<img loading="lazy" src="${esc(dk.banner)}" alt="">` : `<span class="pnone">${ic(up.domain)}</span>`}
+          <span class="pnext-t"><small>Next lesson · ${esc(lab(up))}</small><b>${esc(up.title)}</b></span></button>` : `<div class="pdone">${ic("check")}All lessons planned or done</div>`}
+        <div class="pfoot"><a href="#${g.code}">All ${esc(g.name)} lessons ${ic("arrow")}</a>${dk ? `<button class="lk" data-view="${esc(dk.code)}">${ic("play")}Slides</button>` : ""}</div>
+      </div>`; }).join("");
+
+    const attStrip = att.length ? `<div class="att strip">${att.map(([t, h, d, act]) => `<div class="att-i ${t}"><span class="att-dot"></span><div><b>${h}</b><small>${esc(d)}</small></div>${act}</div>`).join("")}</div>` : "";
+
+    const lab3 = `<div class="labgrid">
+        <a class="labtile" href="#print"><span class="lt-ic">${ic("print")}</span><b>${issue.length ? plural(issue.length, "part") + " to pack" : "Kit lists"}</b><small>${issue.length ? `${items} items for this week. Print day-wise lists.` : "Plan sessions and the kit list builds itself."}</small></a>
+        <a class="labtile" href="#hardware"><span class="lt-ic">${ic("parts")}</span><b>Hardware</b><small>Every part, which lessons use it, and how many you need.</small></a>
+        <a class="labtile" href="#kits"><span class="lt-ic">${ic("box")}</span><b>Edit kits &amp; parts</b><small>Change what each lesson needs or add new parts.</small></a>
+        <a class="labtile" href="#curriculum" data-libg="DOCS"><span class="lt-ic">${ic("file")}</span><b>Plans &amp; documents</b><small>Curriculum plans, parent brochures and forms.</small></a>
+      </div>`;
+
+    return `<section class="welcome portal">
         <div class="wl-txt"><span class="kicker">${fmt(now, { weekday: "long", day: "numeric", month: "long" })}</span>
           <h1>${hi}, ${esc((S.name || "").split(" ")[0] || "teacher")}</h1>
-          <p>${nw.length ? `Week of ${ws}: ${plural(nw.length, "session")}, ${pairs * 2} students, ${plural(issue.length, "part")} to pack.` : `Week of ${ws} is empty. Plan the first session in two taps.`}</p></div>
-        <div class="wl-btns"><button class="btn primary big" data-palette="plan">${ic("plus")}Plan a session</button><a class="btn big" href="#print">${ic("print")}Print kit lists</a></div>
+          <p>${LIB.decks.length} lessons across 4 age groups · ${pctAll}% of the curriculum taught · ${nw.length ? plural(nw.length, "session") + " this week" : "nothing planned this week yet"}</p></div>
+        <div class="wl-btns"><a class="btn primary big" href="#curriculum">${ic("book")}Open lesson library</a><button class="btn big" data-palette="plan">${ic("plus")}Plan a session</button></div>
         ${DOODLE}
       </section>
-      <div class="kpis">${kpis}</div>
-      <div class="dash">
-        <div class="dash-main">${upnext}${board}${groupsHTML}</div>
-        <div class="dash-side">${attention}${pack}${quick}${done}</div>
-      </div>`;
+      ${sec("book", "Curriculum", "Four learning pathways. Pick up where each group left off.", `<a class="sec-link" href="#curriculum">Lesson library ${ic("arrow")}</a>`, `<div class="pgrid">${pathCards}</div>`, "t-cur")}
+      ${sec("week", "This week", `Week of ${ws}${nw.length ? " · " + plural(nw.length, "session") + ", " + pairs * 2 + " students" : ""}`, `<a class="sec-link" href="#week">Timetable ${ic("arrow")}</a>`, attStrip + board.replace('<div class="panel"><div class="panel-h"><h2>This week</h2><span class="muted">' + ws + '</span></div>', '<div class="panel flat">'), "t-week")}
+      ${sec("parts", "Lab &amp; kit", "Hardware, kit lists and documents for the lab.", "", lab3, "t-lab")}`;
   }
 
   /* ---------- COMMAND PALETTE (Ctrl K) ---------- */
@@ -334,7 +356,7 @@
     const ph = UI.phase[gc], q = (UI.q[gc] || "").toLowerCase();
     const list = all.filter(a => q ? (a.code + " " + a.title + " " + a.domain).toLowerCase().includes(q) : phaseOf(a) === ph);
     let body = "", lastU = "";
-    list.forEach(a => { const u = phaseOf(a) + " · " + a.unit; if (u !== lastU) { if (lastU) body += `</div>`; body += `<h3 class="unit">${esc(a.unit)}</h3><div class="agrid">`; lastU = u; } body += actCard(a); });
+    list.forEach(a => { const u = phaseOf(a) + " · " + a.unit; if (u !== lastU) { if (lastU) body += `</div>`; body += `<h3 class="unit" style="--c:${g.color};--l:${g.light}">${esc(a.unit)}</h3><div class="agrid">`; lastU = u; } body += actCard(a); });
     if (lastU) body += `</div>`;
     return `<section class="gban" style="--c:${g.color};--l:${g.light}">
         <div class="gban-l"><span class="gban-badge">${gc}</span><div><h1>${esc(g.name)}</h1><p>Ages ${esc(g.ages)} · ${all.length} activities</p></div></div>
@@ -343,7 +365,7 @@
       <div class="gtools"><div class="tabs">${PHASES.map(p => `<button class="${!q && ph === p ? "on" : ""}" data-phase="${p}" data-g="${gc}">${p}<em>${all.filter(a => phaseOf(a) === p).length}</em></button>`).join("")}</div>
         <label class="search">${ic("search")}<input type="search" data-gq="${gc}" placeholder="Search ${esc(g.name)}" value="${esc(UI.q[gc] || "")}"></label>
         <button class="btn borrowbtn" data-pick="${gc}">${ic("plus")}Add from another group</button></div>
-      ${borrowed.length ? `<h3 class="unit">From other age groups <small>shared kits, planned for ${esc(g.name)}</small></h3><div class="agrid">${borrowed.map(actCard).join("")}</div>` : ""}
+      ${borrowed.length ? `<h3 class="unit" style="--c:${g.color};--l:${g.light}">From other age groups <small>shared kits, planned for ${esc(g.name)}</small></h3><div class="agrid">${borrowed.map(actCard).join("")}</div>` : ""}
       ${body || empty("Nothing matches your search.")}`;
   }
 

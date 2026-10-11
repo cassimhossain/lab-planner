@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Virtual Lab · Robotics &amp; AI Club</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #12233f; --bar: #0f1d36; --line: #e3e8f0; --c: #2E6BE6; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #f4f6fa; font-family: "Plus Jakarta Sans", system-ui, sans-serif; color: var(--ink); }
+  body { display: flex; flex-direction: column; }
+  .ic { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  header { display: flex; align-items: center; gap: 14px; padding: 8px 14px; background: var(--bar); color: #fff; min-height: 58px; flex-wrap: wrap; border-bottom: 4px solid var(--c); }
+  .back { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; padding: 4px 8px 4px 2px; border-radius: 10px; }
+  .back:hover { background: rgba(255,255,255,.08); }
+  .back img { width: 38px; height: 38px; }
+  .back span { display: flex; flex-direction: column; line-height: 1.15; }
+  .back b { font-size: 15px; } .back small { font-size: 11.5px; opacity: .7; }
+  .tt { display: flex; flex-direction: column; min-width: 0; flex: 1; padding-left: 14px; border-left: 1px solid rgba(255,255,255,.15); }
+  .tt b { font-size: 16px; } .tt small { font-size: 12.5px; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .acts { display: flex; gap: 8px; align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.2); background: transparent; color: #fff; font: 600 13px inherit; font-family: inherit; text-decoration: none; cursor: pointer; }
+  .btn:hover { background: rgba(255,255,255,.1); }
+  .btn.pri { background: var(--c); border-color: var(--c); }
+  .tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 99px; background: rgba(255,255,255,.12); white-space: nowrap; }
+  main { flex: 1; position: relative; min-height: 0; }
+  iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
+  .credit { padding: 6px 14px; font-size: 11.5px; color: #5d6b82; background: #fff; border-top: 1px solid var(--line); display: flex; gap: 10px; flex-wrap: wrap; justify-content: space-between; }
+  .credit a { color: inherit; }
+  .msg { max-width: 520px; margin: 60px auto; padding: 24px; background: #fff; border-radius: 16px; border: 1px solid var(--line); text-align: center; }
+  @media (max-width: 720px) { .back span, .tag { display: none; } .tt { padding-left: 8px; } .btn span { display: none; } }
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="index.html#sims" title="Back to Virtual labs"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg><img src="logo.svg" alt=""><span><b>Virtual labs</b><small>Robotics &amp; AI Club</small></span></a>
+  <div class="tt"><b id="tname">Simulator</b><small id="tabout"></small></div>
+  <div class="acts">
+    <span class="tag" id="ttag"></span>
+    <button class="btn" id="full" title="Full screen"><svg class="ic" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Full screen</span></button>
+    <a class="btn pri" id="newtab" target="_blank" rel="noopener" title="Open in a new tab"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg><span>New tab</span></a>
+  </div>
+</header>
+<main id="main"></main>
+<div class="credit" id="credit"></div>
+<script src="sims.js?v=1"></script>
+<script>
+  const k = new URLSearchParams(location.search).get("s"), s = window.SIMS && SIMS.byKey[k];
+  const main = document.getElementById("main");
+  if (!s) { main.innerHTML = '<div class="msg"><h2>Simulator not found</h2><p><a href="index.html#sims">Back to Virtual labs</a></p></div>'; }
+  else if (s.href) { location.replace(s.href); }
+  else {
+    document.title = s.name + " · Virtual Lab";
+    document.documentElement.style.setProperty("--c", s.color);
+    document.getElementById("tname").textContent = s.name;
+    document.getElementById("tabout").textContent = s.about;
+    document.getElementById("ttag").textContent = s.online ? "Needs internet" : "Works offline";
+    document.getElementById("newtab").href = s.src;
+    const f = document.createElement("iframe");
+    f.src = s.src; f.title = s.name; f.allow = "fullscreen; clipboard-write"; f.allowFullscreen = true;
+    main.appendChild(f);
+    document.getElementById("full").onclick = () => (f.requestFullscreen ? f.requestFullscreen() : f.webkitRequestFullscreen && f.webkitRequestFullscreen());
+    document.getElementById("credit").innerHTML = s.kind === "phet"
+      ? `<span>${s.name} by PhET Interactive Simulations, University of Colorado Boulder, <a href="https://phet.colorado.edu" target="_blank" rel="noopener">phet.colorado.edu</a>. Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>.</span><a href="${s.web}" target="_blank" rel="noopener">Teacher resources for this simulation</a>`
+      : `<span>BlocksCAD, open-source block-based 3D modelling (<a href="https://www.blockscad3d.com" target="_blank" rel="noopener">blockscad3d.com</a>). Loaded from the official site. Save your work with Project › Save to computer, or make a free account.</span><a href="https://www.blockscad3d.com/editor/docs/index.html" target="_blank" rel="noopener">BlocksCAD help</a>`;
+  }
+</script>
+</body>
+</html>

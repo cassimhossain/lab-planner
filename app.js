@@ -51,6 +51,11 @@
     ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
     left: '<path d="M15 5l-7 7 7 7"/>',
     right: '<path d="M9 5l7 7-7 7"/>',
+    flask: '<path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7.5 15h9"/>',
+    chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/><circle cx="12" cy="12" r="2"/>',
+    bolt: '<path d="M13 2L5 14h6l-1 8 8-12h-6z"/>',
+    cube: '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
+    wifi0: '<path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1"/>',
     // domain icons
     "Foundation": '<rect x="6" y="8" width="12" height="10" rx="3"/><circle cx="10" cy="13" r="1.3"/><circle cx="14" cy="13" r="1.3"/><path d="M12 8V4.5"/><circle cx="12" cy="3.5" r="1"/><path d="M6 13H3.5M18 13h2.5"/>',
     "Electronics & Circuits": '<path d="M3 12h4l2-5 3 10 2-5h7"/><circle cx="3" cy="12" r="1"/><circle cx="21" cy="12" r="1"/>',
@@ -137,7 +142,7 @@
   const coreOf = gc => ACTS.filter(a => a.group === gc && (a.phase === "Phase 1" || a.phase === "Phase 2"));
 
   /* ---------- routing / sidebar ---------- */
-  const ROUTES = ["home", "curriculum", "hardware", "LE", "JM", "YI", "TL", "week", "print", "kits", "settings"];
+  const ROUTES = ["home", "curriculum", "hardware", "LE", "JM", "YI", "TL", "week", "sims", "print", "kits", "settings"];
   const route = () => { const r = location.hash.slice(1); return ROUTES.includes(r) ? r : "home"; };
   function renderMenu() {
     const r = route(), nw = planned();
@@ -150,6 +155,9 @@
       D.groups.map(g => item(g.code, g.name, `<i class="gdot" style="background:${g.color}"></i>`, badge(nw.filter(a => a.group === g.code).length))).join("") +
       `<div class="mlabel">Teaching</div>` +
       item("week", "Timetable", ic("week"), badge(nw.length)) +
+      `<div class="mlabel">Virtual labs</div>` +
+      item("sims", "Simulators", ic("flask"), `<em class="soft">${SIM.list.length}</em>`) +
+      `<a href="circuit.html" class="mi">${ic("chip")}<span>Circuit Lab</span><em class="soft new">New</em></a>` +
       `<div class="mlabel">Lab &amp; kit</div>` +
       item("hardware", "Hardware", ic("parts")) +
       item("print", "Print kit lists", ic("print")) +
@@ -162,7 +170,7 @@
   function render() {
     renderMenu();
     const r = route(), app = $("#app");
-    app.innerHTML = r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
+    app.innerHTML = r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "sims" ? vSims() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
     document.body.dataset.route = r;
   }
   window.addEventListener("hashchange", () => { closeNav(); render(); window.scrollTo(0, 0); });
@@ -305,11 +313,12 @@
       </section>
       ${sec("book", "Curriculum", "Four learning pathways. Pick up where each group left off.", `<a class="sec-link" href="#curriculum">Lesson library ${ic("arrow")}</a>`, `<div class="pgrid">${pathCards}</div>`, "t-cur")}
       ${sec("week", "This week", `Week of ${ws}${nw.length ? " · " + plural(nw.length, "session") + ", " + pairs * 2 + " students" : ""}`, `<a class="sec-link" href="#week">Timetable ${ic("arrow")}</a>`, attStrip + board.replace('<div class="panel"><div class="panel-h"><h2>This week</h2><span class="muted">' + ws + '</span></div>', '<div class="panel flat">'), "t-week")}
+      ${sec("flask", "Virtual labs", "Try circuits and 3D designs on screen before building them for real.", `<a class="sec-link" href="#sims">All simulators ${ic("arrow")}</a>`, simTiles(), "t-sim")}
       ${sec("parts", "Lab &amp; kit", "Hardware, kit lists and documents for the lab.", "", lab3, "t-lab")}`;
   }
 
   /* ---------- COMMAND PALETTE (Ctrl K) ---------- */
-  const PAGES = [["home", "Home", "home"], ["curriculum", "Curriculum", "book"], ["hardware", "Hardware", "parts"], ["week", "Timetable", "week"], ["print", "Print lists", "print"], ["kits", "Edit kits & parts", "box"], ["settings", "Settings & backup", "gear"]];
+  const PAGES = [["home", "Home", "home"], ["curriculum", "Curriculum", "book"], ["hardware", "Hardware", "parts"], ["week", "Timetable", "week"], ["sims", "Simulators", "flask"], ["print", "Print lists", "print"], ["kits", "Edit kits & parts", "box"], ["settings", "Settings & backup", "gear"]];
   const CMD = { open: false, mode: "all", q: "", i: 0, res: [] };
   function openPalette(mode) { CMD.open = true; CMD.mode = mode || "all"; CMD.q = ""; CMD.i = 0;
     $("#palette").innerHTML = `<div class="pal-box"><div class="pal-in">${ic("search")}<input id="palQ" autocomplete="off" placeholder="${CMD.mode === "plan" ? "Which activity? Type a code or name, e.g. JM-06 or robot" : "Search activities, presentations, documents, pages"}"><kbd>Esc</kbd></div><div class="pal-res" id="palRes"></div>
@@ -407,6 +416,8 @@
       : `<div class="mdeck none"><span class="aicon big">${ic(a.domain)}</span><span>No presentation for this activity yet</span></div>`;
     const vv = vidOf(a.code);
     const vrow = vv ? `<button class="mvid" data-video="${esc(lab(a))}"><span class="mvid-ic">${ic("play")}</span><span><b>Watch the video</b><small>${esc(vv.title)} · ${esc(vv.channel)} · about ${vv.mins} min</small></span>${ic("arrow")}</button>` : "";
+    const sims = SIM.forLesson(lab(a), a.title, a.domain);
+    const srow = sims.length ? `<div class="msims"><span class="msims-l">${ic("flask")}Try it in a simulator</span>${sims.map(x => `<a class="msim" href="${esc(x.href)}" style="--sc:${x.sim.color}" title="${esc(x.why)}">${ic(simIcon(x.sim))}<span><b>${esc(x.sim.name)}</b><small>${esc(x.why)}</small></span></a>`).join("")}</div>` : "";
     const dayTxt = isPlanned(a.code) ? (s.day ? `${DAYFULL[s.day]} ${dayDate(s.day)}` : "Planned, no day yet") : isDone(a.code) ? "Done" : "Not planned yet";
     $("#modal").innerHTML = `<div class="sheet-m wide" style="--c:${g.color};--l:${g.light}">
       <div class="m-hero">${hero}${vrow}<button class="m-x float" data-close aria-label="Close">${ic("x")}</button></div>
@@ -418,6 +429,7 @@
           <span class="fact">${ic("users")}${gr} groups · ${gr * 2} students</span></div>
       </div>
       <div class="m-body">
+        ${srow}
         <div class="m-sec"><label>Day</label>
           <div class="daypick">${DAYS.map(d => `<button class="${isPlanned(a.code) && s.day === d ? "on" : ""}" data-mday="${d}"><b>${d}</b><span>${dayDate(d)}</span></button>`).join("")}</div>
           ${isPlanned(a.code) ? `<button class="linkbtn" data-unplan>${ic("x")}Remove from this week</button>` : ""}</div>
@@ -657,6 +669,37 @@
       <div class="hwlist">${kit.map(k => `<div><span>${esc(k.n)}<small>${esc(catOf(k.n).cat)}${k.b === "class" ? " · per class" : ""}</small></span><b>${lineTotal(k, a.code)}</b></div>`).join("") || `<p class="muted">No parts listed.</p>`}</div>
       <div class="hwfoot"><button class="btn" data-open="${esc(a.code)}">${isPlanned(a.code) || isDone(a.code) ? "Open" : "Plan"}</button><a class="btn ghost" href="#kits" data-editkit="${esc(lab(a))}">Edit kit</a></div></div>`;
   }
+  /* ---------- VIRTUAL LABS ---------- */
+  const SIM = window.SIMS || { list: [], examples: {}, byKey: {}, forLesson: () => [] };
+  const simIcon = s => s.kind === "build" ? "chip" : s.kind === "cad" ? "cube" : "bolt";
+  const simHref = s => s.href || "sim.html?s=" + s.key;
+  const simTag = s => s.kind === "build" ? "Needs internet to compile" : s.online ? "Needs internet" : "Works offline";
+  function simTiles() {
+    const pick = ["circuit-lab", "cck-dc", "ohms-law", "blockscad"].map(k => SIM.byKey[k]).filter(Boolean);
+    return `<div class="labgrid">${pick.map(s => `<a class="labtile simtile" href="${simHref(s)}" style="--sc:${s.color}"><span class="lt-ic">${ic(simIcon(s))}</span><b>${esc(s.name)}</b><small>${esc(s.about)}</small></a>`).join("")}</div>`;
+  }
+  function vSims() {
+    const byCode = c => ACTS.find(a => lab(a) === c) || ACTS.find(a => String(a.code).startsWith(c + " "));
+    const cl = SIM.byKey["circuit-lab"];
+    const exChips = Object.entries(SIM.examples).map(([c, k]) => { const a = byCode(c), g = a && GROUPS[a.group];
+      return `<a class="exchip" href="circuit.html#ex=${k}" style="--c:${g ? g.color : "#2E6BE6"}"><b>${esc(c)}</b>${esc(a ? a.title : k)}</a>`; }).join("");
+    const card = s => `<a class="simcard" href="${simHref(s)}" style="--sc:${s.color}">
+        <span class="sim-art">${ic(simIcon(s))}<em>${s.kind === "phet" ? "PhET" : s.kind === "cad" ? "3D design" : "Arduino"}</em></span>
+        <span class="sim-b"><b>${esc(s.name)}</b><small>${esc(s.about)}</small>
+          <span class="sim-good"><i>Good for</i>${esc(s.good)}</span>
+          <span class="sim-meta"><span>Ages ${esc(s.ages)}</span><span class="${s.online || s.kind === "build" ? "on" : "off"}">${esc(simTag(s))}</span></span></span></a>`;
+    const phet = SIM.list.filter(s => s.kind === "phet"), cad = SIM.list.filter(s => s.kind === "cad");
+    return `${head("Virtual labs", "Simulators for trying ideas before touching real parts. Each lesson also shows the matching simulator when you open it.")}
+      ${cl ? `<section class="sec t-sim"><div class="sec-h"><span class="sec-ic">${ic("chip")}</span><div><h2>Circuit Lab</h2><p>Our Arduino simulator: wire parts on a breadboard, write code, press Run.</p></div><a class="btn primary sec-link" href="circuit.html">${ic("play")}Open Circuit Lab</a></div>
+        <div class="clhero"><a class="clshot" href="circuit.html"><span>${ic("chip")}</span><b>Arduino Uno · breadboard · 30+ parts</b><small>LEDs, buttons, buzzers, potentiometers, LDR, DHT22, ultrasonic, PIR, servo, NeoPixel, LCD, 7-segment, stepper, L298N motor driver</small></a>
+          <div class="clex"><h3>Ready-made circuits for lessons</h3><div class="exchips">${exChips}</div></div></div></section>` : ""}
+      <section class="sec t-phet"><div class="sec-h"><span class="sec-ic">${ic("bolt")}</span><div><h2>Electricity explorers</h2><p>PhET simulations from the University of Colorado Boulder. Stored on this site, so they work without internet.</p></div></div>
+        <div class="simgrid">${phet.map(card).join("")}</div></section>
+      <section class="sec t-cad"><div class="sec-h"><span class="sec-ic">${ic("cube")}</span><div><h2>3D design</h2><p>Model parts with blocks, then export STL files for the 3D printer.</p></div></div>
+        <div class="simgrid">${cad.map(card).join("")}</div></section>
+      <p class="muted small simcredit">PhET simulations: PhET Interactive Simulations, University of Colorado Boulder, phet.colorado.edu (CC BY 4.0). BlocksCAD: blockscad3d.com (open source, GPL v3). Circuit Lab uses Wokwi Elements and AVR8js (MIT).</p>`;
+  }
+
   function vHardware() {
     const nw = planned();
     if (!UI.hwG) UI.hwG = nw.length ? "WEEK" : "LE";

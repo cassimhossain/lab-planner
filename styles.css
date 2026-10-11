@@ -843,7 +843,8 @@ h3.unit { background: var(--l, #E8EEF8); color: var(--c, var(--navy)); border-ra
 .clshot span .ic { width: 30px; height: 30px; } .clshot b { font-size: 17px; } .clshot small { opacity: .8; font-size: 13px; line-height: 1.45; }
 .clex { background: var(--card); border-radius: 18px; box-shadow: var(--sh); padding: 16px 18px; }
 .clex h3 { margin: 0 0 10px; font-size: 15px; }
-.exchips { display: flex; flex-wrap: wrap; gap: 8px; }
+.exchips { display: flex; flex-wrap: wrap; gap: 8px; max-height: 320px; overflow-y: auto; padding-right: 4px; }
+.clex h3 small { font-weight: 500; font-size: 12px; margin-left: 6px; }
 .exchip { display: inline-flex; gap: 7px; align-items: center; padding: 7px 11px; border-radius: 10px; background: #F5F7FB; border: 1px solid #E3E8F0; color: var(--ink); font-size: 13px; }
 .exchip b { color: var(--c); font-size: 12px; } .exchip:hover { border-color: var(--c); background: #fff; }
 .simcredit { margin-top: 8px; }

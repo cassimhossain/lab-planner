@@ -32,9 +32,8 @@ window.SIMS = {
       about: "Snap blocks together to make 3D shapes, then export an STL for the 3D printer.",
       good: "3D modelling and printing, name badges, enclosures, grippers, gears", ages: "10+", color: "#6E3FC8" }
   ],
-  /* Circuit Lab examples that match a lesson exactly */
-  examples: { "F-01": "blink", "LE-02": "button", "LE-04": "traffic", "LE-05": "nightlamp", "LE-06": "thermometer", "LE-08": "pir", "LE-09": "servo", "LE-22": "melody",
-    "JM-01": "dimmer", "JM-03": "weather", "JM-04": "ultrasonic", "JM-21": "rainbow", "YI-04": "stepper" },
+  /* Lessons with a ready-made circuit and code in Circuit Lab (circuit.html#lesson=CODE) */
+  circuits: "F-00 F-01 F-02 JM-00 JM-01 JM-02 JM-03 JM-04 JM-05 JM-06 JM-07 JM-08 JM-09 JM-11 JM-12 JM-13 JM-15 JM-20 JM-21 JM-22 JM-23 JM-25 JM-26 JM-27 JM-32 LE-01 LE-02 LE-03 LE-04 LE-05 LE-06 LE-07 LE-08 LE-09 LE-10 LE-11 LE-12 LE-19 LE-21 LE-22 LE-23 LE-30 LE-32 TL-01 TL-02 TL-03 TL-04 TL-05 TL-06 TL-07 TL-08 TL-09 TL-10 TL-12 TL-14 TL-16 TL-19 TL-23 TL-25 TL-26 TL-27 TL-28 YI-02 YI-03 YI-04 YI-05 YI-06 YI-07 YI-08 YI-09 YI-10 YI-11 YI-18 YI-21 YI-22 YI-23 YI-25 YI-26 YI-27 YI-28 YI-32".split(" "),
   /* keyword rules: lesson title or domain -> simulator */
   rules: [
     [/series|parallel|paper circuit|lemon battery|circuit card|conductor|insulator/i, ["cck-dc", "ohms-law"]],
@@ -50,7 +49,7 @@ window.SIMS.forLesson = function (code, title, domain) {
   const S = window.SIMS, out = [], seen = new Set();
   const add = (k, href, why) => { if (seen.has(k) || !S.byKey[k]) return; seen.add(k); out.push({ sim: S.byKey[k], href, why }); };
   code = String(code || "").replace(/\s*\(.*\)$/, "");
-  const ex = S.examples[code]; if (ex) add("circuit-lab", "circuit.html#ex=" + ex, "Ready-made circuit for this lesson");
+  if (S.circuits.includes(code)) add("circuit-lab", "circuit.html#lesson=" + code, "Ready-made circuit and code for this lesson");
   const txt = (title || "") + " " + (domain || "");
   S.rules.forEach(([re, ks]) => { if (re.test(txt)) ks.forEach(k => add(k, "sim.html?s=" + k, S.byKey[k].good)); });
   return out;

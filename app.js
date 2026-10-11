@@ -173,7 +173,14 @@
     app.innerHTML = r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "sims" ? vSims() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
     document.body.dataset.route = r;
   }
-  window.addEventListener("hashchange", () => { closeNav(); render(); window.scrollTo(0, 0); });
+  /* index.html#open=CODE (from Circuit Lab) opens that lesson's details */
+  function openFromHash() {
+    const m = location.hash.match(/^#open=(.+)$/); if (!m) return false;
+    const c = decodeURIComponent(m[1]), a = ACTS.find(x => lab(x) === c) || ACTS.find(x => String(x.code).startsWith(c + " "));
+    history.replaceState(null, "", location.pathname + location.search + "#" + (a ? a.group : "home"));
+    render(); if (a) openModal(a.code); return true;
+  }
+  window.addEventListener("hashchange", () => { closeNav(); if (openFromHash()) return; render(); window.scrollTo(0, 0); });
   const shiftWeek = n => { S.weekStart = iso(addDays(S.weekStart, 7 * n)); save(); render(); toast(`Week of ${fmt(addDays(S.weekStart, 0), { day: "numeric", month: "long" })}`); };
   $("#wkPrev").onclick = () => shiftWeek(-1);
   $("#wkNext").onclick = () => shiftWeek(1);
@@ -670,7 +677,7 @@
       <div class="hwfoot"><button class="btn" data-open="${esc(a.code)}">${isPlanned(a.code) || isDone(a.code) ? "Open" : "Plan"}</button><a class="btn ghost" href="#kits" data-editkit="${esc(lab(a))}">Edit kit</a></div></div>`;
   }
   /* ---------- VIRTUAL LABS ---------- */
-  const SIM = window.SIMS || { list: [], examples: {}, byKey: {}, forLesson: () => [] };
+  const SIM = window.SIMS || { list: [], circuits: [], byKey: {}, forLesson: () => [] };
   const simIcon = s => s.kind === "build" ? "chip" : s.kind === "cad" ? "cube" : "bolt";
   const simHref = s => s.href || "sim.html?s=" + s.key;
   const simTag = s => s.kind === "build" ? "Needs internet to compile" : s.online ? "Needs internet" : "Works offline";
@@ -681,8 +688,8 @@
   function vSims() {
     const byCode = c => ACTS.find(a => lab(a) === c) || ACTS.find(a => String(a.code).startsWith(c + " "));
     const cl = SIM.byKey["circuit-lab"];
-    const exChips = Object.entries(SIM.examples).map(([c, k]) => { const a = byCode(c), g = a && GROUPS[a.group];
-      return `<a class="exchip" href="circuit.html#ex=${k}" style="--c:${g ? g.color : "#2E6BE6"}"><b>${esc(c)}</b>${esc(a ? a.title : k)}</a>`; }).join("");
+    const exChips = (SIM.circuits || []).map(c => { const a = byCode(c), g = a && GROUPS[a.group];
+      return `<a class="exchip" href="circuit.html#lesson=${c}" style="--c:${g ? g.color : "#2E6BE6"}"><b>${esc(c)}</b>${esc(a ? a.title : c)}</a>`; }).join("");
     const card = s => `<a class="simcard" href="${simHref(s)}" style="--sc:${s.color}">
         <span class="sim-art">${ic(simIcon(s))}<em>${s.kind === "phet" ? "PhET" : s.kind === "cad" ? "3D design" : "Arduino"}</em></span>
         <span class="sim-b"><b>${esc(s.name)}</b><small>${esc(s.about)}</small>
@@ -691,8 +698,8 @@
     const phet = SIM.list.filter(s => s.kind === "phet"), cad = SIM.list.filter(s => s.kind === "cad");
     return `${head("Virtual labs", "Simulators for trying ideas before touching real parts. Each lesson also shows the matching simulator when you open it.")}
       ${cl ? `<section class="sec t-sim"><div class="sec-h"><span class="sec-ic">${ic("chip")}</span><div><h2>Circuit Lab</h2><p>Our Arduino simulator: wire parts on a breadboard, write code, press Run.</p></div><a class="btn primary sec-link" href="circuit.html">${ic("play")}Open Circuit Lab</a></div>
-        <div class="clhero"><a class="clshot" href="circuit.html"><span>${ic("chip")}</span><b>Arduino Uno · breadboard · 30+ parts</b><small>LEDs, buttons, buzzers, potentiometers, LDR, DHT22, ultrasonic, PIR, servo, NeoPixel, LCD, 7-segment, stepper, L298N motor driver</small></a>
-          <div class="clex"><h3>Ready-made circuits for lessons</h3><div class="exchips">${exChips}</div></div></div></section>` : ""}
+        <div class="clhero"><a class="clshot" href="circuit.html"><span>${ic("chip")}</span><b>Arduino Uno · ESP32 · breadboard · 55+ parts</b><small>OLED, LCD, MQ-2 and MQ-135 gas, flame, DHT22, ultrasonic, PIR, MPU6050, RFID, keypad, HX711, relays, L298N, steppers, NeoPixel, Wi-Fi and Bluetooth in a pretend phone</small></a>
+          <div class="clex"><h3>Ready-made circuits for lessons <small class="muted">${(SIM.circuits || []).length} lessons, wired and coded</small></h3><div class="exchips">${exChips}</div></div></div></section>` : ""}
       <section class="sec t-phet"><div class="sec-h"><span class="sec-ic">${ic("bolt")}</span><div><h2>Electricity explorers</h2><p>PhET simulations from the University of Colorado Boulder. Stored on this site, so they work without internet.</p></div></div>
         <div class="simgrid">${phet.map(card).join("")}</div></section>
       <section class="sec t-cad"><div class="sec-h"><span class="sec-ic">${ic("cube")}</span><div><h2>3D design</h2><p>Model parts with blocks, then export STL files for the 3D printer.</p></div></div>
@@ -926,5 +933,5 @@
   window.addEventListener("beforeprint", () => { if (route() !== "print") { location.hash = "#print"; render(); } });
 
   if (!S.weekStart) { S.weekStart = nextMonday(); save(); }
-  render();
+  if (!openFromHash()) render();
 })();

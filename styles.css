@@ -837,11 +837,35 @@ h3.unit { background: var(--l, #E8EEF8); color: var(--c, var(--navy)); border-ra
 .sim-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 4px; }
 .sim-meta span { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: #EEF1F6; color: var(--ink2); }
 .sim-meta .off { background: #E3F6EB; color: #157A50; } .sim-meta .on { background: #FFF1DD; color: #9A5B00; }
-.clhero { display: grid; grid-template-columns: minmax(240px, 1fr) 2fr; gap: 16px; }
-.clshot { border-radius: 18px; padding: 20px; color: #fff; display: flex; flex-direction: column; gap: 6px; justify-content: flex-end; min-height: 180px; box-shadow: var(--sh);
-  background: radial-gradient(circle, rgba(255,255,255,.12) 1.4px, transparent 1.6px) 0 0 / 14px 14px, linear-gradient(140deg, #1F4FB8, #12306F); }
-.clshot span { width: 52px; height: 52px; border-radius: 14px; background: rgba(255,255,255,.15); display: grid; place-items: center; margin-bottom: auto; }
-.clshot span .ic { width: 30px; height: 30px; } .clshot b { font-size: 17px; } .clshot small { opacity: .8; font-size: 13px; line-height: 1.45; }
+.clhero { display: grid; grid-template-columns: minmax(260px, 1fr) 2fr; gap: 16px; align-items: start; }
+.clhero .exchips { max-height: 218px; }
+.clshot { position: relative; overflow: hidden; border-radius: 18px; padding: 0; color: #fff; display: flex; flex-direction: column; min-height: 250px; box-shadow: var(--sh); background: radial-gradient(120% 90% at 85% 0%, #2D6AE0 0%, #173F9A 45%, #0F2558 100%); text-decoration: none; transition: transform .2s, box-shadow .2s; }
+.clshot:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(23, 63, 154, .35); }
+.cl-scene { display: block; width: 100%; height: auto; flex: 1; }
+.clshot .cl-foot { display: flex; align-items: center; gap: 8px; padding: 0 16px 16px; flex-wrap: wrap; }
+.clshot .cl-chip { font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 99px; background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .18); white-space: nowrap; }
+.clshot .cl-chip.esp { background: rgba(14, 159, 142, .35); }
+.clshot .cl-go { margin-left: auto; width: 36px; height: 36px; border-radius: 50%; background: #fff; color: #173F9A; display: grid; place-items: center; transition: transform .2s; }
+.clshot:hover .cl-go { transform: translateX(3px); }
+.clshot .cl-go .ic { width: 18px; height: 18px; }
+.cl-led { animation: clLed 1.6s steps(1) infinite; }
+.cl-glow { animation: clGlow 1.6s steps(1) infinite; }
+@keyframes clLed { 0% { fill: #FF4D4D; } 50% { fill: #7F1D1D; } }
+@keyframes clGlow { 0% { opacity: 1; } 50% { opacity: 0; } }
+.cl-btn { animation: clBtn 3.2s ease-in-out infinite; transform-origin: 9px 9px; transform-box: view-box; }
+@keyframes clBtn { 0%, 80%, 100% { r: 5.5; } 86% { r: 4.2; } }
+.cl-tx { animation: clLed2 .5s steps(1) infinite; }
+@keyframes clLed2 { 0% { opacity: 1; } 50% { opacity: .2; } }
+.cl-wave { opacity: 0; animation: clWave 2s ease-out infinite; }
+.cl-wave.w2 { animation-delay: .3s; } .cl-wave.w3 { animation-delay: .6s; }
+@keyframes clWave { 0% { opacity: 0; } 20% { opacity: .95; } 100% { opacity: 0; } }
+.cl-horn { transform-box: fill-box; transform-origin: 50% 89%; animation: clHorn 3s ease-in-out infinite; }
+@keyframes clHorn { 0%, 100% { transform: rotate(-55deg); } 50% { transform: rotate(55deg); } }
+.cl-flow { stroke-width: 2.2; stroke-dasharray: 3 14; animation: clFlow 1s linear infinite; opacity: .9; }
+.cl-flow.f2 { animation-duration: 1.3s; } .cl-flow.f3 { animation-duration: .9s; animation-direction: reverse; } .cl-flow.f4 { animation-duration: 1.5s; animation-direction: reverse; }
+@keyframes clFlow { to { stroke-dashoffset: -17; } }
+@media (prefers-reduced-motion: reduce) { .cl-led, .cl-glow, .cl-btn, .cl-tx, .cl-wave, .cl-horn, .cl-flow { animation: none; } .cl-wave { opacity: .7; } }
+
 .clex { background: var(--card); border-radius: 18px; box-shadow: var(--sh); padding: 16px 18px; }
 .clex h3 { margin: 0 0 10px; font-size: 15px; }
 .exchips { display: flex; flex-wrap: wrap; gap: 8px; max-height: 320px; overflow-y: auto; padding-right: 4px; }

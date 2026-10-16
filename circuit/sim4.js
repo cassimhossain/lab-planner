@@ -112,17 +112,41 @@ const SENSOR = {
   7: { type: "compass", vals: S => { const h = (+S.heading || 0) * Math.PI / 180; return [Math.cos(h) * 30, Math.sin(h) * 30, 40, +S.heading || 0]; } },
   8: { type: "sht31", vals: S => [+S.temp || 0, +S.hum || 0] },
   10: { type: "ds18b20", vals: S => [+S.temp || 0], pin: "DQ" },
+  11: { type: "aht20", vals: S => [+S.temp || 0, +S.hum || 0] },
+  12: { type: "sgp30", vals: S => [+S.eco2 || 400, +S.tvoc || 0] },
+  13: { type: "ccs811", vals: S => [+S.eco2 || 400, +S.tvoc || 0] },
+  18: { type: "max6675", vals: S => [+S.temp || 0], pin: "CS" },
+  19: { type: "max30102", vals: S => [+S.bpm || 0, +S.spo2 || 0] },
+  20: {
+    type: "amg8833",
+    /* 64 pixels: room temperature everywhere, with a warm blob that fades with distance */
+    vals: S => {
+      const amb = +S.ambient || 22, hot = S.hot == null ? 34 : +S.hot;
+      const hx = Math.round(+S.hx || 0), hy = Math.round(+S.hy || 0), out = [];
+      for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
+        const d = Math.hypot(x - hx, y - hy);
+        out.push(amb + (hot - amb) * Math.exp(-(d * d) / 3.2));
+      }
+      return out;
+    },
+  },
+  21: { type: "mhz19", vals: S => [+S.co2 || 400, +S.temp || 0], serial: true },
+  22: { type: "scd40", vals: S => [+S.co2 || 400, +S.temp || 0, +S.hum || 0] },
 };
 
 export function hcExtra4(sim, dev, op, ptr, len, a, b, d, dv) {
   switch (dev) {
     case 14: {   // I2C and one-wire sensors
       const cfg = SENSOR[a]; if (!cfg) return 0;
-      const p = cfg.pin
-        ? sim.findPart(cfg.type, q => sim.net.mcuPinOf(q.id, cfg.pin) === b && sim.partPowered(q))
-        : sim.findPart(cfg.type, q => sim.i2cWired(q) && sim.partPowered(q));
+      /* serial modules have no SDA/SCL to check, so power is the test; SoftwareSerial
+         wiring is already reported separately by its own check. */
+      const p = cfg.serial
+        ? sim.findPart(cfg.type, q => sim.partPowered(q))
+        : cfg.pin
+          ? sim.findPart(cfg.type, q => sim.net.mcuPinOf(q.id, cfg.pin) === b && sim.partPowered(q))
+          : sim.findPart(cfg.type, q => sim.i2cWired(q) && sim.partPowered(q));
       if (op === 1) {
-        if (!p) sim.notes.add(cfg.pin ? `No ${cfg.type.toUpperCase()} on pin ${b}: check the data wire, the 4.7 kΩ resistor and power.` : `${cfg.type.toUpperCase()} not found: wire SDA and SCL to the board's I2C pins and give it power.`);
+        if (!p) sim.notes.add(cfg.serial ? `No ${cfg.type.toUpperCase()} found: give the module 5 V and GND, and wire its TX and RX to the two pins SoftwareSerial uses.` : cfg.pin ? `No ${cfg.type.toUpperCase()} on pin ${b}: check the data wire, the 4.7 kΩ resistor and power.` : `${cfg.type.toUpperCase()} not found: wire SDA and SCL to the board's I2C pins and give it power.`);
         return p ? 1 : 0;
       }
       if (!p) return 0;

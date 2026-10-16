@@ -1,12 +1,17 @@
 /* Circuit Lab - netlist + microcontroller simulation (avr8js, MIT). */
 import { CPU, avrInstruction, AVRTimer, AVRIOPort, AVRUSART, AVRADC, AVRTWI, AVREEPROM, EEPROMMemoryBackend, PinState } from "../vendor/avr8js.mjs";
-import { CARDS, PARTS } from "./parts.js?v=6";
-import { bbLayout } from "./elements.js?v=6";
-import { BOARDS, ESP_ADC_PINS } from "./boards.js?v=6";
-import { BATT } from "./elements.js?v=6";
-import { setupExtra, hcExtra } from "./sim2.js?v=6";
-import { setupExtra3 } from "./sim3.js?v=6";
-import { setupExtra4, hcExtra4 } from "./sim4.js?v=6";
+import { CARDS, PARTS } from "./parts.js?v=8";
+import { bbLayout } from "./elements.js?v=8";
+import { BOARDS, ESP_ADC_PINS } from "./boards.js?v=8";
+import { BATT } from "./elements.js?v=8";
+import { setupExtra, hcExtra } from "./sim2.js?v=8";
+import { setupExtra3 } from "./sim3.js?v=8";
+import { setupExtra4, hcExtra4 } from "./sim4.js?v=8";
+import { setupExtra5 } from "./sim5.js?v=8";
+import { setupExtra7, hcExtra7 } from "./sim7.js?v=8";
+
+/* modules that talk over a plain serial port and are driven by their own library shim */
+const SERIAL_MODULES = [["mhz19", "MH-Z19"], ["dfplayer", "DFPlayer"]];
 
 const F = 16e6, US = F / 1e6, MS = F / 1e3;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -55,6 +60,9 @@ export class Netlist {
       if (p.type === "keypad") for (let r = 1; r <= 4; r++) for (let c = 1; c <= 4; c++) edge(p.id, "R" + r, "C" + c, () => !!(st.keys && st.keys.has(r + "," + c)));
       if (p.type === "npn") edge(p.id, "C", "E", () => !!st.on);
       if (p.type === "mosfet") edge(p.id, "D", "S", () => !!st.on);
+      if (p.type === "pnp") edge(p.id, "E", "C", () => !!st.on);
+      if (p.type === "opto") edge(p.id, "C", "E", () => !!st.on);
+      if (p.type === "limitsw") { edge(p.id, "COM", "NO", () => !!(p.sim || {}).pressed); edge(p.id, "COM", "NC", () => !(p.sim || {}).pressed); }
       if (p.type === "dipswitch") { st.sw = st.sw || []; for (let i = 1; i <= 8; i++) edge(p.id, i + "a", i + "b", (k => () => !!(st.sw || [])[k])(i - 1)); }
       if (p.type === "relay") { const n = +((p.attrs || {}).channels || 1); st.coil = st.coil || []; for (let i = 0; i < n; i++) { const t = n === 1 ? "" : i + 1; edge(p.id, "COM" + t, "NO" + t, () => !!st.coil[i]); edge(p.id, "COM" + t, "NC" + t, () => !st.coil[i]); } }
     });
@@ -62,7 +70,7 @@ export class Netlist {
     nodes.forEach(n => { const r = this.find(n); (this.nets[r] = this.nets[r] || []).push(n); });
     // resistors = weak links
     this.weak = {};
-    parts.filter(p => p.type === "resistor").forEach(p => {
+    parts.filter(p => p.type === "resistor" || p.type === "inductor").forEach(p => {
       const a = this.find(p.id + ":1"), b = this.find(p.id + ":2"); if (a === b) return;
       (this.weak[a] = this.weak[a] || []).push(b); (this.weak[b] = this.weak[b] || []).push(a);
     });
@@ -384,6 +392,11 @@ export class Sim {
             if (part) name = "HC-05";
             if (!part) { part = this.findPart("gps", q => this.pinWired(q, "TX", a) && this.partPowered(q)); if (part) { name = "GPS"; kind = "gps"; } }
             if (!part) { part = this.findPart("sim800l", q => this.pinWired(q, "TX", a) && this.pinWired(q, "RX", b) && this.partPowered(q)); if (part) { name = "SIM800L"; kind = "gsm"; } }
+            /* plain serial modules: they answer their own library, so the port only has to find them */
+            if (!part) for (const [t, n] of SERIAL_MODULES) {
+              const q = this.findPart(t, x => this.pinWired(x, "TX", a) && this.partPowered(x));
+              if (q) { part = q; name = n; kind = "ser"; break; }
+            }
             if (!part) this.notes.add(`Nothing is wired to pins ${a} (RX) and ${b} (TX) for SoftwareSerial. A module's TX goes to ${a} and its RX to ${b}.`);
           } else name = len ? this.str(ptr, len) : "ESP32";
           this.ser.push({ part, name, kind, rx: [], ok: a < 0 || !!part });
@@ -398,7 +411,7 @@ export class Sim {
         return 0;
       }
       case 12: if (op === 2) return 60; return 0;
-      default: return hcExtra4(this, dev, op, ptr, len, a, b, d, dv) || hcExtra(this, dev, op, ptr, len, a, b, d, dv);
+      default: return hcExtra7(this, dev, op, ptr, len, a, b, d, dv) || hcExtra4(this, dev, op, ptr, len, a, b, d, dv) || hcExtra(this, dev, op, ptr, len, a, b, d, dv);
     }
     return 0;
   }
@@ -601,7 +614,7 @@ export class Sim {
           const ana = (pin, fn) => this.addOutput(R(pin), () => ok() ? clamp(fn(), 0, 1) * this.supply(part) : null);
           const leds2 = sigOn => { D.frame = () => { el.led && el.led("pwr", ok()); el.led && el.led("sig", ok() && sigOn()); }; };
           const bag = { R, ok, dig, ana, leds: leds2 };
-          try { setupExtra3(this, D, bag) || setupExtra4(this, D, bag) || setupExtra(this, D, bag); } catch (e) { console.warn("part setup failed:", part.type, e); }
+          try { setupExtra7(this, D, bag) || setupExtra5(this, D, bag) || setupExtra3(this, D, bag) || setupExtra4(this, D, bag) || setupExtra(this, D, bag); } catch (e) { console.warn("part setup failed:", part.type, e); }
         }
       }
       this.devices.push(D);
@@ -769,6 +782,32 @@ export class Sim {
     const a = L(i1), b = L(i2);
     return a && !b ? speed : !a && b ? -speed : 0;
   }
+  /* TB6612: a speed pin per channel, plus a standby pin that must be high */
+  tb6612Chan(id, ch) {
+    const N = this.net, lv = p => { const x = this.level(N.root(id, p)); return x && x.v > 2 ? 1 : 0; };
+    const vm = this.level(N.root(id, "VM")), g = this.level(N.root(id, "GND"));
+    if (!(vm && vm.v > 2.5 && g && g.v < 1)) return 0;
+    if (!lv("STBY")) return 0;                                   // asleep: the classic TB6612 mistake
+    const [pwm, i1, i2] = ch === "A" ? ["PWMA", "AIN1", "AIN2"] : ["PWMB", "BIN1", "BIN2"];
+    const pr = this.level(N.root(id, pwm));
+    const speed = pr ? (pr.pin != null ? this.pin[pr.pin].duty : pr.v > 2 ? 1 : 0) : 0;
+    const a = lv(i1), b = lv(i2);
+    return a && !b ? speed : !a && b ? -speed : 0;
+  }
+  /* DRV8833: no speed pin. The PWM rides on whichever input is active. */
+  drv8833Chan(id, ch) {
+    const N = this.net;
+    const duty = p => { const x = this.level(N.root(id, p)); if (!x) return 0; return x.pin != null ? this.pin[x.pin].duty : (x.v > 2 ? 1 : 0); };
+    const vm = this.level(N.root(id, "VM")), g = this.level(N.root(id, "GND"));
+    if (!(vm && vm.v > 2.2 && g && g.v < 1)) return 0;
+    const slp = this.level(N.root(id, "SLP"));
+    if (slp && slp.v < 2) return 0;                              // SLP low holds it asleep
+    const [i1, i2] = ch === "A" ? ["AIN1", "AIN2"] : ["BIN1", "BIN2"];
+    const a = duty(i1), b = duty(i2);
+    if (a > 0.02 && b <= 0.02) return a;
+    if (b > 0.02 && a <= 0.02) return -b;
+    return 0;                                                    // both high is a brake, both low a coast
+  }
   /* how hard a motor / fan / pump / lamp is driven (-1..1) */
   loadDrive(part, p1, p2, motor) {
     const N = this.net, r1 = N.root(part.id, p1), r2 = N.root(part.id, p2);
@@ -778,6 +817,20 @@ export class Sim {
       if (g1.includes(o("OUT2")) && g2.includes(o("OUT1"))) return -this.l293dChan(p.id, "A");
       if (g1.includes(o("OUT3")) && g2.includes(o("OUT4"))) return this.l293dChan(p.id, "B");
       if (g1.includes(o("OUT4")) && g2.includes(o("OUT3"))) return -this.l293dChan(p.id, "B");
+    }
+    for (const p of this.project.parts.filter(x => x.type === "tb6612")) {
+      const o = k => N.root(p.id, k), g1 = this.group(r1), g2 = this.group(r2);
+      if (g1.includes(o("AO1")) && g2.includes(o("AO2"))) return this.tb6612Chan(p.id, "A");
+      if (g1.includes(o("AO2")) && g2.includes(o("AO1"))) return -this.tb6612Chan(p.id, "A");
+      if (g1.includes(o("BO1")) && g2.includes(o("BO2"))) return this.tb6612Chan(p.id, "B");
+      if (g1.includes(o("BO2")) && g2.includes(o("BO1"))) return -this.tb6612Chan(p.id, "B");
+    }
+    for (const p of this.project.parts.filter(x => x.type === "drv8833")) {
+      const o = k => N.root(p.id, k), g1 = this.group(r1), g2 = this.group(r2);
+      if (g1.includes(o("AOUT1")) && g2.includes(o("AOUT2"))) return this.drv8833Chan(p.id, "A");
+      if (g1.includes(o("AOUT2")) && g2.includes(o("AOUT1"))) return -this.drv8833Chan(p.id, "A");
+      if (g1.includes(o("BOUT1")) && g2.includes(o("BOUT2"))) return this.drv8833Chan(p.id, "B");
+      if (g1.includes(o("BOUT2")) && g2.includes(o("BOUT1"))) return -this.drv8833Chan(p.id, "B");
     }
     for (const p of this.project.parts.filter(x => x.type === "l298n")) {
       const o = k => N.root(p.id, k), g1 = this.group(r1);
@@ -799,6 +852,7 @@ export class Sim {
     const t0 = performance.now();
     while (cpu.cycles < target) {
       for (let i = 0; i < 2000; i++) { avrInstruction(cpu); cpu.tick(); }
+      if (this.onSample) this.onSample(this);
       if (this.rxQueue.length && !this.usart.rxBusy) { if (this.usart.writeByte(this.rxQueue[0])) this.rxQueue.shift(); }
       if (performance.now() - t0 > 40) break;
     }

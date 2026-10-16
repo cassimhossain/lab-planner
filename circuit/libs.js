@@ -2,8 +2,10 @@
    These are small, API-compatible re-implementations written for the simulator (not copies of the originals).
    Devices talk to the simulator through cl_hc.h: the sketch writes the address of a request block to GPIOR1/2 and
    pokes GPIOR0; the simulator answers instantly. */
-import { L2, DEPS2 } from "./libs2.js?v=6";
-import { L3, DEPS3 } from "./libs3.js?v=6";
+import { L2, DEPS2 } from "./libs2.js?v=8";
+import { L3, DEPS3 } from "./libs3.js?v=8";
+import { L4, DEPS4 } from "./libs4.js?v=8";
+import { L5, DEPS5 } from "./libs5.js?v=8";
 const L = {};
 
 L["cl_hc.h"] = String.raw`#pragma once
@@ -1045,8 +1047,8 @@ const DEPS = {
   "Preferences.h": [], "cl_print.h": [], "cl_hc.h": [], "esp32_shim.cpp": ["esp32_shim.h"], "esp_now_cl.cpp": ["esp_now.h"],
 };
 /* libraries students may include that only exist in ESP32 mode */
-Object.assign(L, L2, L3);
-Object.assign(DEPS, DEPS2, DEPS3);
+Object.assign(L, L2, L3, L4, L5);
+Object.assign(DEPS, DEPS2, DEPS3, DEPS4, DEPS5);
 const ESP_ONLY = new Set(["esp32_shim.h", "ESP32Servo.h", "WiFi.h", "WiFiClient.h", "WiFiServer.h", "WiFiUdp.h", "WiFiAP.h", "WiFiMulti.h", "WiFiClientSecure.h", "ESPmDNS.h", "esp_wifi.h", "WebServer.h", "HTTPClient.h", "PubSubClient.h", "esp_now.h", "BluetoothSerial.h", "Preferences.h"]);
 
 /* libraries the online compiler already has (used by the code library and error help) */

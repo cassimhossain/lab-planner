@@ -1,11 +1,13 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin } from "./parts.js?v=6";
-import { Netlist, Sim } from "./sim.js?v=6";
-import { BOARDS, loadHex } from "./boards.js?v=6";
-import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=6";
-import { layoutCircuit } from "./layout.js?v=6";
-import { SNIPPETS } from "./snippets.js?v=6";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=6";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=8";
+import { Netlist, Sim } from "./sim.js?v=8";
+import { BOARDS, loadHex } from "./boards.js?v=8";
+import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=8";
+import { layoutCircuit } from "./layout.js?v=8";
+import { SNIPPETS } from "./snippets.js?v=8";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=8";
+import * as T from "./tools.js?v=8";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=8";
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -22,6 +24,12 @@ const ICON = {
   sound: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6"/>', mute: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l4 6M21 9l-4 6"/>', search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
   chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>', wifi: '<path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1"/>',
   check: '<path d="M5 12l5 5 9-10"/>', arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>', ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>', bolt: '<path d="M13 2L5 14h6l-1 8 8-12h-6z"/>',
+  probe: '<path d="M14 3l7 7-3 3-7-7z"/><path d="M11 10L3 18v3h3l8-8"/>', volt: '<path d="M12 3v18M7 7h10M7 12h10M7 17h10"/>',
+  scope: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M5 14h3l2-6 2 10 2-7h5"/>', copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M15 9V5a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h4"/>',
+  note: '<path d="M5 4h10l4 4v12H5z"/><path d="M15 4v4h4M8 12h8M8 16h5"/>', share: '<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6"/>',
+  pause: '<rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/>', step: '<path d="M6 5l9 7-9 7z"/><rect x="17" y="5" width="2.5" height="14" rx="1"/>',
+  image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M4 18l5-5 4 4 3-3 4 4"/>', list: '<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
+  save: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>',
   bt: '<path d="M7 7l10 10-5 5V2l5 5L7 17"/>', globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>', send: '<path d="M4 12l16-8-6 16-3-6z"/>', reload: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
 };
 const ic = (k, c = "ic") => `<svg class="${c}" viewBox="0 0 24 24">${ICON[k] || ""}</svg>`;
@@ -98,6 +106,7 @@ function placePart(p) {
   r.wrap.style.transformOrigin = `${r.w / 2}px ${r.h / 2}px`;
   r.wrap.style.transform = p.rot ? `rotate(${p.rot}deg)` : "";
   r.wrap.classList.toggle("sel", !!(sel && sel.kind === "part" && sel.id === p.id));
+  r.wrap.classList.toggle("msel", T.multi.has(p.id));
   const lb = r.wrap.querySelector(".plabel"); if (lb) lb.style.transform = p.rot ? `rotate(${-p.rot}deg)` : "";
 }
 function pinsWorld(p) {
@@ -239,7 +248,8 @@ function drawWires() {
   project.wires.forEach((w, i) => {
     const a = pinPos(w.from), b = pinPos(w.to); if (!a || !b) return;
     const pts = routePts(a, b, w.pts), d = roundPath(pts), on = sel && sel.kind === "wire" && sel.id === i;
-    const c = w.color || "#2E9E5B", light = /^#F|#FFF/i.test(c);
+    const tint = T.wireTint(w);
+    const c = tint || w.color || "#2E9E5B", light = /^#F|#FFF/i.test(c);
     s += `<path class="whit" data-wire="${i}" d="${d}"/><path class="wire-o ${on ? "on" : ""}" d="${d}"/><path class="wire ${light ? "light" : ""}" d="${d}" stroke="${c}"/><circle class="wend" cx="${a.x}" cy="${a.y}" r="2.4" fill="${c}"/><circle class="wend" cx="${b.x}" cy="${b.y}" r="2.4" fill="${c}"/>`;
     if (on && !running) (w.pts || []).forEach(([x, y], k) => { s += `<circle class="whandle" data-wire="${i}" data-pt="${k}" cx="${x}" cy="${y}" r="4"/>`; });
   });
@@ -251,9 +261,9 @@ function drawWires() {
   drawPins(); drawFields();
 }
 function drawPins() {
-  const g = $("#pins"); if (running) { g.innerHTML = ""; return; }
+  const g = $("#pins"); if (running && !T.state.probe) { g.innerHTML = ""; return; }
   let s = "";
-  const show = wiring ? project.parts : project.parts.filter(p => p.id === hoverPart || (sel && sel.kind === "part" && sel.id === p.id));
+  const show = wiring ? project.parts : project.parts.filter(p => p.id === hoverPart || (sel && sel.kind === "part" && sel.id === p.id) || (running && T.state.probe && p.type !== "breadboard"));
   const used = new Set(); project.wires.forEach(w => { used.add(w.from); used.add(w.to); });
   show.forEach(p => pinsWorld(p).forEach(q => {
     const node = p.id + ":" + q.name, bb = p.type === "breadboard";
@@ -312,9 +322,18 @@ function renderPalette() {
   const q = ($("#psearch").value || "").toLowerCase();
   const cats = catFilter === "All" ? CATS : [catFilter];
   $("#plist").innerHTML = cats.map(c => {
-    const items = Object.entries(PARTS).filter(([k, d]) => d.cat === c && (!q || (d.label + " " + k + " " + (d.kit || []).join(" ")).toLowerCase().includes(q)));
+    const items = Object.entries(PARTS).filter(([k, d]) => d.cat === c && (!q || (d.label + " " + k + " " + (d.kit || []).join(" ") + " " + (d.help || "")).toLowerCase().includes(q)));
     if (!items.length) return "";
-    return `<div class="tcat">${catFilter === "All" ? `<h4>${esc(c)}</h4>` : ""}<div class="tgrid">${items.map(([k, d]) => `<button class="tile" draggable="true" data-add="${k}" title="${esc(d.help || "")}"><span class="tthumb" data-thumb="${k}"></span><span class="tname">${esc(d.label)}</span></button>`).join("")}</div></div>`;
+    const tile = ([k, d]) => `<button class="tile" draggable="true" data-add="${k}" title="${esc(d.help || "")}"><span class="tthumb" data-thumb="${k}"></span><span class="tname">${esc(d.label)}</span></button>`;
+    const head = catFilter === "All" ? `<h4>${esc(c)}</h4>` : "";
+    /* a searching student wants one flat list of hits, not shelves to open */
+    const order = SHELF_ORDER[c];
+    if (q || !order) return `<div class="tcat">${head}<div class="tgrid">${items.map(tile).join("")}</div></div>`;
+    const bins = {};
+    items.forEach(it => { const g = SHELF[it[0]] || "More"; (bins[g] = bins[g] || []).push(it); });
+    const shelves = order.filter(g => bins[g] && bins[g].length)
+      .map(g => `<div class="tshelf"><h5>${esc(g)}</h5><div class="tgrid">${bins[g].map(tile).join("")}</div></div>`).join("");
+    return `<div class="tcat">${head}${shelves}</div>`;
   }).join("") || `<p class="muted pad">No parts match “${esc(q)}”.</p>`;
   $$("[data-thumb]").forEach(t => {
     const d = PARTS[t.dataset.thumb], el = document.createElement(d.tag);
@@ -335,19 +354,23 @@ function addPart(type, x, y) {
   if (def.kind === "board") { updateBoardChip(); if (type === "esp32" && /LED_BUILTIN, OUTPUT\);\n}\n\nvoid loop\(\) {\n  digitalWrite\(LED_BUILTIN, HIGH/.test(editor.getValue())) editor.setValue(CODE_ESP); }
   save(); setTimeout(() => { showInspector(); drawWires(); updateEmpty(); }, 60);
 }
+function allSel() { const ids = new Set(T.multi); if (sel && sel.kind === "part") ids.add(sel.id); return [...ids]; }
 function deleteSel() {
   if (running || !sel) return;
   snapshot();
   if (sel.kind === "part") {
-    const id = sel.id; project.parts = project.parts.filter(p => p.id !== id);
-    project.wires = project.wires.filter(w => !w.from.startsWith(id + ":") && !w.to.startsWith(id + ":"));
-    rt[id] && rt[id].wrap.remove(); delete rt[id];
+    const ids = allSel();
+    project.parts = project.parts.filter(p => !ids.includes(p.id));
+    project.wires = project.wires.filter(w => !ids.some(id => w.from.startsWith(id + ":") || w.to.startsWith(id + ":")));
+    ids.forEach(id => { rt[id] && rt[id].wrap.remove(); delete rt[id]; });
+    T.multi.clear();
   } else project.wires.splice(sel.id, 1);
   sel = null; save(); drawWires(); showInspector(); updateBoardChip(); updateEmpty();
 }
 function rotateSel() {
   if (running || !sel || sel.kind !== "part") return; snapshot();
-  const p = project.parts.find(q => q.id === sel.id); p.rot = ((p.rot || 0) + 90) % 360; placePart(p); save(); drawWires(); positionInspector();
+  allSel().forEach(id => { const p = project.parts.find(q => q.id === id); if (p) { p.rot = ((p.rot || 0) + 90) % 360; placePart(p); } });
+  save(); drawWires(); positionInspector();
 }
 
 /* ---------- inspector (next to the selected part) ---------- */
@@ -386,12 +409,14 @@ function showInspector() {
     if (x.type === "range") return `<label class="f rng"><span>${esc(x.label)} <b>${esc(val)}${esc(x.unit || "")}</b></span><input type="range" data-prop="${x.k}" min="${x.min}" max="${x.max}" step="${x.step || 1}" value="${val}"></label>`;
     if (x.type === "toggle") return `<label class="f tog"><input type="checkbox" data-prop="${x.k}" ${val ? "checked" : ""}><i></i><span>${esc(x.text || x.label)}</span></label>`;
     if (x.type === "button") return `<button class="btn wide" data-pbtn="${x.k}">${esc(x.text)}</button>`;
+    if (x.type === "text") return `<label class="f"><span>${esc(x.label)}</span><textarea class="ptext" data-prop="${x.k}" rows="3" ${dis}>${esc(val)}</textarea></label>`;
     if (x.type === "color") return `<label class="f"><span>${esc(x.label)}</span><span class="colors">${["#E63946", "#F08C00", "#F5D33D", "#2E9E5B", "#1F6FD1", "#7B3FC4", "#FFFFFF", "#2B2D42"].map(c => `<button class="sw ${String(val).toUpperCase() === c ? "on" : ""}" data-pcolor="${c}" style="--c:${c}"></button>`).join("")}</span></label>`;
     return "";
   }).join("");
   const cards = p.type === "rfid" ? `<div class="f"><span>Tap a card on the reader</span><div class="cardrow">${CARDS.map((c, i) => `<button class="btn" data-card="${i}" ${running ? "" : "disabled"}>${esc(c.name)}</button>`).join("")}</div>${running ? "" : `<small class="muted">Start the simulation first.</small>`}</div>` : "";
   const live = running && (d.props || []).some(x => x.live);
-  box.innerHTML = `<div class="ih"><div><b>${esc(partLabel(p))}</b><small>${esc(p.id)}${live ? " · change it while running" : ""}</small></div><button class="ix" data-act="deselect" title="Close">${ic("x")}</button></div>
+  const nsel = allSel().length;
+  box.innerHTML = `<div class="ih"><div><b>${esc(partLabel(p))}</b><small>${nsel > 1 ? nsel + " parts selected" : esc(p.id) + (live ? " · change it while running" : "")}</small></div><button class="ix" data-act="deselect" title="Close">${ic("x")}</button></div>
     ${props || cards ? `<div class="ifields">${props}${cards}</div>` : ""}
     ${d.help ? `<p class="ihelp">${esc(d.help)}</p>` : ""}
     <div class="ibtns">${d.code ? `<button class="btn" data-act="partcode">${ic("code")}Example code</button>` : ""}${running ? "" : `<button class="btn" data-act="rotate">${ic("rot")}Rotate</button><button class="btn danger" data-act="delete">${ic("del")}</button>`}</div>`;
@@ -469,6 +494,7 @@ async function runSim() {
     if (!net.board) net.board = BOARDS[bt];
     $("#serialout").textContent = ""; plot.reset(); phoneReset();
     sim = new Sim({ project, rt, net, program, onSerial: serialAppend, onWarn: showWarnings, onNet: onNetEvent });
+    sim.onSample = T.sampleScope;
     Sim.muted = muted;
     running = true; document.body.classList.add("running");
     btn.innerHTML = `${ic("stop")}<span>Stop simulation</span>`; btn.classList.add("stop"); btn.disabled = false;
@@ -482,10 +508,18 @@ async function runSim() {
 function loop(t) {
   if (!running) return;
   const dt = Math.min(0.05, (t - lastT) / 1000); lastT = t;
-  try { sim.run(dt * 1000); sim.frame(dt); } catch (e) { console.error(e); setOutput("Simulation error: " + esc(e.message), true); stopSim(); return; }
+  const k = T.state.paused ? 0 : T.state.speed;
+  try { if (k > 0) sim.run(dt * 1000 * k); sim.frame(dt * (k || 1)); } catch (e) { console.error(e); setOutput("Simulation error: " + esc(e.message), true); stopSim(); return; }
+  T.sampleScope(sim); T.drawScope(); T.refreshReadout();
+  if (T.state.volts) drawWires();
   const s = sim.cpu.cycles / 16e6;
-  $("#clock").innerHTML = `<i></i>${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, "0")}${sim.speed < 0.9 ? ` <span>${Math.round(sim.speed * 100)}% speed</span>` : ""}`;
+  $("#clock").innerHTML = `<i></i>${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, "0")}${T.state.paused ? ` <span>paused</span>` : T.state.speed < 1 ? ` <span>slow motion</span>` : sim.speed < 0.9 ? ` <span>${Math.round(sim.speed * 100)}% speed</span>` : ""}`;
   raf = requestAnimationFrame(loop);
+}
+function stepOnce() {
+  if (!running || !sim) return;
+  try { sim.run(8); sim.frame(0.008); } catch (e) { console.error(e); }
+  T.sampleScope(sim); T.drawScope(); T.refreshReadout(); if (T.state.volts) drawWires();
 }
 function stopSim() {
   if (!running) return;
@@ -761,25 +795,30 @@ function onDown(e) {
   const handle = e.target.closest(".whandle");
   if (handle && !running) { snapshot(); drag = { kind: "handle", wire: +handle.dataset.wire, pt: +handle.dataset.pt }; e.preventDefault(); return; }
   const pin = e.target.closest(".pin");
+  if (pin && running && T.state.probe) { e.stopPropagation(); T.toggleChannel(pin.dataset.pin); return; }
   if (pin && !running) { e.stopPropagation(); const was = !!wiring; clickPin(pin.dataset.pin); pinDown = !was && wiring ? { sx: e.clientX, sy: e.clientY } : null; return; }
   // while wiring, a click close to a pin finishes on that pin (magnet)
   if (wiring && hoverPin && !running && e.button === 0) { clickPin(hoverPin); return; }
   const wh = e.target.closest(".whit");
-  if (wh && !running && !wiring) { sel = { kind: "wire", id: +wh.dataset.wire }; project.parts.forEach(placePart); drawWires(); showInspector(); return; }
+  if (wh && running && T.state.probe) { const w = project.wires[+wh.dataset.wire]; if (w) T.toggleChannel(w.from); return; }
+  if (wh && !running && !wiring) { sel = { kind: "wire", id: +wh.dataset.wire }; T.multi.clear(); project.parts.forEach(placePart); drawWires(); showInspector(); return; }
   const part = e.target.closest(".part");
   if (part && !wiring) {
     const id = part.dataset.id;
     const isBB = project.parts.find(q => q.id === id).type === "breadboard";
     if (running && PRESS_ONLY.has(project.parts.find(q => q.id === id).type)) return;   // pressing a button just presses it
-    if (!(running && sel && sel.id === id)) { sel = { kind: "part", id }; project.parts.forEach(placePart); showInspector(); drawWires(); }
+    if (e.shiftKey && !running) { if (sel && sel.kind === "part" && sel.id !== id) T.multi.add(sel.id); T.toggleMulti(id); sel = { kind: "part", id }; showInspector(); drawWires(); return; }
+    if (!(running && sel && sel.id === id)) { if (!T.multi.has(id)) T.multi.clear(); sel = { kind: "part", id }; project.parts.forEach(placePart); showInspector(); drawWires(); }
     if (running) return;
     const p = project.parts.find(q => q.id === id), [wx, wy] = toWorld(e.clientX, e.clientY);
     // moving the breadboard carries the parts plugged into it
     const riders = isBB ? project.parts.filter(q => q.id !== id && PARTS[q.type].kind === "bb" && onBoard(q, p)).map(q => ({ q, dx: q.x - p.x, dy: q.y - p.y })) : [];
+    allSel().forEach(oid => { if (oid === id || riders.some(r => r.q.id === oid)) return; const q = project.parts.find(z => z.id === oid); if (q) riders.push({ q, dx: q.x - p.x, dy: q.y - p.y }); });
     drag = { kind: "part", id, dx: wx - p.x, dy: wy - p.y, moved: false, riders, sx: e.clientX, sy: e.clientY };
     e.preventDefault(); return;
   }
   if (wiring && e.button === 0) { const [x, y] = toWorld(e.clientX, e.clientY); const last = wiring.pts.length ? wiring.pts[wiring.pts.length - 1] : (() => { const a = pinPos(wiring.from); return [a.x, a.y]; })(); wiring.pts.push([Math.round(x), last[1]]); wiring.pts.push([Math.round(x), Math.round(y)]); drawWires(); return; }
+  if (e.shiftKey && !running) { const [x, y] = toWorld(e.clientX, e.clientY); drag = { kind: "marquee", x0: x, y0: y, x1: x, y1: y }; return; }
   drag = { kind: "pan", sx: e.clientX, sy: e.clientY, vx: view.x, vy: view.y, moved: false };
 }
 function onBoard(q, bb) { const r = rt[bb.id]; return r && q.x > bb.x - 30 && q.x < bb.x + r.w + 10 && q.y > bb.y - 60 && q.y < bb.y + r.h + 10; }
@@ -798,18 +837,34 @@ function onMove(e) {
     const node = pin ? pin.dataset.pin : magnet ? magnet.node : null;
     if (node !== hoverPin) {
       hoverPin = node; const tip = $("#tip");
-      if (node) { tip.innerHTML = pinTitle(node); tip.classList.add("on"); } else tip.classList.remove("on");
+      if (node) { tip.innerHTML = pinTitle(node) + (running && T.state.probe ? " " + T.readoutFor(node) : ""); tip.classList.add("on"); } else tip.classList.remove("on");
       // breadboard: light up the joined holes
       project.parts.filter(p => p.type === "breadboard").forEach(p => { const el = rt[p.id] && rt[p.id].el; if (!el || !el.highlight) return; el.highlight(node && node.startsWith(p.id + ":") ? bbGroupOf(node.split(":")[1], (p.attrs || {}).cols || 30) : null); });
       $$(".pin.hot").forEach(c => c.classList.remove("hot")); if (pin) pin.classList.add("hot");
     }
     if (wiring) drawWires();
     if (node) { const st = $("#stage").getBoundingClientRect(); const tip = $("#tip"); tip.style.left = (e.clientX - st.left + 14) + "px"; tip.style.top = (e.clientY - st.top + 16) + "px"; }
+    if (running && T.state.probe) {
+      const wh = e.target.closest && e.target.closest(".whit");
+      const n = node || (wh ? (project.wires[+wh.dataset.wire] || {}).from : null);
+      const st = $("#stage").getBoundingClientRect();
+      if (n) T.showReadout(n, e.clientX - st.left + 16, e.clientY - st.top + 18); else T.hideReadout();
+    }
     const part = e.target.closest && e.target.closest(".part"); const id = part ? part.dataset.id : (pin ? hoverPart : null);
-    if (id !== hoverPart && !running) { hoverPart = id; drawPins(); }
+    if (id !== hoverPart && (!running || T.state.probe)) { hoverPart = id; drawPins(); }
     return;
   }
   if (drag.kind === "pan") { view.x = drag.vx + e.clientX - drag.sx; view.y = drag.vy + e.clientY - drag.sy; drag.moved = true; applyView(); return; }
+  if (drag.kind === "marquee") {
+    drag.x1 = wx; drag.y1 = wy;
+    const b = { x0: Math.min(drag.x0, wx), y0: Math.min(drag.y0, wy), x1: Math.max(drag.x0, wx), y1: Math.max(drag.y0, wy) };
+    let box = $("#marq"); if (!box) { box = document.createElement("div"); box.id = "marq"; box.className = "marq"; $("#world").appendChild(box); }
+    box.style.left = b.x0 + "px"; box.style.top = b.y0 + "px"; box.style.width = (b.x1 - b.x0) + "px"; box.style.height = (b.y1 - b.y0) + "px";
+    T.multi.clear();
+    project.parts.forEach(p => { const r = rt[p.id]; if (!r) return; if (p.x + r.w > b.x0 && p.x < b.x1 && p.y + r.h > b.y0 && p.y < b.y1) T.multi.add(p.id); });
+    project.parts.forEach(placePart);
+    return;
+  }
   if (drag.kind === "handle") { const w = project.wires[drag.wire]; w.pts[drag.pt] = [Math.round(wx / 2.4) * 2.4, Math.round(wy / 2.4) * 2.4]; drawWires(); return; }
   if (drag.kind === "part") {
     if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 3) return;
@@ -821,12 +876,13 @@ function onMove(e) {
     drawWires();
   }
 }
-let pinDown = null;
+let pinDown = null, nudgeT = null;
 function onUp(e) {
   // press on a pin, drag, release on another pin = one wire
   if (pinDown && wiring && e && Math.hypot(e.clientX - pinDown.sx, e.clientY - pinDown.sy) > 6 && hoverPin && hoverPin !== wiring.from) { pinDown = null; clickPin(hoverPin); return; }
   pinDown = null;
-  if (drag && drag.kind === "pan" && !drag.moved && !wiring) { sel = null; project.parts.forEach(placePart); showInspector(); drawWires(); }
+  if (drag && drag.kind === "pan" && !drag.moved && !wiring) { sel = null; T.multi.clear(); project.parts.forEach(placePart); showInspector(); drawWires(); }
+  if (drag && drag.kind === "marquee") { const box = $("#marq"); if (box) box.remove(); const ids = [...T.multi]; if (ids.length) { sel = { kind: "part", id: ids[0] }; showInspector(); } toast(ids.length ? `${ids.length} part${ids.length === 1 ? "" : "s"} selected` : "Nothing in the box", "", 1200); }
   if (drag && ((drag.kind === "part" && drag.moved) || drag.kind === "handle")) { save(); $("#inspector").classList.remove("fade"); positionInspector(); }
   drag = null;
 }
@@ -841,12 +897,30 @@ function clickPin(node) {
 function cancelWire() { wiring = null; document.body.classList.remove("wiring"); hint(""); drawWires(); }
 function hint(t) { const h = $("#hint"); h.textContent = t; h.classList.toggle("on", !!t); }
 
+/* keep the dark-mode and full-screen buttons showing the state they are actually in */
+function syncViewButtons() {
+  const dark = currentTheme() === "dark";
+  const tb = document.getElementById("themebtn");
+  if (tb) tb.title = dark ? "Light mode" : "Dark mode";
+  const fb = document.getElementById("fsbtn");
+  if (fb) fb.title = isFullscreen() ? "Leave full screen" : "Full screen (good for the projector)";
+}
+document.addEventListener("fullscreenchange", () => syncViewButtons());
+
 /* ---------- boot ---------- */
 function boot() {
+  applyTheme(currentTheme()); syncViewButtons();
   renderCats(); renderPalette();
   $("#liblist").innerHTML = `<b>Built in:</b> ${BUILTIN_LIBS.join(", ")}.<br><b>Added by Circuit Lab:</b> ${EXTRA_LIBS.map(n => n.replace(".h", "")).join(", ")}.`;
   editor = CodeMirror($("#editor"), { value: project.code || "", mode: "text/x-c++src", lineNumbers: true, matchBrackets: true, autoCloseBrackets: true, indentUnit: 2, tabSize: 2, theme: "cl", extraKeys: { "Ctrl-Enter": () => (running ? stopSim() : runSim()), "Cmd-Enter": () => (running ? stopSim() : runSim()), "Ctrl-S": () => saveAs(), "Cmd-S": () => saveAs() } });
+  installAutocomplete(CodeMirror, editor);
   editor.on("change", () => { clearTimeout(boot._t); boot._t = setTimeout(() => { project.code = editor.getValue(); save(); renderPhone(); }, 400); });
+  T.initTools({
+    ic, toast, esc, pinTitle, partLabel, drawWires, placePart, showInspector, rebuildAll, snapshot, save, uid, bounds,
+    openModal, closeModal, download, downloadIno, stepOnce, PARTS, BOARDS, rt,
+    get project() { return project; }, get sim() { return sim; }, get running() { return running; }, get sel() { return sel; },
+    setSel: v => { sel = v; }, centreOfView: () => toWorld(window.innerWidth / 2 - 140, window.innerHeight / 2),
+  });
   rebuildAll(); applyView();
 
   const stage = $("#stage");
@@ -907,6 +981,7 @@ function boot() {
     if (d.pbtn && sel) { const p = project.parts.find(q => q.id === sel.id); p.sim[d.pbtn] = true; if (sim) sim.simChanged(p.id); toast("Motion!"); return; }
     if (d.card != null && sel && sim) { const st = rt[sel.id].state, c = CARDS[+d.card]; st.tap = c; st.tapName = c.name; st.tapShow = performance.now() + 1600; toast(`Tapped <b>${esc(c.name)}</b>`); return; }
     if (d.bt) { btSend(d.bt); return; }
+    if (d.exp) { T.handleExport(d.exp); return; }
     switch (d.act) {
       case "run": return running ? stopSim() : runSim();
       case "delete": return deleteSel();
@@ -927,6 +1002,8 @@ function boot() {
       case "copycode": navigator.clipboard && navigator.clipboard.writeText(editor.getValue()).then(() => toast("Code copied")); return;
       case "ino": return downloadIno();
       case "mute": muted = !muted; Sim.muted = muted; t.innerHTML = ic(muted ? "mute" : "sound"); return;
+      case "theme": toggleTheme(); syncViewButtons(); return;
+      case "fullscreen": toggleFullscreen(); setTimeout(syncViewButtons, 120); return;
       case "clearserial": $("#serialout").textContent = ""; plot.reset(); return;
       case "sendserial": return sendSerial();
       case "graph": plot.on = !plot.on; $("#plot").hidden = !plot.on; t.classList.toggle("on", plot.on); plot.draw(); return;
@@ -952,13 +1029,27 @@ function boot() {
     if (typing) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); return; }
-    if (e.key === "Escape") { if (document.body.classList.contains("mopen")) closeModal(); else if (wiring) cancelWire(); else { sel = null; project.parts.forEach(placePart); showInspector(); drawWires(); } }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") { e.preventDefault(); T.copySelection(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") { e.preventDefault(); T.pasteClipboard(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") { e.preventDefault(); T.duplicateSelection(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") { e.preventDefault(); T.multi.clear(); project.parts.forEach(q => T.multi.add(q.id)); sel = project.parts.length ? { kind: "part", id: project.parts[0].id } : null; project.parts.forEach(placePart); showInspector(); return; }
+    if (e.key === " " && running) { e.preventDefault(); T.state.paused = !T.state.paused; T.syncRunUI(); return; }
+    if (e.key.toLowerCase() === "m" && running) { T.state.probe = !T.state.probe; T.syncToolbarUI(); drawPins(); if (!T.state.probe) T.hideReadout(); return; }
+    if (e.key === "Escape") { if (document.body.classList.contains("mopen")) closeModal(); else if (wiring) cancelWire(); else { sel = null; T.multi.clear(); project.parts.forEach(placePart); showInspector(); drawWires(); } }
     if ((e.key === "Delete" || e.key === "Backspace") && sel) { e.preventDefault(); deleteSel(); }
     if (e.key.toLowerCase() === "r" && sel) rotateSel();
     if (e.key === "0") fitAnimated();
     if (e.key === "=" || e.key === "+") zoomAt(1.25);
     if (e.key === "-" || e.key === "_") zoomAt(1 / 1.25);
     if (e.key.toLowerCase() === "f") sel && sel.kind === "part" ? zoomToPart(sel.id) : fitAnimated();
+    if (/^Arrow/.test(e.key) && sel && sel.kind === "part" && !running) {
+      e.preventDefault();
+      const step = e.shiftKey ? 24 : 4.8;
+      const dx = (e.key === "ArrowRight" ? step : e.key === "ArrowLeft" ? -step : 0), dy = (e.key === "ArrowDown" ? step : e.key === "ArrowUp" ? -step : 0);
+      if (!nudgeT) snapshot();
+      allSel().forEach(id => { const p = project.parts.find(q => q.id === id); if (p) { p.x += dx; p.y += dy; placePart(p); } });
+      drawWires(); clearTimeout(nudgeT); nudgeT = setTimeout(() => { nudgeT = null; save(); }, 500);
+    }
   });
   // resizable code panel
   const gut = $("#gutter"); let gx = null;
@@ -970,10 +1061,11 @@ function boot() {
     const h = decodeURIComponent(location.hash.slice(1)); let m;
     if ((m = h.match(/^lesson=(.+)$/)) && LESSONS[m[1]]) return openLesson(m[1]);
     if ((m = h.match(/^ex=([\w-]+)$/)) && STARTERS.find(s => s.key === m[1])) return openLesson(m[1]);
-    if ((m = h.match(/^new=(uno|esp32|none)$/))) return setProject(blank(m[1] === "none" ? null : m[1]), "New circuit");
+    if ((m = h.match(/^new=(uno|esp32|nano|mega|none)$/))) return setProject(blank(m[1] === "none" ? null : m[1]), "New circuit");
+    if ((m = h.match(/^c=(.+)$/))) { T.openLink(m[1]).then(p => { if (p) { setProject(p, "Opened a shared circuit"); setHash("c=" + m[1]); } else toast("That shared link could not be read"); }); return; }
   };
   fromHash(); window.addEventListener("hashchange", fromHash);
-  window.CL = { get project() { return project; }, get sim() { return sim; }, rt, PARTS, DEFAULT_PINS, defaultPin, pinsWorld, runSim, stopSim, setProject, openLesson, LESSONS, STARTERS, buildFromSpec, fit, phoneGo, partCode, zoomToPart, layoutCircuit, get running() { return running; } };
+  window.CL = { get project() { return project; }, get sim() { return sim; }, get editor() { return editor; }, rt, PARTS, DEFAULT_PINS, defaultPin, pinsWorld, runSim, stopSim, setProject, openLesson, LESSONS, STARTERS, buildFromSpec, fit, phoneGo, partCode, zoomToPart, tools: T, setSelPublic: v => { sel = v; project.parts.forEach(placePart); showInspector(); }, get running() { return running; } };
 }
 function sendSerial() { const i = $("#serialin"); if (!sim || !i.value) return; sim.serialIn(i.value + "\n"); const o = $("#serialout"); o.textContent += "› " + i.value + "\n"; i.value = ""; }
 function btSend(text) {

@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="vendor/codemirror/codemirror.css?v=6">
-<link rel="stylesheet" href="circuit/circuit.css?v=6">
+<link rel="stylesheet" href="vendor/codemirror/codemirror.css?v=8">
+<link rel="stylesheet" href="circuit/circuit.css?v=8">
 </head>
 <body>
 <header class="top">
@@ -26,6 +26,8 @@
   <div class="grow"></div>
   <span id="clock" class="clock"></span>
   <button class="tbtn icon" data-act="mute" title="Sound on/off"><svg class="ic" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg></button>
+  <button class="tbtn icon" id="themebtn" data-act="theme" title="Dark mode"><svg class="ic" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
+  <button class="tbtn icon" id="fsbtn" data-act="fullscreen" title="Full screen (good for the projector)"><svg class="ic" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   <button id="runbtn" class="run" data-act="run" title="Start / stop (Ctrl+Enter)"><svg class="ic" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg><span>Start simulation</span></button>
 </header>
 
@@ -102,12 +104,19 @@
       <ol><li>Write code on the Code tab, or start from the <b>Code library</b> or <b>Code for this part</b>.</li>
         <li>Press <b>Start simulation</b>. While it runs, press buttons and turn knobs. Click a sensor to change what it senses: for the ultrasonic, PIR, IR and flame sensors, drag the object inside the sensing cone.</li>
         <li>ESP32 web pages, Bluetooth and MQTT open in the <b>Phone</b> tab.</li></ol>
+      <h3>Bench tools</h3>
+      <ul><li><b>Multimeter</b> (the probe button, or <kbd>M</kbd> while running): point at any pin or wire to read its voltage and whether it counts as HIGH or LOW.</li>
+        <li><b>Wire voltages</b>: colours every wire while the simulation runs — red for HIGH, blue for LOW, amber in between, grey for nothing connected.</li>
+        <li><b>Logic scope</b>: with the multimeter on, click pins to draw how they change over the last two seconds. Six signals at once.</li>
+        <li><b>Slow motion</b>: the speed buttons next to Start run the whole board as slowly as 1/100 speed, so you can watch a signal move. <kbd>Space</kbd> pauses; the step button runs a short slice.</li>
+        <li><b>Notes</b>: drop a sticky note on the canvas to label a circuit for a worksheet.</li>
+        <li><b>Save or share</b>: a sharp picture of the circuit, a parts list and wiring table for a lesson plan, the circuit file, or a link that carries the whole circuit.</li></ul>
       <h3>Keys</h3>
-      <ul><li><kbd>R</kbd> rotate · <kbd>Del</kbd> delete · <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd> undo / redo</li><li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> start / stop · <kbd>Ctrl</kbd>+<kbd>S</kbd> save</li><li>Mouse wheel or pinch zooms, two-finger scroll or drag empty space moves · <kbd>+</kbd> / <kbd>-</kbd> zoom · <kbd>0</kbd> fit · <kbd>F</kbd> zoom to the selected part · double-click a part to zoom in, double-click empty space to see everything</li></ul>
+      <ul><li><kbd>R</kbd> rotate · <kbd>Del</kbd> delete · <kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd> undo / redo</li><li><kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>V</kbd> / <kbd>D</kbd> copy, paste, duplicate · <kbd>Ctrl</kbd>+<kbd>A</kbd> select all · <kbd>Shift</kbd>+click adds a part to the selection</li><li><kbd>Space</kbd> pause while running · <kbd>M</kbd> multimeter</li><li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> start / stop · <kbd>Ctrl</kbd>+<kbd>S</kbd> save</li><li>Mouse wheel or pinch zooms, two-finger scroll or drag empty space moves · <kbd>+</kbd> / <kbd>-</kbd> zoom · <kbd>0</kbd> fit · <kbd>F</kbd> zoom to the selected part · double-click a part to zoom in, double-click empty space to see everything</li></ul>
       <h3>Libraries</h3>
       <p id="liblist" class="small"></p>
       <h3>Good to know</h3>
-      <p>Circuit Lab checks logic and wiring, not exact electrical values. It warns about missing resistors, short circuits and motors on a pin, because those break real parts. The <b>ESP32</b> runs in teaching mode: pins, ADC, PWM, Serial, servos and displays behave like an ESP32, while Wi-Fi, web pages, MQTT, ESP-NOW and Bluetooth talk to a pretend network in the Phone tab.</p>
+      <p>Circuit Lab checks logic and wiring, not exact electrical values. Transistors, MOSFETs, diodes and the 555 timer are behaviour models rather than analog circuit simulation: the 555 works out its frequency from the resistors and capacitor you wire, but it does not draw a charging curve. It warns about missing resistors, short circuits and motors on a pin, because those break real parts. The <b>ESP32</b> runs in teaching mode: pins, ADC, PWM, Serial, servos and displays behave like an ESP32, while Wi-Fi, web pages, MQTT, ESP-NOW and Bluetooth talk to a pretend network in the Phone tab.</p>
       <p class="muted small">Built with Wokwi Elements and AVR8js (MIT). Code is compiled by the Wokwi build service, so compiling needs internet.</p>
     </div>
   </aside>
@@ -118,8 +127,8 @@
 <div id="stagebox" class="stagebox" aria-hidden="true"></div>
 <input type="file" id="fileup" accept=".json,application/json" hidden>
 
-<script src="vendor/wokwi-elements.js?v=6"></script>
-<script src="vendor/codemirror/codemirror.min.js?v=6"></script>
-<script type="module" src="circuit/app.js?v=6"></script>
+<script src="vendor/wokwi-elements.js?v=8"></script>
+<script src="vendor/codemirror/codemirror.min.js?v=8"></script>
+<script type="module" src="circuit/app.js?v=8"></script>
 </body>
 </html>

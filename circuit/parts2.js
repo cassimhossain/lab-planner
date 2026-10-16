@@ -1,6 +1,6 @@
 /* Circuit Lab - second part catalogue (round 1: boards, simple sensors, more displays and loads).
    Same shape as PARTS in parts.js. Merged in by parts.js. */
-import "./elements2.js?v=6";
+import "./elements2.js?v=8";
 
 const v = (k, label, min, max, unit = "", step = 1) => ({ k, label, type: "range", min, max, step, unit, sim: true, live: true });
 const tog = (k, text) => ({ k, label: text, type: "toggle", text, sim: true, live: true });
@@ -16,6 +16,14 @@ export const PARTS2 = {
   mega: {
     tag: "wokwi-arduino-mega", label: "Arduino Mega 2560", cat: "Boards", kind: "board", one: true, kit: ["Arduino Mega 2560 + USB cable"],
     help: "A big Uno: 54 digital pins, 16 analog inputs and much more memory. Good when you run out of pins.",
+  },
+
+  /* ================= canvas note ================= */
+  note: {
+    tag: "cl-note", label: "Note", cat: "Basics", kind: "deco", noWires: true,
+    attrs: { text: "Write a note here", color: "yellow", w: "170" },
+    props: [{ k: "text", label: "Note text", type: "text" }, { k: "color", label: "Colour", type: "select", opts: ["yellow", "blue", "green", "pink", "grey"] }, { k: "w", label: "Width", type: "select", opts: ["120", "170", "240", "320"] }],
+    kit: [], help: "A sticky note for labelling a circuit on a worksheet. It is not wired to anything.",
   },
 
   /* ================= basics ================= */
@@ -723,3 +731,131 @@ void loop() {
 `,
   };
 });
+
+/* example code for the passive parts that had none */
+const PASSIVE = {
+  resistor: `// A resistor needs no code, but it decides how bright an LED is.
+// Swap the value in the inspector and watch what happens.
+const int LED = 9;
+
+void setup() { pinMode(LED, OUTPUT); Serial.begin(9600); }
+
+void loop() {
+  for (int b = 0; b <= 255; b += 5) { analogWrite(LED, b); delay(12); }
+  for (int b = 255; b >= 0; b -= 5) { analogWrite(LED, b); delay(12); }
+  Serial.println("A bigger resistor means less current and a dimmer LED");
+}
+`,
+  capacitor: `// A capacitor stores charge. Put one across the power rails and the
+// voltage stops dipping when a motor or a servo starts.
+// This sketch just watches the supply voltage on A0.
+const int RAIL = A0;
+
+void setup() { Serial.begin(9600); }
+
+void loop() {
+  float volts = analogRead(RAIL) * 5.0 / 1023.0;
+  Serial.print("Rail: ");
+  Serial.print(volts, 2);
+  Serial.println(" V");
+  delay(300);
+}
+`,
+  lamp: `// A 5 V lamp needs more current than a pin can give: switch it with a relay.
+const int RELAY = 7;
+
+void setup() { pinMode(RELAY, OUTPUT); Serial.begin(9600); }
+
+void loop() {
+  Serial.println("Lamp on");
+  digitalWrite(RELAY, HIGH);
+  delay(2000);
+  Serial.println("Lamp off");
+  digitalWrite(RELAY, LOW);
+  delay(2000);
+}
+`,
+  dcmotor: `// A DC motor through an L298N: forwards, stop, backwards
+const int ENA = 5, IN1 = 7, IN2 = 8;
+
+void setup() {
+  pinMode(ENA, OUTPUT); pinMode(IN1, OUTPUT); pinMode(IN2, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  Serial.println("Forwards");
+  digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW); analogWrite(ENA, 200);
+  delay(2000);
+  Serial.println("Stop");
+  analogWrite(ENA, 0);
+  delay(800);
+  Serial.println("Backwards");
+  digitalWrite(IN1, LOW); digitalWrite(IN2, HIGH); analogWrite(ENA, 200);
+  delay(2000);
+  analogWrite(ENA, 0);
+  delay(800);
+}
+`,
+  fan: `// A 5 V fan switched by a relay, with a temperature rule
+const int RELAY = 7;
+const int SENSOR = A0;
+
+void setup() { pinMode(RELAY, OUTPUT); Serial.begin(9600); }
+
+void loop() {
+  int raw = analogRead(SENSOR);
+  bool hot = raw > 500;
+  digitalWrite(RELAY, hot);
+  Serial.print(raw);
+  Serial.println(hot ? "  fan ON" : "  fan off");
+  delay(600);
+}
+`,
+  pump: `// Water the plant when the soil is dry
+const int RELAY = 7;
+const int SOIL = A0;
+
+void setup() { pinMode(RELAY, OUTPUT); Serial.begin(9600); }
+
+void loop() {
+  int raw = analogRead(SOIL);
+  if (raw > 700) {
+    Serial.println("Soil is dry - pumping for 3 seconds");
+    digitalWrite(RELAY, HIGH);
+    delay(3000);
+    digitalWrite(RELAY, LOW);
+    delay(5000);
+  } else {
+    Serial.println("Soil is damp enough");
+    delay(1500);
+  }
+}
+`,
+  battery: `// A battery needs no code. Wire + to the board's VIN and - to GND.
+// This sketch watches the battery through a voltage sensor on A0.
+void setup() { Serial.begin(9600); }
+
+void loop() {
+  float volts = analogRead(A0) * 5.0 / 1023.0 * 5.0;   // voltage sensor divides by 5
+  Serial.print("Battery: ");
+  Serial.print(volts, 2);
+  Serial.println(" V");
+  if (volts < 6.5) Serial.println("  Getting low");
+  delay(1500);
+}
+`,
+  solar: `// Solar panel: watch how much the sun gives you
+void setup() { Serial.begin(9600); }
+
+void loop() {
+  float volts = analogRead(A0) * 5.0 / 1023.0 * 5.0;
+  Serial.print("Panel: ");
+  Serial.print(volts, 2);
+  Serial.println(" V");
+  if (volts > 4.5) Serial.println("  Enough to charge");
+  delay(1200);
+}
+`,
+};
+Object.entries(PASSIVE).forEach(([k, code]) => { PARTS2[k] = Object.assign({}, PARTS2[k], { code, passiveCode: true }); });

@@ -315,3 +315,103 @@ body.mopen .modal { display: grid; }
 .fval { fill: #fff; stroke: #CBD5E1; }
 .fval.hit { fill: #DCFCE7; stroke: #86EFAC; }
 .fvalt { font: 700 8.5px Inter, Arial, sans-serif; fill: #0F172A; text-anchor: middle; }
+
+/* ================= bench tools (round 4) ================= */
+.ctools .btools { display: flex; align-items: center; gap: 2px; }
+.ctools .btools i { width: 1px; height: 20px; background: var(--line); margin: 0 4px; }
+.ctools .btools button.on { background: #DBEAFE; color: var(--blue); }
+
+/* run controls: pause, step, slow motion */
+.runctl { display: flex; align-items: center; gap: 4px; margin-right: 8px; }
+.runctl > button { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 9px; background: rgba(255, 255, 255, .09); color: #DCE5F7; }
+.runctl > button:hover { background: rgba(255, 255, 255, .16); color: #fff; }
+.runctl > button.on { background: #F59E0B; color: #1B1200; }
+.runctl .spd { display: flex; background: rgba(255, 255, 255, .08); border-radius: 9px; padding: 2px; gap: 1px; }
+.runctl .spd button { border: 0; background: transparent; color: #A9BBDD; font: 700 11.5px/1 "Plus Jakarta Sans", sans-serif; padding: 6px 7px; border-radius: 7px; }
+.runctl .spd button.on { background: #fff; color: var(--navy); }
+@media (max-width: 1100px) { .runctl .spd { display: none; } }
+
+/* multimeter readout */
+.meter { position: absolute; z-index: 9; pointer-events: none; background: var(--navy); color: #fff; border-radius: 10px; padding: 7px 11px; font-size: 12.5px; box-shadow: 0 8px 24px rgba(15, 29, 54, .28); opacity: 0; transition: opacity .12s; max-width: 280px; }
+.meter.on { opacity: 1; }
+.meter b { display: block; font-weight: 600; opacity: .85; margin-bottom: 3px; font-size: 11.5px; }
+.mv { font: 700 15px/1.2 "JetBrains Mono", monospace; }
+.mv.hi { color: #FCA5A5; } .mv.lo { color: #93C5FD; } .mv.mid { color: #FCD34D; } .mv.none { color: #94A3B8; font-size: 12px; font-weight: 500; }
+.tip .mv { font-size: 12.5px; margin-left: 6px; }
+
+/* logic scope */
+.scope { position: absolute; left: 10px; right: 10px; bottom: 10px; height: 190px; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--sh2); display: none; flex-direction: column; overflow: hidden; z-index: 8; }
+.scope.on { display: flex; }
+.sch { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-bottom: 1px solid var(--line); flex: none; }
+.sch b { font-size: 13px; } .sch .grow { flex: 1; }
+.sch .chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.sch .chips button { border: 1px solid var(--c); color: var(--c); background: #fff; border-radius: 999px; padding: 3px 9px; font-size: 11.5px; font-weight: 700; }
+.sch .chips button:hover { background: var(--c); color: #fff; }
+#scopecv { flex: 1; width: 100%; min-height: 0; }
+
+/* note part */
+.part.deco { cursor: move; }
+.ptext { width: 100%; resize: vertical; border: 1px solid var(--line); border-radius: 9px; padding: 7px 9px; font: 13px/1.45 "Plus Jakarta Sans", sans-serif; }
+.ptext:focus { outline: none; border-color: var(--blue); }
+
+/* multi-selection */
+.part.msel::after { content: ""; position: absolute; inset: -5px; border: 2px dashed var(--blue); border-radius: 8px; pointer-events: none; }
+
+/* export dialog */
+.expgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.linkout { padding: 0 18px 18px; }
+.linkout label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.linkrow { display: flex; gap: 8px; }
+.linkrow input { flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; font: 12.5px "JetBrains Mono", monospace; }
+
+/* selection box */
+.marq { position: absolute; border: 1.5px dashed var(--blue); background: rgba(46, 107, 230, .08); border-radius: 4px; pointer-events: none; z-index: 5; }
+
+/* palette shelves: a named row of parts inside a category */
+.tshelf { margin: 2px 0 10px; }
+.tshelf h5 { margin: 0 0 5px; font-size: 10.5px; font-weight: 700; letter-spacing: .5px;
+  text-transform: uppercase; color: #94A3B8; padding-left: 2px; }
+.tshelf + .tshelf { border-top: 1px solid var(--line); padding-top: 9px; }
+
+/* ===================== dark mode =====================
+   Only the tokens change. The canvas keeps a light working surface on purpose:
+   the parts are drawn as real objects with real colours, and a black breadboard
+   on black reads as a hole rather than a board. */
+:root[data-theme="dark"] {
+  --navy: #0B1220; --navy2: #15213A;
+  --ink: #E6EAF2; --ink2: #AAB4C6; --muted: #8A94A6;
+  --line: #27324A; --line2: #1E2739;
+  --bg: #0E1626; --card: #151F33;
+  --blue: #5B91FF; --blue2: #3F74E0; --blueL: #1B2B4D;
+  --green: #35C06A; --green2: #27A257; --red: #F2635B; --amber: #FBBF24;
+  --sh: 0 1px 2px rgba(0, 0, 0, .34), 0 4px 14px rgba(0, 0, 0, .3);
+  --sh2: 0 10px 34px rgba(0, 0, 0, .5);
+  color-scheme: dark;
+}
+:root[data-theme="dark"] body { background: var(--bg); color: var(--ink); }
+:root[data-theme="dark"] .stage { background: #101A2C; }
+:root[data-theme="dark"] .CodeMirror { background: #121B2C; color: #DCE3F0; }
+:root[data-theme="dark"] .CodeMirror-gutters { background: #0F1828; border-right-color: var(--line); }
+:root[data-theme="dark"] .CodeMirror-linenumber { color: #5E6B82; }
+:root[data-theme="dark"] .CodeMirror-cursor { border-left-color: #DCE3F0; }
+:root[data-theme="dark"] .CodeMirror-selected { background: #27395C !important; }
+:root[data-theme="dark"] .CodeMirror-activeline-background { background: #18243A; }
+:root[data-theme="dark"] .cm-s-cl .cm-keyword { color: #C4A2FF; }
+:root[data-theme="dark"] .cm-s-cl .cm-def { color: #86B4FF; }
+:root[data-theme="dark"] .cm-s-cl .cm-string { color: #6FD4A8; }
+:root[data-theme="dark"] .cm-s-cl .cm-number { color: #FFB07A; }
+:root[data-theme="dark"] .cm-s-cl .cm-comment { color: #6B7789; }
+:root[data-theme="dark"] .cm-s-cl .cm-builtin { color: #5FD0DC; }
+:root[data-theme="dark"] .cm-s-cl .cm-variable-2 { color: #9CC2FF; }
+:root[data-theme="dark"] .cm-s-cl .cm-operator { color: #A9B4C7; }
+:root[data-theme="dark"] .serialout, :root[data-theme="dark"] .buildout { background: #0C1422; color: #D8E0EE; }
+:root[data-theme="dark"] input, :root[data-theme="dark"] textarea, :root[data-theme="dark"] select { background: #101A2C; color: var(--ink); border-color: var(--line); }
+:root[data-theme="dark"] .tile { background: var(--card); border-color: var(--line); }
+:root[data-theme="dark"] .tile:hover { border-color: var(--blue); }
+:root[data-theme="dark"] .tthumb { background: #E8ECF3; border-radius: 8px; }
+
+/* autocomplete popup */
+.CodeMirror-hints { z-index: 70; font: 13px "JetBrains Mono", Consolas, monospace; border-radius: 10px;
+  border: 1px solid var(--line); box-shadow: var(--sh2); background: var(--card); padding: 4px; max-height: 15em; }
+.CodeMirror-hint { color: var(--ink); border-radius: 6px; padding: 3px 8px; }
+li.CodeMirror-hint-active { background: var(--blue); color: #fff; }

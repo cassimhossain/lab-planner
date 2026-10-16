@@ -2,14 +2,18 @@
    kind: board | bb (sits on the breadboard) | module (wired with jumper wires)
    pw: power pins { vcc:[...], gnd:[...] } used by the auto-layout and the "is it powered" check
    code: a ready-made example for the part. {PIN:name} is replaced by the board pin it is wired to. */
-import "./elements.js?v=6";
-import { PARTS2 } from "./parts2.js?v=6";
-import { PARTS3 } from "./parts3.js?v=6";
-import { PARTS4 } from "./parts4.js?v=6";
-export { P as PITCH, BB, BB_GROUPS, bbGroupOf, bbLayout } from "./elements.js?v=6";
+import "./elements.js?v=8";
+import { PARTS2 } from "./parts2.js?v=8";
+import { PARTS3 } from "./parts3.js?v=8";
+import { PARTS4 } from "./parts4.js?v=8";
+import { PARTS5 } from "./parts5.js?v=8";
+import { PARTS6 } from "./parts6.js?v=8";
+import { PARTS7 } from "./parts7.js?v=8";
+import { PARTS8 } from "./parts8.js?v=8";
+export { P as PITCH, BB, BB_GROUPS, bbGroupOf, bbLayout } from "./elements.js?v=8";
 
 const COLORS = ["red", "green", "yellow", "blue", "white", "orange"];
-export const CATS = ["Boards", "Basics", "Input", "Sensors", "Displays", "Light & sound", "Motion", "Power", "Communication"];
+export const CATS = ["Boards", "Basics", "Logic & chips", "Input", "Sensors", "Displays", "Light & sound", "Motion", "Power", "Communication"];
 
 const v = (k, label, min, max, unit = "", step = 1) => ({ k, label, type: "range", min, max, step, unit, sim: true, live: true });
 export const PARTS = {
@@ -839,9 +843,81 @@ export const ESP_DEFAULT_PINS = { A: 2, R: 25, G: 26, B: 27, "1.l": 4, "2": 4, S
   R1: 13, R2: 12, R3: 14, R4: 27, C1: 26, C2: 25, C3: 33, C4: 32, "A+": 25, "A-": 26, "B+": 27, "B-": 14 };
 Object.assign(PARTS.seg7, { defaultsEsp: { A: 13, B: 12, C: 14, D: 27, E: 26, F: 25, G: 33, DP: 32 } });
 Object.assign(PARTS.max7219, { defaultsEsp: { DIN: 23, CLK: 18, CS: 5 } });
-Object.assign(PARTS, PARTS2, PARTS3, PARTS4);
+/* PARTS2 also carries example code for a few passive parts that are already defined above */
+Object.keys(PARTS2).forEach(k => { if (PARTS[k] && PARTS2[k].passiveCode) { PARTS[k].code = PARTS2[k].code; delete PARTS2[k]; } });
+Object.assign(PARTS, PARTS2, PARTS3, PARTS4, PARTS5, PARTS6, PARTS7, PARTS8);
 
 export function defaultPin(d, k, board) {
   if (board === "esp32") return (d.defaultsEsp || {})[k] ?? ESP_DEFAULT_PINS[k] ?? 4;
   return (d.defaults || {})[k] ?? DEFAULT_PINS[k] ?? 2;
 }
+
+/* ---------------------------------------------------------------------------
+   Shelving. Two jobs: move the chips out of "Basics" so a beginner opening the
+   panel still sees eight familiar things, and split the big categories into
+   named shelves so nobody scrolls past fifty sensors looking for a thermometer.
+   --------------------------------------------------------------------------- */
+const RECAT = {
+  "Logic & chips": ["sr595", "hc165", "hc00", "hc02", "hc04", "hc08", "hc32", "hc74", "hc86",
+                    "cd4017", "cd4051", "cd4511", "ne555", "lm358", "lm393", "opto"],
+};
+Object.entries(RECAT).forEach(([cat, keys]) => keys.forEach(k => { if (PARTS[k]) PARTS[k].cat = cat; }));
+
+const SHELVES = {
+  "Logic & chips": {
+    "Gates": ["hc00", "hc02", "hc04", "hc08", "hc32", "hc86"],
+    "Memory & counters": ["hc74", "cd4017"],
+    "Pin expanders": ["sr595", "hc165", "cd4051"],
+    "Decoders": ["cd4511"],
+    "Analogue & timing": ["lm358", "lm393", "ne555"],
+    "Isolation": ["opto"],
+    "I2C expanders": ["pcf8574", "mcp23017", "mcp4725"],
+  },
+  "Basics": {
+    "Build on": ["breadboard", "note"],
+    "Passive": ["resistor", "capacitor", "inductor", "diode"],
+    "Light it up": ["led", "rgbled"],
+    "Switches & knobs": ["button", "slideswitch", "dipswitch", "pot", "slidepot"],
+    "Transistors": ["npn", "pnp", "mosfet"],
+  },
+  "Sensors": {
+    "Distance & presence": ["hcsr04", "sharpir", "vl53l0x", "ir", "irline", "pir", "hall", "reed", "touch"],
+    "Light & colour": ["ldr", "phototrans", "uv", "bh1750", "tcs34725"],
+    "Temperature & humidity": ["dht11", "dht22", "aht20", "lm35", "tmp36", "thermistor", "ds18b20", "sht31", "bmp280", "bme280", "mlx90614", "max6675", "amg8833"],
+    "Air & gas": ["mq2", "mq3", "mq4", "mq7", "mq8", "mq9", "mq135", "flame", "sgp30", "ccs811", "scd40", "mhz19"],
+    "Water & soil": ["soil", "rain", "waterlevel", "flow", "tds"],
+    "Force, knock & sound": ["fsr", "flex", "hx711", "knock", "vibsw", "mic", "sound"],
+    "Body": ["pulse", "max30102"],
+    "Tilt & orientation": ["tilt", "mpu6050", "adxl345", "compass"],
+    "Volts & amps": ["voltsensor", "ina219", "acs712", "ads1115"],
+    "Clock": ["rtc"],
+  },
+  "Motion": {
+    "Servos": ["servo", "servo360", "pca9685"],
+    "DC motors": ["dcmotor", "fan", "pump", "vibe", "solenoid"],
+    "Motor drivers": ["l298n", "l293d", "tb6612", "drv8833", "uln2003"],
+    "Steppers": ["stepper28", "stepper", "a4988", "drv8825"],
+    "Switching": ["relay"],
+  },
+  "Displays": {
+    "Screens": ["oled", "lcd", "lcd2004", "tft"],
+    "Digits": ["seg7", "seg4", "tm1637", "cd4511"],
+    "Matrix": ["max7219", "max7219x4"],
+  },
+  "Light & sound": {
+    "Buzzers & speakers": ["buzzer", "speaker", "dfplayer"],
+    "LEDs": ["neopixel", "ledring", "ledstrip", "npmatrix", "ledbar"],
+    "Lamps & lasers": ["lamp", "laser"],
+  },
+  "Power": {
+    "Sources": ["battery", "solar", "psu"],
+    "Converters": ["buck", "lm7805", "bridge"],
+    "Reference": ["zener"],
+  },
+};
+/* every part lands on exactly one shelf; anything not listed falls to "More" */
+export const SHELF = {};
+Object.entries(SHELVES).forEach(([cat, groups]) => Object.entries(groups).forEach(([g, keys]) =>
+  keys.forEach(k => { if (PARTS[k] && PARTS[k].cat === cat && SHELF[k] == null) SHELF[k] = g; })));
+export const SHELF_ORDER = {};
+Object.entries(SHELVES).forEach(([cat, groups]) => { SHELF_ORDER[cat] = Object.keys(groups).concat(["More"]); });

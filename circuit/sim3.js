@@ -157,7 +157,7 @@ export function setupExtra3(sim, D, H) {
     case "irremote": return true;
 
     /* ---------------- A4988 ---------------- */
-    case "a4988": {
+    case "a4988": case "drv8825": {
       let s = 0, dead = false;
       const outs = ["1A", "1B", "2A", "2B"].map(R);
       const PAT = [[1, 0, 1, 0], [0, 1, 1, 0], [0, 1, 0, 1], [1, 0, 0, 1]];

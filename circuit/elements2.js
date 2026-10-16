@@ -1,6 +1,6 @@
 /* Circuit Lab - second set of hand-drawn parts (SVG).
    Everything here is drawn for the simulator; pins sit on the 0.1 inch (9.6 px) grid like the rest. */
-import { P, KIT, defineEls } from "./elements.js?v=6";
+import { P, KIT, defineEls } from "./elements.js?v=8";
 const { CL, txt, pcb, smd, chip, leftHeader, bottomHeader, termBlock, ledDot, mount, moduleBase, modGuts, F, MONO } = KIT;
 
 const DEFS = {};
@@ -292,6 +292,32 @@ module("cl-tds", {
 });
 
 /* ---------- SW: DIP switch is a wokwi element; nothing to draw ---------- */
+
+/* ---------- a sticky note you can put on the canvas ---------- */
+class ClNote extends CL {
+  static get observedAttributes() { return ["text", "color", "w"]; }
+  render() {
+    const PAL = { yellow: ["#FFF3B0", "#E7CE5A", "#4A3B00"], blue: ["#D8EAFE", "#8FBDE8", "#13335C"], green: ["#D9F5E3", "#86CFA6", "#0C3A22"], pink: ["#FFE0EC", "#E79BB8", "#5A1030"], grey: ["#EEF1F6", "#B9C2CE", "#2B3443"] };
+    const [bg, edge, ink] = PAL[this.getAttribute("color") || "yellow"] || PAL.yellow;
+    const text = this.getAttribute("text") || "Note";
+    const W = Math.max(90, +(this.getAttribute("w") || 0) || 170);
+    const lines = [];
+    text.split("\n").forEach(para => {
+      let line = "";
+      para.split(" ").forEach(word => {
+        const t = line ? line + " " + word : word;
+        if (t.length * 5.1 > W - 18 && line) { lines.push(line); line = word; } else line = t;
+      });
+      lines.push(line);
+    });
+    const H = Math.max(44, 20 + lines.length * 12);
+    let s = `<path d="M0 3a3 3 0 0 1 3-3h${W - 15}l12 12v${H - 15}a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3z" fill="${bg}" stroke="${edge}" stroke-width="1"/>`;
+    s += `<path d="M${W - 12} 0l12 12h-12z" fill="${edge}" opacity=".55"/>`;
+    lines.forEach((l, i) => { s += txt(10, 20 + i * 12, l.replace(/&/g, "&amp;").replace(/</g, "&lt;"), 9, ink, 'font-weight="600"'); });
+    this.draw(W, H, s, []);
+  }
+}
+def("cl-note", ClNote);
 
 defineEls(DEFS);
 export { DEFS as DEFS2 };

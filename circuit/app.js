@@ -1,11 +1,11 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin } from "./parts.js?v=5";
-import { Netlist, Sim } from "./sim.js?v=5";
-import { BOARDS, loadHex } from "./boards.js?v=5";
-import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=5";
-import { layoutCircuit } from "./layout.js?v=5";
-import { SNIPPETS } from "./snippets.js?v=5";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=5";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin } from "./parts.js?v=6";
+import { Netlist, Sim } from "./sim.js?v=6";
+import { BOARDS, loadHex } from "./boards.js?v=6";
+import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=6";
+import { layoutCircuit } from "./layout.js?v=6";
+import { SNIPPETS } from "./snippets.js?v=6";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=6";
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -29,7 +29,7 @@ const ic = (k, c = "ic") => `<svg class="${c}" viewBox="0 0 24 24">${ICON[k] || 
 /* ---------- state ---------- */
 const CODE_UNO = "void setup() {\n  pinMode(LED_BUILTIN, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(LED_BUILTIN, HIGH);\n  delay(500);\n  digitalWrite(LED_BUILTIN, LOW);\n  delay(500);\n}\n";
 const CODE_ESP = "// ESP32: use GPIO numbers (2 = D2, the blue on-board LED)\nconst int LED = 2;\n\nvoid setup() {\n  pinMode(LED, OUTPUT);\n  Serial.begin(115200);\n  Serial.println(\"Hello from the ESP32!\");\n}\n\nvoid loop() {\n  digitalWrite(LED, HIGH);\n  delay(500);\n  digitalWrite(LED, LOW);\n  delay(500);\n}\n";
-const blank = (board = "uno") => ({ v: 2, name: board === "esp32" ? "My ESP32 circuit" : "My circuit", parts: board ? [{ id: board + "1", type: board, x: 60, y: 230, rot: board === "esp32" ? 90 : 0 }, { id: "bb1", type: "breadboard", x: 30, y: 0, rot: 0 }] : [{ id: "bb1", type: "breadboard", x: 30, y: 0, rot: 0 }], wires: [], code: board === "esp32" ? CODE_ESP : board ? CODE_UNO : "// No board: this circuit runs without code.\n" });
+const blank = (board = "uno") => ({ v: 2, name: board === "esp32" ? "My ESP32 circuit" : board === "mega" ? "My Mega circuit" : board === "nano" ? "My Nano circuit" : "My circuit", parts: board ? [{ id: board + "1", type: board, x: 60, y: 230, rot: board === "esp32" ? 90 : 0 }, { id: "bb1", type: "breadboard", x: 30, y: 0, rot: 0 }] : [{ id: "bb1", type: "breadboard", x: 30, y: 0, rot: 0 }], wires: [], code: board === "esp32" ? CODE_ESP : board ? CODE_UNO : "// No board: this circuit runs without code.\n" });
 let project = load() || blank();
 const rt = {};              // id -> { el, wrap, w, h, state }
 let view = { x: 40, y: 20, z: 1 };
@@ -72,6 +72,15 @@ function makePart(p) {
   el.addEventListener("button-press", e => { state.pressed = true; if (p.type === "keypad" && e.detail) state.keys.add((e.detail.row + 1) + "," + (e.detail.column + 1)); sw(); });
   el.addEventListener("button-release", e => { state.pressed = false; if (p.type === "keypad" && e.detail) state.keys.delete((e.detail.row + 1) + "," + (e.detail.column + 1)); sw(); });
   if (p.type === "slideswitch") el.addEventListener("input", () => { state.value = el.value; sw(); });
+  if (p.type === "dipswitch") el.addEventListener("switch-change", () => { state.sw = Array.from(el.values || []); sw(); });
+  if (p.type === "irremote") el.addEventListener("button-press", e => { if (sim && e.detail && e.detail.irCode != null) { sim.irSend(e.detail.irCode); toast(`Remote: ${esc(e.detail.key)} (0x${e.detail.irCode.toString(16).toUpperCase()})`, "", 1200); } });
+  if (p.type === "encoder") {
+    const turn = d => { const D = sim && sim.devOf(p.id); if (D && D.turn) D.turn(d); };
+    el.addEventListener("rotate-cw", () => turn(1));
+    el.addEventListener("rotate-ccw", () => turn(-1));
+    el.addEventListener("button-press", () => { const D = sim && sim.devOf(p.id); if (D && D.press) D.press(); });
+    el.addEventListener("button-release", () => { const D = sim && sim.devOf(p.id); if (D && D.press) D.press(); });
+  }
   el.addEventListener("pininfo-change", () => requestAnimationFrame(() => { measure(p.id); drawWires(); }));
   placePart(p);
   const m = () => { measure(p.id); drawWires(); };
@@ -342,13 +351,20 @@ function rotateSel() {
 }
 
 /* ---------- inspector (next to the selected part) ---------- */
-function codeName(n, board) { if (n == null) return null; if (board === "esp32") return String(n); return n < 14 ? String(n) : "A" + (n - 14); }
+function codeName(n, board) {
+  if (n == null) return null;
+  if (board === "esp32") return String(n);
+  const pins = (BOARDS[board] || BOARDS.uno).pins;
+  const hit = Object.keys(pins).find(k => pins[k].n === n && /^A?\d+$/.test(k));
+  if (hit) return hit;
+  return n < 14 ? String(n) : "A" + (n - 14);
+}
 function partCode(p) {
   const d = PARTS[p.type]; if (!d.code) return null;
   let net = null; try { const st = {}; project.parts.forEach(q => { st[q.id] = rt[q.id] ? rt[q.id].state : {}; }); net = new Netlist(project, pinsWorld, st); } catch (e) { }
   const b = boardType() || "uno", pinNames = (rt[p.id].el.pinInfo || []).map(q => q.name);
   let missing = [];
-  const code = d.code.replace(/\{([A-Za-z0-9.+\-]+)\}/g, (m, k) => {
+  const code = d.code.replace(/\{([A-Za-z0-9.+\-/]+)\}/g, (m, k) => {
     if (!pinNames.includes(k)) return m;
     const n = net ? net.mcuPinOf(p.id, k) : null;
     if (n != null) return codeName(n, b);
@@ -486,6 +502,11 @@ function stopSim() {
     if (p.type === "relay") for (let i = 0; i < 4; i++) el.setCoil && el.setCoil(i, false); if (p.type === "lamp" || p.type === "pump") el.on = 0; if (p.type === "vibe") el.on = false;
     if (el.led) ["pwr", "sig", "bt", "rf"].forEach(k => el.led(k, false));
     if (p.type === "stepper28") el.coils = 0; if (p.type === "rfid") el.showCard("");
+    if (p.type === "ledbar") el.values = new Array(10).fill(0);
+    if (p.type === "lcd2004") { el.characters = new Uint8Array(80).fill(32); el.backlight = false; }
+    if (p.type === "npmatrix" && el.reset) el.reset();
+    if (p.type === "nano" || p.type === "mega") { el.led13 = false; el.ledPower = false; el.ledTX = false; }
+    if (el.clOff) { try { el.clOff(); } catch (er) { } }
   });
   showWarnings([]); showInspector(); drawPins(); $("#clock").innerHTML = ""; renderPhone();
 }
@@ -521,6 +542,7 @@ function onNetEvent(e) {
   if (e.kind === "wifi") phone.wifi = e.on ? e : null;
   if (e.kind === "server") { phone.server = true; setTimeout(() => { if (running && !phone.page) phoneGo("/"); }, 300); $("#phonetab").classList.add("ping"); }
   if (e.kind === "bt") { phone.btName = e.name; $("#phonetab").classList.add("ping"); }
+  if (e.kind === "sms") { phone.bt.push({ from: "board", text: `SMS to ${e.to}:\n${e.text}\n`, done: true }); $("#phonetab").classList.add("ping"); }
   if (e.kind === "btout") { const last = phone.bt[phone.bt.length - 1]; if (last && last.from === "board" && !last.done) { last.text += e.text; if (/\n$/.test(last.text)) last.done = true; } else phone.bt.push({ from: "board", text: e.text, done: /\n$/.test(e.text) }); }
   if (e.kind === "mqtt") phone.mqtt = true;
   if (e.kind === "mqttpub") phone.log.push({ t: `MQTT ${e.topic} ← ${e.msg}`, level: "mqtt" });
@@ -607,8 +629,8 @@ async function measureTypes(list) {
 }
 async function buildFromSpec(spec) {
   // measure everything the layout might place
-  const need = [{ type: "breadboard" }, { type: "breadboard", attrs: { cols: "60" } }, { type: "uno" }, { type: "esp32" }, { type: "battery", attrs: { kind: "4xAA" } }, { type: "battery", attrs: { kind: "9V" } }, { type: "battery", attrs: { kind: "18650" } }, { type: "dcmotor" }, { type: "lamp" }, { type: "fan" }, { type: "pump" }, { type: "solar" }];
-  (spec.parts || []).forEach(it => { const d = PARTS[it.t]; if (!d) return; need.push({ type: it.t }); need.push({ type: it.t, attrs: Object.assign({}, d.attrs || {}, it.attrs || {}) }); if (it.t === "led") need.push({ type: "led", attrs: { color: it.color || "red" } }); if (it.t === "button") need.push({ type: "button", attrs: { color: it.color || "green" } }); });
+  const need = [{ type: "breadboard" }, { type: "breadboard", attrs: { cols: "60" } }, { type: "uno" }, { type: "esp32" }, { type: "nano" }, { type: "mega" }, { type: "battery", attrs: { kind: "4xAA" } }, { type: "battery", attrs: { kind: "9V" } }, { type: "battery", attrs: { kind: "18650" } }, { type: "dcmotor" }, { type: "lamp" }, { type: "fan" }, { type: "pump" }, { type: "solar" }];
+  (spec.parts || []).forEach(it => { const d = PARTS[it.t]; if (!d) return; need.push({ type: it.t }); need.push({ type: it.t, attrs: Object.assign({}, d.attrs || {}, it.attrs || {}) }); if (d.with || it.with) need.push({ type: "resistor", attrs: { value: "220" } }); if (it.t === "led") need.push({ type: "led", attrs: { color: it.color || "red" } }); if (it.t === "button") need.push({ type: "button", attrs: { color: it.color || "green" } }); });
   (spec.extra || []).forEach(x => need.push({ type: x.t, attrs: x.attrs }));
   await measureTypes(need);
   const meas = (type, attrs) => { const k = type + JSON.stringify(attrs || {}); if (measureCache[k]) return measureCache[k]; const d = PARTS[type]; const k2 = type + JSON.stringify(Object.assign({}, d.attrs || {}, attrs || {})); return measureCache[k2] || measureCache[type + "{}"]; };
@@ -640,7 +662,7 @@ async function openLesson(code, quiet, fresh) {
 function specCode(spec) {
   const it = (spec.parts || []).find(x => PARTS[x.t] && PARTS[x.t].code); if (!it) return null;
   const pins = Object.assign({}, it.pins || {}); if (it.pin != null) pins.A = pins.SIG = pins["2"] = pins["1.l"] = it.pin;
-  return PARTS[it.t].code.replace(/\{([A-Za-z0-9.+\-]+)\}/g, (m, k) => pins[k] != null ? String(pins[k]) : DEFAULT_PINS[k] != null ? String(DEFAULT_PINS[k]) : m);
+  return PARTS[it.t].code.replace(/\{([A-Za-z0-9.+\-/]+)\}/g, (m, k) => pins[k] != null ? String(pins[k]) : DEFAULT_PINS[k] != null ? String(DEFAULT_PINS[k]) : m);
 }
 function currentSpec() { return project.lessonKey ? (LESSONS[project.lessonKey] || STARTERS.find(s => s.key === project.lessonKey)) : null; }
 function renderLessonCard() {
@@ -693,6 +715,8 @@ function showNew() {
   openModal(`<div class="mh"><h2>New circuit</h2><button class="mx" data-close>${ic("x")}</button></div><div class="mbody"><div class="newgrid">
     <button class="newcard" data-newb="uno"><span class="nb uno">${ic("chip")}</span><b>Arduino Uno</b><small>Uno + breadboard. Best for most lessons.</small></button>
     <button class="newcard" data-newb="esp32"><span class="nb esp">${ic("wifi")}</span><b>ESP32 DevKit</b><small>Wi-Fi and Bluetooth projects (teaching mode).</small></button>
+    <button class="newcard" data-newb="nano"><span class="nb uno">${ic("chip")}</span><b>Arduino Nano</b><small>The same chip, small enough to sit on the breadboard.</small></button>
+    <button class="newcard" data-newb="mega"><span class="nb uno">${ic("chip")}</span><b>Arduino Mega 2560</b><small>54 digital pins and 16 analog inputs for big builds.</small></button>
     <button class="newcard" data-newb="none"><span class="nb none">${ic("bolt")}</span><b>Breadboard only</b><small>Batteries, switches and LEDs without code.</small></button>
   </div><p class="muted small">Your current circuit is kept in Undo. Press Save first if you want to keep it in the Library.</p></div>`);
 }
@@ -731,7 +755,7 @@ function setProject(p, msg) {
 
 /* ---------- pointer interaction ---------- */
 let drag = null;
-const PRESS_ONLY = new Set(["button", "slideswitch", "keypad"]);
+const PRESS_ONLY = new Set(["button", "slideswitch", "keypad", "dipswitch", "encoder", "irremote"]);
 function onDown(e) {
   if (e.target.closest(".insp, .ctools, .zoombar, .lessoncard, .warns, .empty")) return;
   const handle = e.target.closest(".whandle");
@@ -949,7 +973,7 @@ function boot() {
     if ((m = h.match(/^new=(uno|esp32|none)$/))) return setProject(blank(m[1] === "none" ? null : m[1]), "New circuit");
   };
   fromHash(); window.addEventListener("hashchange", fromHash);
-  window.CL = { get project() { return project; }, get sim() { return sim; }, rt, PARTS, DEFAULT_PINS, defaultPin, pinsWorld, runSim, stopSim, setProject, openLesson, LESSONS, STARTERS, buildFromSpec, fit, phoneGo, partCode, get running() { return running; } };
+  window.CL = { get project() { return project; }, get sim() { return sim; }, rt, PARTS, DEFAULT_PINS, defaultPin, pinsWorld, runSim, stopSim, setProject, openLesson, LESSONS, STARTERS, buildFromSpec, fit, phoneGo, partCode, zoomToPart, layoutCircuit, get running() { return running; } };
 }
 function sendSerial() { const i = $("#serialin"); if (!sim || !i.value) return; sim.serialIn(i.value + "\n"); const o = $("#serialout"); o.textContent += "› " + i.value + "\n"; i.value = ""; }
 function btSend(text) {

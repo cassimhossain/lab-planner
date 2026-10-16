@@ -101,18 +101,20 @@ class ClResistor extends CL {
 
 /* ---------- OLED 0.96" I2C (SSD1306) ---------- */
 class ClOled extends CL {
-  static get observedAttributes() { return ["color"]; }
+  static get observedAttributes() { return ["color", "size"]; }
   /* the 128x64 pixels are drawn as one vector path (1 world unit per pixel), so text stays sharp at every zoom */
   render() {
-    const W = 150, H = 138, GX = 11, GY = 36;
+    const GH = this.getAttribute("size") === "128x32" ? 32 : 64;
+    const W = 150, H = 74 + GH, GX = 11, GY = 36;
     let s = pcb(0, 0, W, H, "#1B3F7A", 6) + mount(7, 7) + mount(W - 7, 7) + mount(7, H - 7) + mount(W - 7, H - 7);
     const names = ["GND", "VCC", "SCL", "SDA"], x0 = W / 2 - 1.5 * P;
     s += `<rect x="${x0 - P / 2}" y="2" width="${4 * P}" height="7" rx="1" fill="#1A1A1A"/>`;
     const pins = names.map((n, i) => { const x = x0 + i * P; s += `<rect x="${x - 1}" y="-3" width="2" height="9" rx=".5" fill="#D6B656"/><text x="${x + 2.2}" y="12" font-size="6.4" font-weight="700" fill="#fff" ${F} text-anchor="end" transform="rotate(-90 ${x + 2.2} 12)">${n}</text>`; return { name: n, x, y: 0 }; });
     s += txt(10, 26, "I2C", 6.5, "#9DB4DA", 'font-weight="700"') + txt(W - 10, 26, "0x3C", 6.5, "#9DB4DA", 'font-weight="700" text-anchor="end"');
-    s += `<rect x="${GX - 5}" y="${GY - 5}" width="${128 + 10}" height="${64 + 14}" rx="2.5" fill="#0B0B0D"/><rect x="${GX}" y="${GY}" width="128" height="64" fill="#050608"/>`;
+    s += `<rect x="${GX - 5}" y="${GY - 5}" width="${128 + 10}" height="${GH + 14}" rx="2.5" fill="#0B0B0D"/><rect x="${GX}" y="${GY}" width="128" height="${GH}" fill="#050608"/>`;
     s += `<g transform="translate(${GX} ${GY})" shape-rendering="crispEdges"><path class="px1" d=""/><path class="px2" d=""/></g>`;
-    s += txt(W / 2, H - 9, "0.96\" OLED 128x64", 6.5, "#9DB4DA", 'text-anchor="middle" font-weight="600"');
+    s += txt(W / 2, H - 9, GH === 32 ? "0.91\" OLED 128x32" : "0.96\" OLED 128x64", 6.5, "#9DB4DA", 'text-anchor="middle" font-weight="600"');
+    this._gh = GH;
     this.draw(W, H, s, pins);
     this.p1 = this.q(".px1"); this.p2 = this.q(".px2"); this.paint();
   }
@@ -126,7 +128,8 @@ class ClOled extends CL {
   show(buf, w = 128, h = 64, invert = false, on = true) {
     if (!this.p1) return;
     const two = this.getAttribute("color") === "yellowblue", d = ["", ""];
-    if (on) for (let y = 0; y < Math.min(64, h); y++) {
+    const GH = this._gh || 64;
+    if (on) for (let y = 0; y < Math.min(GH, h); y++) {
       const k = two && y >= 16 ? 1 : 0; let run = -1;
       for (let x = 0; x <= Math.min(128, w); x++) {
         let bit = 0;
@@ -486,3 +489,6 @@ const DEFS = {
 };
 Object.entries(DEFS).forEach(([t, c]) => { if (!customElements.get(t)) customElements.define(t, c); });
 export { BATT };
+/* shared drawing primitives, used by elements2.js */
+export const KIT = { CL, svgEl, txt, hole, pcb, smd, chip, leftHeader, bottomHeader, termBlock, ledDot, mount, moduleBase, modGuts, F, MONO };
+export function defineEls(defs) { Object.entries(defs).forEach(([t, c]) => { if (!customElements.get(t)) customElements.define(t, c); }); }

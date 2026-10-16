@@ -2,16 +2,16 @@
    A lesson describes WHAT is connected (an LED on pin 13, a DHT22 on pin 7, an OLED...);
    this file decides WHERE everything goes and draws tidy wires, Tinkercad style:
    breadboard on top, board below, modules in a column on the right, power on the rails. */
-import { bbLayout, P } from "./elements.js?v=5";
-import { PARTS } from "./parts.js?v=5";
-import { BOARDS } from "./boards.js?v=5";
+import { bbLayout, P } from "./elements.js?v=6";
+import { PARTS } from "./parts.js?v=6";
+import { BOARDS } from "./boards.js?v=6";
 
 const C = { gnd: "#2B2D42", v5: "#E63946", v33: "#F08C00", sda: "#1F6FD1", scl: "#F5B83D" };
 const SIG = ["#2E9E5B", "#1F6FD1", "#7B3FC4", "#E8590C", "#20B8A6", "#D6336C", "#8D6E63", "#5C7CFA", "#F5B83D"];
 /* modules that need 5V even on an ESP32 */
-const NEEDS5V = new Set(["servo", "hcsr04", "relay", "stepper28", "ledring", "ledstrip", "neopixel", "lcd", "max7219", "pir", "mq2", "mq135", "hc05", "vibe"]);
+const NEEDS5V = new Set(["servo", "servo360", "hcsr04", "relay", "stepper28", "ledring", "ledstrip", "neopixel", "npmatrix", "lcd", "lcd2004", "max7219", "max7219x4", "tm1637", "pir", "mq2", "mq135", "mq3", "mq4", "mq7", "mq8", "mq9", "hc05", "vibe", "flow", "laser", "speaker", "sharpir", "acs712", "dht11", "sdcard", "rtc", "gps", "sim800l", "nrf24", "tft", "irrecv"]);
 /* wokwi modules whose pins are on the bottom edge: turn them so the pins face the board */
-const ROT90 = new Set(["hcsr04", "dht22", "pir", "joystick", "ledring"]);
+const ROT90 = new Set(["hcsr04", "dht22", "dht11", "pir", "joystick", "ledring", "npmatrix", "irrecv", "tft"]);
 
 export function boardPinName(board, p) {
   if (board === "esp32") { const n = +p; if (n === 36) return "VP"; if (n === 39) return "VN"; if (n === 16) return "RX2"; if (n === 17) return "TX2"; return "D" + n; }
@@ -51,7 +51,7 @@ export function layoutCircuit(spec, measure) {
   /* ---------- 1. breadboard footprints ---------- */
   const items = (spec.parts || []).map(x => Object.assign({}, x));
   const bbItems = items.filter(it => PARTS[it.t] && PARTS[it.t].kind === "bb");
-  const widthOf = it => ({ led: 3, buzzer: 8, button: 4, pot: 8, rgbled: 5, slideswitch: 4, resistor: 6, capacitor: 3 }[it.t] || 4);
+  const widthOf = it => ({ led: 3, buzzer: 8, button: 4, pot: 8, rgbled: 5, slideswitch: 4, resistor: 6, capacitor: 3, lm35: 5, tmp36: 5 }[it.t] || 4);
   let need = bbItems.reduce((s, it) => s + widthOf(it), 0) + 2;
   const powered = items.filter(it => PARTS[it.t] && PARTS[it.t].kind === "module" && PARTS[it.t].pw && !it.noPower).length;
   const useBB = bbItems.length > 0 || spec.breadboard || powered >= 2 || items.some(it => it.rails);
@@ -79,6 +79,8 @@ export function layoutCircuit(spec, measure) {
     if (it.t === "button") { while ((c + 2) % 6 === 0) c++; }
     if (it.t === "buzzer" || it.t === "pot") { while (c % 6 === 0 || (c + 2) % 6 === 0) c++; }
     if (it.t === "rgbled") { while ((c + 1) % 6 === 0) c++; }
+    if (PARTS[it.t].bb3) { while (c % 6 === 0 || (c + 2) % 6 === 0) c++; }
+    if (PARTS[it.t].bb2) { while (c % 6 === 0) c++; }
     if (it.t === "slideswitch") { while ((it.feed ? (c + 1) : c) % 6 === 0 || (!it.feed && (c + 2) % 6 === 0)) c++; }
     bbParts.push({ it, c });
     colCursor = Math.max(colCursor + w, c + (it.t === "buzzer" || it.t === "pot" ? 5 : w));
@@ -128,6 +130,19 @@ export function layoutCircuit(spec, measure) {
       usedRail.add(c + 1);
       const pins = it.pins || {};
       [["R", 0], ["G", 2], ["B", 3]].forEach(([k, d]) => { if (pins[k] != null) reqs.push({ kind: "b2h", from: bpin(pins[k]), to: `${bbId}:${c + d}a`, color: k === "R" ? "#E63946" : k === "G" ? "#2E9E5B" : "#1F6FD1" }); });
+    } else if (PARTS[it.t].bb3) {
+      // three-leg part standing on the breadboard
+      const B3 = PARTS[it.t].bb3, order = ["p1", "p2", "p3"].map(k => (PARTS[it.t].attrs || {})[k]);
+      placeAt(it.t, B3.first, hole(c, "e").x, hole(c, "e").y, 0, undefined, { label: it.label });
+      const colOf = name => c + Math.max(0, order.indexOf(name));
+      if (B3.vcc) { const cv = colOf(B3.vcc); W(`${bbId}:${cv}a`, railName("bp", cv), C.v5); usedRail.add(cv); }
+      if (B3.gnd) { const cg = colOf(B3.gnd); W(`${bbId}:${cg}a`, railName("bn", cg), C.gnd); usedRail.add(cg); }
+      if (sigPin != null && B3.sig) {
+        const cs = colOf(B3.sig);
+        reqs.push({ kind: "b2h", from: bpin(sigPin), to: `${bbId}:${cs}a`, color: sigColor() });
+      }
+    } else if (PARTS[it.t].bb2) {
+      placeAt(it.t, PARTS[it.t].bb2.first, hole(c, "e").x, hole(c, "e").y, 0, undefined, { label: it.label });
     } else if (it.t === "slideswitch" && it.feed) {
       placeAt("slideswitch", "1", hole(c, "e").x, hole(c, "e").y, 0);
       W(`${bbId}:${c + 1}a`, railName("bp", c + 1), C.v5); usedRail.add(c + 1);
@@ -257,8 +272,9 @@ export function layoutCircuit(spec, measure) {
     }
     const m = j.m, c = j.c, g = geo[m.id], lp = g.pins[c.pin];
     const top = lp.ly < 4 && !g.rot, right = lp.lx > g.w - 3 && !g.rot;
-    const stub = top ? [[a.x, a.y - 8 - 5 * m.conns.filter(z => z.trunk < c.trunk).length], [c.trunk, a.y - 8 - 5 * m.conns.filter(z => z.trunk < c.trunk).length]] : [[c.trunk, a.y]];
-    if (top) { const yy = a.y - 6 - 4 * (m.conns.length - m.conns.indexOf(c)); stub[0] = [a.x, yy]; stub[1] = [c.trunk, yy]; }
+    let stub = [[c.trunk, a.y]];
+    if (top) { const yy = a.y - 6 - 4 * (m.conns.length - m.conns.indexOf(c)); stub = [[a.x, yy], [c.trunk, yy]]; }
+    else if (right) { const yy = g.box.y0 - 6 - 4 * (m.conns.length - m.conns.indexOf(c)); stub = [[a.x + 10, a.y], [a.x + 10, yy], [c.trunk, yy]]; }
     if (j.group === "power") { const y = laneY("power", j.lane); W(`${m.id}:${c.pin}`, c.to, c.color, [...stub, [c.trunk, y], [b.x, y]]); return; }
     if (!j.bottom) { const y = laneY("sig", j.lane); W(`${m.id}:${c.pin}`, c.to, c.color, [...stub, [c.trunk, y], [b.x, y]]); return; }
     const y = botY(); W(`${m.id}:${c.pin}`, c.to, c.color, [...stub, [c.trunk, y], [b.x, y]]);

@@ -1,9 +1,12 @@
 /* Circuit Lab - netlist + microcontroller simulation (avr8js, MIT). */
 import { CPU, avrInstruction, AVRTimer, AVRIOPort, AVRUSART, AVRADC, AVRTWI, AVREEPROM, EEPROMMemoryBackend, PinState } from "../vendor/avr8js.mjs";
-import { CARDS, PARTS } from "./parts.js?v=5";
-import { bbLayout } from "./elements.js?v=5";
-import { BOARDS, ESP_ADC_PINS } from "./boards.js?v=5";
-import { BATT } from "./elements.js?v=5";
+import { CARDS, PARTS } from "./parts.js?v=6";
+import { bbLayout } from "./elements.js?v=6";
+import { BOARDS, ESP_ADC_PINS } from "./boards.js?v=6";
+import { BATT } from "./elements.js?v=6";
+import { setupExtra, hcExtra } from "./sim2.js?v=6";
+import { setupExtra3 } from "./sim3.js?v=6";
+import { setupExtra4, hcExtra4 } from "./sim4.js?v=6";
 
 const F = 16e6, US = F / 1e6, MS = F / 1e3;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -50,6 +53,9 @@ export class Netlist {
       if (p.type === "button") edge(p.id, "1.l", "2.l", () => !!st.pressed);
       if (p.type === "slideswitch") { edge(p.id, "2", "1", () => !st.value); edge(p.id, "2", "3", () => !!st.value); }
       if (p.type === "keypad") for (let r = 1; r <= 4; r++) for (let c = 1; c <= 4; c++) edge(p.id, "R" + r, "C" + c, () => !!(st.keys && st.keys.has(r + "," + c)));
+      if (p.type === "npn") edge(p.id, "C", "E", () => !!st.on);
+      if (p.type === "mosfet") edge(p.id, "D", "S", () => !!st.on);
+      if (p.type === "dipswitch") { st.sw = st.sw || []; for (let i = 1; i <= 8; i++) edge(p.id, i + "a", i + "b", (k => () => !!(st.sw || [])[k])(i - 1)); }
       if (p.type === "relay") { const n = +((p.attrs || {}).channels || 1); st.coil = st.coil || []; for (let i = 0; i < n; i++) { const t = n === 1 ? "" : i + 1; edge(p.id, "COM" + t, "NO" + t, () => !!st.coil[i]); edge(p.id, "COM" + t, "NC" + t, () => !st.coil[i]); } }
     });
     this.nets = {};
@@ -85,7 +91,7 @@ export class Netlist {
 
 /* ---------- HD44780 LCD controller ---------- */
 class LCDCore {
-  constructor(el) { this.el = el; this.reset(); }
+  constructor(el, cols = 16, rows = 2) { this.el = el; this.cols = cols; this.rows = rows; this.reset(); }
   reset() { this.mode8 = true; this.hi = null; this.dd = new Uint8Array(128).fill(32); this.addr = 0; this.inc = true; this.on = true; this.cur = false; this.blk = false; this.cg = false; this.dirty = true; }
   cmd(b) {
     if (b & 0x80) { this.addr = b & 0x7f; this.cg = false; }
@@ -107,11 +113,14 @@ class LCDCore {
   }
   render(backlight) {
     if (!this.dirty && this._bl === backlight) return; this.dirty = false; this._bl = backlight;
-    const ch = new Uint8Array(32);
-    for (let i = 0; i < 16; i++) { ch[i] = this.on ? this.dd[i] : 32; ch[16 + i] = this.on ? this.dd[0x40 + i] : 32; }
+    const C = this.cols, Rn = this.rows, base = Rn > 2 ? [0x00, 0x40, 0x14, 0x54] : [0x00, 0x40];
+    const ch = new Uint8Array(C * Rn);
+    for (let r = 0; r < Rn; r++) for (let i = 0; i < C; i++) ch[r * C + i] = this.on ? this.dd[(base[r] + i) & 0x7f] : 32;
     this.el.characters = ch; this.el.backlight = backlight;
     this.el.cursor = this.on && this.cur; this.el.blink = this.on && this.blk;
-    this.el.cursorX = this.addr & 0x3f; this.el.cursorY = this.addr >= 0x40 ? 1 : 0;
+    let row = 0, col = this.addr;
+    for (let r = Rn - 1; r >= 0; r--) if (this.addr >= base[r]) { row = r; col = this.addr - base[r]; break; }
+    this.el.cursorX = col; this.el.cursorY = row;
   }
 }
 
@@ -145,10 +154,14 @@ export class Sim {
     this.twi = new AVRTWI(cpu, M.twi, F);
     this.eeprom = new AVREEPROM(cpu, new EEPROMMemoryBackend(M.eepromSize), M.eeprom);
     this.pin = []; for (let i = 0; i < M.pins; i++) this.pin.push({ lv: 0, last: 0, hi: 0, win: 0, duty: 0, pwm: null });
-    this.watch = {}; this.outputs = {}; this.devices = []; this.i2c = {};
+    this.watch = {}; this.nwatch = {}; this.outputs = {}; this.devices = []; this.i2c = {};
     this.warnings = new Set(); this.notes = new Set();
     this.eff = new Array(M.pins).fill(-1);
     this.adcOf = {}; Object.values(B.pins).forEach(p => { if (p.adc != null) this.adcOf[p.n] = p.adc; });
+    /* sensors can register an exact value read at the moment the sketch calls analogRead */
+    this.liveAdc = {};
+    const adcRead = this.adc.onADCRead.bind(this.adc);
+    this.adc.onADCRead = inp => { if (inp && inp.channel != null) { const f = this.liveAdc[inp.channel]; if (f) this.adc.channelValues[inp.channel] = f(); } return adcRead(inp); };
     this.net9 = { wifi: null, connectAt: 0, server: false, reqs: [], cur: {}, nextId: 1, http: null, mqttIn: [], nowIn: [], log: [] };
     this.ser = []; // serial module handles
     Object.entries(this.ports).forEach(([name, port]) => {
@@ -223,10 +236,23 @@ export class Sim {
       if (set.size) this.affects[n] = [...set];
     });
   }
-  netChanged(r) { this.group(r).forEach(g => [g].concat(this.net.weak[g] || []).forEach(x => (this.net.mcuPins[x] || []).forEach(q => this.updateInput(q)))); }
+  netChanged(r) {
+    this.group(r).forEach(g => [g].concat(this.net.weak[g] || []).forEach(x => (this.net.mcuPins[x] || []).forEach(q => this.updateInput(q))));
+    const w = this.nwatch[this.net.find(r)];
+    if (w && !this._inw) { this._inw = 1; try { w.forEach(f => f(null, this.cpu.cycles, false)); } finally { this._inw = 0; } }
+  }
   switchChanged(pid) { Object.entries(this.net.sw).forEach(([r, es]) => es.forEach(e => { if (e.pid === pid) { this.netChanged(r); this.netChanged(e.o); } })); }
   addOutput(r, fn) { (this.outputs[r] = this.outputs[r] || []).push(fn); }
+  /* exact analog value (volts) sampled when the sketch reads the pin, not once per frame */
+  liveAnalog(r, fn) {
+    this.net.drivers(r).forEach(x => {
+      const ch = this.adcOf[x.n]; if (ch == null) return;
+      this.liveAdc[ch] = () => { const v = fn(); return this.B.esp ? clamp(v * 5 / 3.3, 0, 5) : clamp(v, 0, 5); };
+    });
+  }
   watchNet(r, fn) { const d = this.net.drivers(r); d.forEach(x => (this.watch[x.n] = this.watch[x.n] || []).push(fn)); return d[0]; }
+  /* like watchNet, but also fires when a non-board part (a shift register, a motor driver) changes the net */
+  watchAny(r, fn) { this.watchNet(r, fn); const k = this.net.find(r); (this.nwatch[k] = this.nwatch[k] || []).push(fn); }
   powered(pid, vccPin, gndPin) {
     const v = this.level(this.net.root(pid, vccPin)), g = this.level(this.net.root(pid, gndPin));
     return !!(v && v.v > 2.5 && g && g.v < 1);
@@ -305,9 +331,17 @@ export class Sim {
         if (op === 3) { if (!st.tap) return 0; const c = st.tap; st.tap = null; this.put(ptr, len, c.uid.concat([0x08])); return 1; }
         return 1;
       }
-      case 5: { // MAX7219
+      case 5: { // MAX7219, single 8x8 or a 4-in-1 chain
         const din = (b >> 16) & 255, clk = (b >> 8) & 255, cs = b & 255;
-        const p = this.findPart("max7219", q => this.pinWired(q, "DIN", din) && this.pinWired(q, "CLK", clk) && this.pinWired(q, "CS", cs) && this.partPowered(q));
+        const wired = q => this.pinWired(q, "DIN", din) && this.pinWired(q, "CLK", clk) && this.pinWired(q, "CS", cs) && this.partPowered(q);
+        const chain = this.findPart("max7219x4", wired);
+        if (chain) {
+          const D = this.devOf(chain.id); if (!D) return 0;
+          if (op === 2) { const rows = Array.from(d.slice(ptr, ptr + 8)); for (let c = 0; c < 8; c++) { let v = 0; for (let r = 0; r < 8; r++) if ((rows[r] >> (7 - c)) & 1) v |= 1 << r; D.cols[a * 8 + c] = v; } D.dirty = true; }
+          if (op === 4) { for (let c = 0; c < 8; c++) D.cols[a * 8 + c] = b ? 0 : D.cols[a * 8 + c]; D.dirty = true; }
+          return 1;
+        }
+        const p = this.findPart("max7219", wired);
         if (!p) { if (op === 1) this.notes.add("LED matrix not found: check DIN, CLK, CS (same order as in LedControl) and power."); return 0; }
         const D = this.devOf(p.id);
         if (op === 2 && a === 0) { D.rows = Array.from(d.slice(ptr, ptr + 8)); D.dirty = true; }
@@ -344,24 +378,54 @@ export class Sim {
       case 10: { // serial modules
         if (op === 1) {
           let part = null, name = "Bluetooth";
-          if (a >= 0) part = this.findPart("hc05", q => this.pinWired(q, "TXD", a) && this.pinWired(q, "RXD", b) && this.partPowered(q));
-          if (a < 0) name = len ? this.str(ptr, len) : "ESP32";
-          else if (part) name = "HC-05"; else this.notes.add(`Nothing is wired to pins ${a} (RX) and ${b} (TX) for SoftwareSerial. HC-05: TXD to ${a}, RXD to ${b}.`);
-          this.ser.push({ part, name, rx: [], ok: a < 0 || !!part }); this.onNet({ kind: "bt", name, ready: a < 0 || !!part });
+          let kind = "bt";
+          if (a >= 0) {
+            part = this.findPart("hc05", q => this.pinWired(q, "TXD", a) && this.pinWired(q, "RXD", b) && this.partPowered(q));
+            if (part) name = "HC-05";
+            if (!part) { part = this.findPart("gps", q => this.pinWired(q, "TX", a) && this.partPowered(q)); if (part) { name = "GPS"; kind = "gps"; } }
+            if (!part) { part = this.findPart("sim800l", q => this.pinWired(q, "TX", a) && this.pinWired(q, "RX", b) && this.partPowered(q)); if (part) { name = "SIM800L"; kind = "gsm"; } }
+            if (!part) this.notes.add(`Nothing is wired to pins ${a} (RX) and ${b} (TX) for SoftwareSerial. A module's TX goes to ${a} and its RX to ${b}.`);
+          } else name = len ? this.str(ptr, len) : "ESP32";
+          this.ser.push({ part, name, kind, rx: [], ok: a < 0 || !!part });
+          if (kind !== "gps") this.onNet({ kind: "bt", name, ready: a < 0 || !!part });
           return this.ser.length - 1;
         }
         const h = this.ser[a]; if (!h) return op === 4 || op === 5 ? -1 : 0;
-        if (op === 2) { if (h.ok) this.btOut(h, this.str(ptr, len)); return len; }
+        if (op === 2) { if (h.ok) { if (h.kind === "gsm") this.gsmIn(h, this.str(ptr, len)); else if (h.kind !== "gps") this.btOut(h, this.str(ptr, len)); } return len; }
         if (op === 3) return h.rx.length;
         if (op === 4) return h.rx.length ? h.rx.shift() : -1;
         if (op === 5) return h.rx.length ? h.rx[0] : -1;
         return 0;
       }
       case 12: if (op === 2) return 60; return 0;
+      default: return hcExtra4(this, dev, op, ptr, len, a, b, d, dv) || hcExtra(this, dev, op, ptr, len, a, b, d, dv);
     }
     return 0;
   }
   btOut(h, text) { this.onNet({ kind: "btout", name: h.name, text }); }
+  /* a pretend SIM800L: answer the AT commands students use and show the text message */
+  gsmIn(h, text) {
+    h.buf = (h.buf || "") + text;
+    const reply = s => { for (const c of s) h.rx.push(c.charCodeAt(0)); };
+    if (h.sms != null) {
+      const i = h.buf.indexOf("\u001a");
+      if (i >= 0) { const body = (h.buf.slice(0, i)).trim(); this.onNet({ kind: "sms", to: h.sms, text: body }); h.sms = null; h.buf = h.buf.slice(i + 1); reply("\r\n+CMGS: 1\r\n\r\nOK\r\n"); }
+      return;
+    }
+    let nl;
+    while ((nl = h.buf.search(/[\r\n]/)) >= 0) {
+      const line = h.buf.slice(0, nl).trim(); h.buf = h.buf.slice(nl + 1);
+      if (!line) continue;
+      const up = line.toUpperCase();
+      if (up === "AT") reply("\r\nOK\r\n");
+      else if (up.startsWith("AT+CMGF")) reply("\r\nOK\r\n");
+      else if (up.startsWith("AT+CMGS")) { const m = /"([^"]*)"/.exec(line); h.sms = m ? m[1] : "unknown"; h.buf = ""; reply("\r\n> "); return; }
+      else if (up.startsWith("AT+CSQ")) reply("\r\n+CSQ: 21,0\r\n\r\nOK\r\n");
+      else if (up.startsWith("AT+CREG")) reply("\r\n+CREG: 0,1\r\n\r\nOK\r\n");
+      else if (up.startsWith("AT+COPS")) reply('\r\n+COPS: 0,0,"Simulated Network"\r\n\r\nOK\r\n');
+      else reply("\r\nOK\r\n");
+    }
+  }
   /* phone sends text to a serial module */
   btSend(text) {
     let any = false;
@@ -418,6 +482,14 @@ export class Sim {
     });
   }
   mqttSend(topic, msg) { this.net9.mqttIn.push({ topic, msg }); }
+  /* a button on the on-screen IR remote */
+  irSend(cmd, addr = 0) {
+    this.lastIr = { cmd, addr, at: this.cpu.cycles };
+    (this.irQueue = this.irQueue || []).push(cmd | (addr << 8));
+    let any = false;
+    this.devices.forEach(D => { if (D.ir) { D.ir(addr, cmd); any = true; } });
+    return any;
+  }
   nowSend(text) { this.net9.nowIn.push(text); }
   devOf(id) { return this.devices.find(D => D.part.id === id); }
 
@@ -484,7 +556,7 @@ export class Sim {
           break;
         }
         case "hcsr04": this.setupHCSR04(D, R); break;
-        case "dht22": this.setupDHT(D, R); break;
+        case "dht22": case "dht11": this.setupDHT(D, R); break;
         case "servo": {
           let rise = 0;
           this.watchNet(R("PWM"), (lv, c) => { if (lv) rise = c; else if (rise) { const w = (c - rise) / US; if (w > 400 && w < 2700 && this.powered(id, "V+", "GND")) el.angle = clamp((w - 544) / (2400 - 544) * 180, 0, 180); } });
@@ -524,6 +596,13 @@ export class Sim {
         case "voltsensor": this.addOutput(R("S"), () => { const a = this.level(R("VIN")), g = this.level(R("GIN")); if (!a) return null; return Math.max(0, a.v - (g ? g.v : 0)) / 5; }); D.frame = () => this.netChanged(R("S")); break;
         case "uno": D.frame = () => { el.led13 = this.pin[13].duty > 0.3; el.ledPower = true; el.ledTX = this.txAt && performance.now() - this.txAt < 60; }; break;
         case "esp32": D.frame = () => { el.ledPower = true; el.led1 = this.pin[2].duty > 0.3; }; break;
+        default: {
+          const dig = (pin, fn) => this.addOutput(R(pin), () => ok() ? (fn() ? this.supply(part) : 0) : null);
+          const ana = (pin, fn) => this.addOutput(R(pin), () => ok() ? clamp(fn(), 0, 1) * this.supply(part) : null);
+          const leds2 = sigOn => { D.frame = () => { el.led && el.led("pwr", ok()); el.led && el.led("sig", ok() && sigOn()); }; };
+          const bag = { R, ok, dig, ana, leds: leds2 };
+          try { setupExtra3(this, D, bag) || setupExtra4(this, D, bag) || setupExtra(this, D, bag); } catch (e) { console.warn("part setup failed:", part.type, e); }
+        }
       }
       this.devices.push(D);
     }
@@ -592,8 +671,14 @@ export class Sim {
     D.frame = () => { if (!busy && lowAt && !this.isOut(n) && this.cpu.cycles - lowAt > 800 * US && this.powered(id, "VCC", "GND")) { lowAt = 0; this.dhtSend(sim, v => { drive = v; this.netChanged(dr); }, b => { busy = b; }); } };
   }
   dhtSend(sim, set, setBusy) {
-    const h = Math.round(clamp(+sim.hum, 0, 100) * 10), t0 = Math.round((+sim.temp) * 10), t = t0 < 0 ? (0x8000 | -t0) : t0;
-    const bytes = [h >> 8, h & 255, t >> 8, t & 255]; bytes.push((bytes[0] + bytes[1] + bytes[2] + bytes[3]) & 255);
+    let bytes;
+    if (sim.kind === "11") {   // DHT11 sends whole degrees and percent
+      bytes = [Math.round(clamp(+sim.hum, 0, 100)), 0, Math.round(clamp(+sim.temp, 0, 60)), 0];
+    } else {
+      const h = Math.round(clamp(+sim.hum, 0, 100) * 10), t0 = Math.round((+sim.temp) * 10), t = t0 < 0 ? (0x8000 | -t0) : t0;
+      bytes = [h >> 8, h & 255, t >> 8, t & 255];
+    }
+    bytes.push((bytes[0] + bytes[1] + bytes[2] + bytes[3]) & 255);
     const seq = [[30, null], [80, 0], [80, 1]];
     bytes.forEach(B => { for (let i = 7; i >= 0; i--) { seq.push([50, 0]); seq.push([(B >> i) & 1 ? 70 : 26, 1]); } });
     seq.push([50, 0]); seq.push([0, null]);
@@ -602,7 +687,7 @@ export class Sim {
     const run = () => { if (i >= seq.length) { set(null); setBusy(false); return; } const [dt, v] = seq[i++]; set(v); if (dt) this.cpu.addClockEvent(run, Math.round(dt * US)); else run(); };
     run();
   }
-  setupNeoPixel(D, rin, count) {
+  setupNeoPixel(D, rin, count, setter) {
     const buf = new Array(count).fill(null).map(() => ({ r: 0, g: 0, b: 0 }));
     const shown = buf.map(x => Object.assign({}, x));
     let rise = 0, fall = 0, bits = 0, nb = 0, idx = 0;
@@ -616,13 +701,14 @@ export class Sim {
       if (fall && this.cpu.cycles - fall > 50 * US && idx) { for (let i = 0; i < count; i++) Object.assign(shown[i], buf[i]); idx = 0; nb = 0; D.dirty = true; }
       if (!D.dirty) return; D.dirty = false;
       const vis = p => { const m = Math.max(p.r, p.g, p.b) / 255; if (!m) return { r: 0, g: 0, b: 0 }; const k = Math.min(1, 0.35 + 0.65 * Math.sqrt(m)) / m / 255; return { r: p.r * k, g: p.g * k, b: p.b * k }; };
-      if (count === 1) { const v = vis(shown[0]); D.el.r = v.r; D.el.g = v.g; D.el.b = v.b; }
+      if (setter) shown.forEach((p, i) => setter(i, vis(p)));
+      else if (count === 1) { const v = vis(shown[0]); D.el.r = v.r; D.el.g = v.g; D.el.b = v.b; }
       else shown.forEach((p, i) => D.el.setPixel(i, vis(p)));
     };
   }
-  setupLCD(D, R) {
-    const core = new LCDCore(D.el), id = D.part.id;
-    D.el.characters = new Uint8Array(32).fill(32);
+  setupLCD(D, R, cols = 16, rows = 2) {
+    const core = new LCDCore(D.el, cols, rows), id = D.part.id;
+    D.el.characters = new Uint8Array(cols * rows).fill(32);
     if (((D.part.attrs || {}).pins || "i2c") === "i2c") {
       let last = 0, bl = 1;
       const ok = () => this.powered(id, "VCC", "GND") && this.i2cWired(D.part);
@@ -644,8 +730,8 @@ export class Sim {
       if (prev !== null) { let d = e - prev; while (d > 2) d -= 4; while (d <= -2) d += 4; angle += d * 1.8; }
       prev = e;
     };
-    roots.forEach(r => this.watchNet(r, upd));
-    D.frame = () => { D.el.angle = ((angle % 360) + 360) % 360; D.el.value = Math.round(angle / 1.8) + ""; D.el.units = "steps"; };
+    roots.forEach(r => this.watchAny(r, upd));
+    D.frame = () => { upd(); D.el.angle = ((angle % 360) + 360) % 360; D.el.value = Math.round(angle / 1.8) + ""; D.el.units = "steps"; };
   }
   setupStepper28(D, R) {
     const id = D.part.id, roots = ["IN1", "IN2", "IN3", "IN4"].map(R); let prev = null, steps = 0, bitsNow = 0;
@@ -659,8 +745,18 @@ export class Sim {
       if (prev !== null) { let d = e - prev; while (d > 2) d -= 4; while (d <= -2) d += 4; if (Math.abs(d) < 1.6) steps += d; }
       prev = e;
     };
-    roots.forEach(r => this.watchNet(r, upd));
-    D.frame = () => { D.el.coils = bitsNow; D.el.setAngle(steps * 360 / 2048); };
+    roots.forEach(r => this.watchAny(r, upd));
+    D.frame = () => { upd(); D.el.coils = bitsNow; D.el.setAngle(steps * 360 / 2048); };
+  }
+  l293dChan(id, ch) {
+    const vs = this.level(this.net.root(id, "VS")), g = this.level(this.net.root(id, "GND"));
+    if (!(vs && vs.v > 3 && g && g.v < 1)) return 0;
+    const [en, i1, i2] = ch === "A" ? ["EN1", "IN1", "IN2"] : ["EN2", "IN3", "IN4"];
+    const L = pn => { const x = this.level(this.net.root(id, pn)); return x && x.v > 2 ? 1 : 0; };
+    const enR = this.level(this.net.root(id, en));
+    const speed = enR ? (enR.pin != null ? this.pin[enR.pin].duty : enR.v > 2 ? 1 : 0) : 0;
+    const a = L(i1), b = L(i2);
+    return a && !b ? speed : !a && b ? -speed : 0;
   }
   l298nPower(id) { const v = this.level(this.net.root(id, "12V")), g = this.level(this.net.root(id, "GND")); return !!(v && v.v > 4 && g && g.v < 1); }
   l298nChan(id, ch) {
@@ -676,6 +772,13 @@ export class Sim {
   /* how hard a motor / fan / pump / lamp is driven (-1..1) */
   loadDrive(part, p1, p2, motor) {
     const N = this.net, r1 = N.root(part.id, p1), r2 = N.root(part.id, p2);
+    for (const p of this.project.parts.filter(x => x.type === "l293d")) {
+      const o = k => N.root(p.id, k), g1 = this.group(r1), g2 = this.group(r2);
+      if (g1.includes(o("OUT1")) && g2.includes(o("OUT2"))) return this.l293dChan(p.id, "A");
+      if (g1.includes(o("OUT2")) && g2.includes(o("OUT1"))) return -this.l293dChan(p.id, "A");
+      if (g1.includes(o("OUT3")) && g2.includes(o("OUT4"))) return this.l293dChan(p.id, "B");
+      if (g1.includes(o("OUT4")) && g2.includes(o("OUT3"))) return -this.l293dChan(p.id, "B");
+    }
     for (const p of this.project.parts.filter(x => x.type === "l298n")) {
       const o = k => N.root(p.id, k), g1 = this.group(r1);
       if (g1.includes(o("OUT1")) && this.group(r2).includes(o("OUT2"))) return this.l298nChan(p.id, "A");

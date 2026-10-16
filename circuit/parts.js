@@ -2,8 +2,11 @@
    kind: board | bb (sits on the breadboard) | module (wired with jumper wires)
    pw: power pins { vcc:[...], gnd:[...] } used by the auto-layout and the "is it powered" check
    code: a ready-made example for the part. {PIN:name} is replaced by the board pin it is wired to. */
-import "./elements.js?v=5";
-export { P as PITCH, BB, BB_GROUPS, bbGroupOf, bbLayout } from "./elements.js?v=5";
+import "./elements.js?v=6";
+import { PARTS2 } from "./parts2.js?v=6";
+import { PARTS3 } from "./parts3.js?v=6";
+import { PARTS4 } from "./parts4.js?v=6";
+export { P as PITCH, BB, BB_GROUPS, bbGroupOf, bbLayout } from "./elements.js?v=6";
 
 const COLORS = ["red", "green", "yellow", "blue", "white", "orange"];
 export const CATS = ["Boards", "Basics", "Input", "Sensors", "Displays", "Light & sound", "Motion", "Power", "Communication"];
@@ -456,7 +459,7 @@ void loop() {
   tilt: { tag: "wokwi-tilt-switch", label: "Tilt switch", cat: "Sensors", kind: "module", sim: { tilt: false }, props: [{ k: "tilt", label: "Tilted", type: "toggle", text: "Tilted", sim: true, live: true }], pw: { vcc: ["VCC"], gnd: ["GND"] }, kit: [], help: "OUT goes HIGH when tilted." },
 
   /* ---------- displays ---------- */
-  oled: { tag: "cl-oled", label: "OLED 0.96\" I2C", cat: "Displays", kind: "module", attrs: { color: "white" }, props: [{ k: "color", label: "Screen colour", type: "select", opts: ["white", "blue", "yellowblue"] }], pw: { vcc: ["VCC"], gnd: ["GND"] }, i2c: { sda: "SDA", scl: "SCL", addr: 0x3c }, kit: ["OLED 0.96 in I2C"],
+  oled: { tag: "cl-oled", label: "OLED 0.96\" I2C", cat: "Displays", kind: "module", attrs: { color: "white", size: "128x64" }, props: [{ k: "size", label: "Screen size", type: "select", opts: ["128x64", "128x32"] }, { k: "color", label: "Screen colour", type: "select", opts: ["white", "blue", "yellowblue"] }], pw: { vcc: ["VCC"], gnd: ["GND"] }, i2c: { sda: "SDA", scl: "SCL", addr: 0x3c }, kit: ["OLED 0.96 in I2C"],
     help: "128×64 pixel screen on I2C (SDA, SCL). Use Adafruit_SSD1306 at address 0x3C.",
     code: `// OLED display
 #include <Wire.h>
@@ -836,6 +839,8 @@ export const ESP_DEFAULT_PINS = { A: 2, R: 25, G: 26, B: 27, "1.l": 4, "2": 4, S
   R1: 13, R2: 12, R3: 14, R4: 27, C1: 26, C2: 25, C3: 33, C4: 32, "A+": 25, "A-": 26, "B+": 27, "B-": 14 };
 Object.assign(PARTS.seg7, { defaultsEsp: { A: 13, B: 12, C: 14, D: 27, E: 26, F: 25, G: 33, DP: 32 } });
 Object.assign(PARTS.max7219, { defaultsEsp: { DIN: 23, CLK: 18, CS: 5 } });
+Object.assign(PARTS, PARTS2, PARTS3, PARTS4);
+
 export function defaultPin(d, k, board) {
   if (board === "esp32") return (d.defaultsEsp || {})[k] ?? ESP_DEFAULT_PINS[k] ?? 4;
   return (d.defaults || {})[k] ?? DEFAULT_PINS[k] ?? 2;

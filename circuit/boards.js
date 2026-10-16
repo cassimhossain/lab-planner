@@ -40,6 +40,25 @@ const M328 = {
   usart: usart0Config, adc: adcConfig, twi: twiConfig, spi: spiConfig, eeprom: eepromConfig, eepromSize: 1024,
 };
 
+
+/* ---------- Arduino Nano (same ATmega328P, but A6/A7 are analog-only) ---------- */
+const M328N = Object.assign({}, M328, { pins: 22 });
+function nanoPins() {
+  const m = {};
+  for (let i = 0; i <= 13; i++) m[String(i)] = { n: i, label: "D" + i, pwm: [3, 5, 6, 9, 10, 11].includes(i) };
+  for (let i = 0; i <= 7; i++) m["A" + i] = { n: 14 + i, adc: i, label: "A" + i };
+  m["11.2"] = m["11"]; m["12.2"] = m["12"]; m["13.2"] = m["13"];
+  return m;
+}
+/* ---------- Arduino Mega 2560 ---------- */
+function megaPins() {
+  const m = {};
+  for (let i = 0; i <= 53; i++) m[String(i)] = { n: i, label: "D" + i, pwm: (i >= 2 && i <= 13) || (i >= 44 && i <= 46) };
+  for (let i = 0; i <= 15; i++) m["A" + i] = { n: 54 + i, adc: i, label: "A" + i };
+  m.SDA = { n: 20, label: "SDA" }; m.SCL = { n: 21, label: "SCL" };
+  return m;
+}
+
 /* ---------- board definitions ----------
    pins: board pin name -> { n: MCU arduino pin number, adc: ADC channel, label } */
 function unoPins() {
@@ -72,6 +91,20 @@ export const BOARDS = {
     joined: [["GND.1", "GND.2"]],
     i2c: { sda: "D21", scl: "D22" }, spi: { mosi: "D23", miso: "D19", sck: "D18", ss: "D5" }, led: 2,
     vcc: "VIN", gnd: "GND.2", gnd2: "GND.1", v33: "3V3",
+  },
+  nano: {
+    label: "Arduino Nano", mcu: M328N, build: "nano", logic: 5,
+    pins: nanoPins(), power: { "5V": 5, "5V.2": 5, VIN: 5, "3.3V": 3.3, AREF: 5, "GND.1": 0, "GND.2": 0, "GND.3": 0 },
+    joined: [["GND.1", "GND.2"], ["GND.1", "GND.3"], ["5V", "5V.2"], ["11", "11.2"], ["12", "12.2"], ["13", "13.2"]],
+    i2c: { sda: "A4", scl: "A5" }, spi: { mosi: "11", miso: "12", sck: "13", ss: "10" }, led: 13,
+    vcc: "5V", gnd: "GND.1", gnd2: "GND.2",
+  },
+  mega: {
+    label: "Arduino Mega 2560", mcu: MEGA, build: "mega", logic: 5,
+    pins: megaPins(), power: { "5V": 5, "5V.1": 5, "5V.2": 5, IOREF: 5, VIN: 5, "3.3V": 3.3, "GND.1": 0, "GND.2": 0, "GND.3": 0, "GND.4": 0, "GND.5": 0 },
+    joined: [["GND.1", "GND.2"], ["GND.1", "GND.3"], ["GND.1", "GND.4"], ["GND.1", "GND.5"], ["5V", "5V.1"], ["5V", "5V.2"], ["5V", "IOREF"], ["20", "SDA"], ["21", "SCL"]],
+    i2c: { sda: "20", scl: "21" }, spi: { mosi: "51", miso: "50", sck: "52", ss: "53" }, led: 13,
+    vcc: "5V", gnd: "GND.2", gnd2: "GND.3",
   },
 };
 export const BOARD_TYPES = Object.keys(BOARDS);

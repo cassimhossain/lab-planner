@@ -33,6 +33,7 @@ function injectToolbar() {
     <i></i>
     <button data-tool="dup" title="Duplicate the selection (Ctrl+D)">${C.ic("copy")}</button>
     <button data-tool="note" title="Add a note to the canvas">${C.ic("note")}</button>
+    <button data-act="schem" title="Schematic view: your circuit drawn as a diagram">${C.ic("sch")}</button>
     <button data-tool="export" title="Save a picture, a parts list or a link">${C.ic("share")}</button>`;
   bar.appendChild(i); bar.appendChild(wrap);
   bar.addEventListener("click", e => {

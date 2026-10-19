@@ -1,13 +1,14 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=8";
-import { Netlist, Sim } from "./sim.js?v=8";
-import { BOARDS, loadHex } from "./boards.js?v=8";
-import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=8";
-import { layoutCircuit } from "./layout.js?v=8";
-import { SNIPPETS } from "./snippets.js?v=8";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=8";
-import * as T from "./tools.js?v=8";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=8";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=9";
+import { Netlist, Sim } from "./sim.js?v=9";
+import { BOARDS, loadHex } from "./boards.js?v=9";
+import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=9";
+import { layoutCircuit } from "./layout.js?v=9";
+import { SNIPPETS } from "./snippets.js?v=9";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=9";
+import * as T from "./tools.js?v=9";
+import { buildSchematic } from "./schematic.js?v=9";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=9";
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -16,6 +17,7 @@ const KEY = "circuitlab.v2", LIST = "circuitlab.projects.v2", LKEY = "circuitlab
 /* Your own work autosaves to KEY. A lesson autosaves to its own slot (LKEY + code), so opening Circuit Lab never brings back a lesson. */
 const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } } };
 const BUILD_URL = (() => { try { return localStorage.getItem("circuitlab.buildUrl") || "https://hexi.wokwi.com/build"; } catch (e) { return "https://hexi.wokwi.com/build"; } })();
+let penColor = "auto";   /* the colour the next wire is drawn in; "auto" = pick by what the pins are (red 5V, black GND, orange 3V3) */
 const WIRE_COLORS = ["#2B2D42", "#E63946", "#F08C00", "#F5B83D", "#2E9E5B", "#20B8A6", "#1F6FD1", "#7B3FC4", "#D6336C", "#8D6E63", "#FFFFFF"];
 const ICON = {
   play: '<path d="M7 5l12 7-12 7z"/>', stop: '<rect x="6" y="6" width="12" height="12" rx="1.5"/>', rot: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
@@ -24,6 +26,8 @@ const ICON = {
   sound: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6"/>', mute: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l4 6M21 9l-4 6"/>', search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
   chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>', wifi: '<path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1"/>',
   check: '<path d="M5 12l5 5 9-10"/>', arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>', ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>', bolt: '<path d="M13 2L5 14h6l-1 8 8-12h-6z"/>',
+  sch: '<path d="M3 12h4l2-4 3 8 2-4h7"/><circle cx="3" cy="12" r="1.3"/><circle cx="21" cy="12" r="1.3"/>',
+  dl: '<path d="M12 4v11M8 11l4 4 4-4"/><path d="M5 19h14"/>',
   probe: '<path d="M14 3l7 7-3 3-7-7z"/><path d="M11 10L3 18v3h3l8-8"/>', volt: '<path d="M12 3v18M7 7h10M7 12h10M7 17h10"/>',
   scope: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M5 14h3l2-6 2 10 2-7h5"/>', copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M15 9V5a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h4"/>',
   note: '<path d="M5 4h10l4 4v12H5z"/><path d="M15 4v4h4M8 12h8M8 16h5"/>', share: '<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6"/>',
@@ -44,6 +48,7 @@ let view = { x: 40, y: 20, z: 1 };
 let sel = null;             // { kind: 'part'|'wire', id }
 let wiring = null;          // { from, pts, mouse }
 let hoverPart = null, hoverPin = null;
+let ptr = null, ptrDrawn = null;   // cursor in world coords, and where the pins were last drawn
 let sim = null, running = false, raf = 0, lastT = 0;
 let undoStack = [], redoStack = [], editor;
 let muted = false, catFilter = "All";
@@ -134,10 +139,34 @@ function autoColor(from, to) {
   if (/5V|VCC|VIN|V\+|VDD|12V|:\+|\.BP|\.TP/.test(n)) return "#E63946";
   return ["#2E9E5B", "#1F6FD1", "#7B3FC4", "#E8590C", "#20B8A6", "#D6336C"][project.wires.length % 6];
 }
-function routePts(a, b, pts) {
+/* Which way a pin faces, "v" (up or down) or "h" (left or right). A header pin
+   along the top of a board faces up, so a wire that starts by going sideways
+   runs straight across the artwork. This lets the wire leave the way it points. */
+function pinDir(node) {
+  if (!node) return null;
+  const i = node.indexOf(":"), id = node.slice(0, i), pin = node.slice(i + 1);
+  const p = project.parts.find(q => q.id === id), r = p && rt[p.id];
+  if (!r || !r.el || !r.el.pinInfo) return null;
+  if (p.type === "breadboard") return null;   /* holes sit in the middle of the board, so they face nowhere */
+  const q = r.el.pinInfo.find(z => z.name === pin); if (!q) return null;
+  const w = r.w || 1, h = r.h || 1;
+  if (w < 2 || h < 2) return null;
+  let vert = Math.abs((q.y - h / 2) / h) >= Math.abs((q.x - w / 2) / w);
+  if ((((p.rot || 0) % 180) + 180) % 180 === 90) vert = !vert;
+  return vert ? "v" : "h";
+}
+function routePts(a, b, pts, from, to) {
   if (pts && pts.length) return [a, ...pts.map(([x, y]) => ({ x, y })), b];
   if (Math.abs(a.x - b.x) < 1 || Math.abs(a.y - b.y) < 1) return [a, b];
-  return [a, { x: b.x, y: a.y }, b];
+  const da = pinDir(from), db = pinDir(to);
+  if (da && db && da === db) {
+    /* both pins face the same way: step out, across, and back in, so neither
+       end of the wire runs along its own header */
+    const m = da === "v" ? (a.y + b.y) / 2 : (a.x + b.x) / 2;
+    return da === "v" ? [a, { x: a.x, y: m }, { x: b.x, y: m }, b] : [a, { x: m, y: a.y }, { x: m, y: b.y }, b];
+  }
+  const first = da || (db === "v" ? "h" : db === "h" ? "v" : "h");
+  return first === "v" ? [a, { x: a.x, y: b.y }, b] : [a, { x: b.x, y: a.y }, b];
 }
 /* polyline with softly rounded corners */
 function roundPath(pts, r = 4) {
@@ -247,7 +276,7 @@ function drawWires() {
   const svg = $("#wires"); let s = "";
   project.wires.forEach((w, i) => {
     const a = pinPos(w.from), b = pinPos(w.to); if (!a || !b) return;
-    const pts = routePts(a, b, w.pts), d = roundPath(pts), on = sel && sel.kind === "wire" && sel.id === i;
+    const pts = routePts(a, b, w.pts, w.from, w.to), d = roundPath(pts), on = sel && sel.kind === "wire" && sel.id === i;
     const tint = T.wireTint(w);
     const c = tint || w.color || "#2E9E5B", light = /^#F|#FFF/i.test(c);
     s += `<path class="whit" data-wire="${i}" d="${d}"/><path class="wire-o ${on ? "on" : ""}" d="${d}"/><path class="wire ${light ? "light" : ""}" d="${d}" stroke="${c}"/><circle class="wend" cx="${a.x}" cy="${a.y}" r="2.4" fill="${c}"/><circle class="wend" cx="${b.x}" cy="${b.y}" r="2.4" fill="${c}"/>`;
@@ -255,7 +284,14 @@ function drawWires() {
   });
   if (wiring) {
     const a = pinPos(wiring.from), m = wiring.mouse;
-    if (a && m) { const pts = [a, ...wiring.pts.map(([x, y]) => ({ x, y }))]; const last = pts[pts.length - 1]; pts.push({ x: m[0], y: last.y }, { x: m[0], y: m[1] }); s += `<path class="wire ghost" d="${roundPath(pts)}"/>`; }
+    if (a && m) {
+      const pts = [a, ...wiring.pts.map(([x, y]) => ({ x, y }))], last = pts[pts.length - 1];
+      const vertFirst = !wiring.pts.length && pinDir(wiring.from) === "v";
+      if (vertFirst) pts.push({ x: last.x, y: m[1] }); else pts.push({ x: m[0], y: last.y });
+      pts.push({ x: m[0], y: m[1] });
+      const gc = penColor === "auto" ? (hoverPin ? autoColor(wiring.from, hoverPin) : "#94A3B8") : penColor;
+      s += `<path class="wire ghost" d="${roundPath(pts)}" stroke="${gc}"/>`;
+    }
   }
   svg.innerHTML = s;
   drawPins(); drawFields();
@@ -263,11 +299,23 @@ function drawWires() {
 function drawPins() {
   const g = $("#pins"); if (running && !T.state.probe) { g.innerHTML = ""; return; }
   let s = "";
-  const show = wiring ? project.parts : project.parts.filter(p => p.id === hoverPart || (sel && sel.kind === "part" && sel.id === p.id) || (running && T.state.probe && p.type !== "breadboard"));
+  /* Only the pins near the cursor are drawn. Covering every part at once put
+     hundreds of dots over the artwork, which is what made the board look muddy,
+     and because these are world coordinates they grew with the zoom until they
+     swallowed the header. The radius is divided by the zoom so a dot is always
+     the same size on screen. */
+  const R = 58 / view.z;                                   // how close before a pin appears
+  const r0 = 4.2 / view.z, rbb = 3.2 / view.z;
+  const px = ptr ? ptr[0] : null, py = ptr ? ptr[1] : null;
+  const src = wiring ? wiring.from : null;
+  ptrDrawn = ptr ? [px, py] : null;
   const used = new Set(); project.wires.forEach(w => { used.add(w.from); used.add(w.to); });
-  show.forEach(p => pinsWorld(p).forEach(q => {
+  project.parts.forEach(p => pinsWorld(p).forEach(q => {
     const node = p.id + ":" + q.name, bb = p.type === "breadboard";
-    s += `<circle class="pin ${used.has(node) ? "used" : ""} ${bb ? "bb" : ""} ${hoverPin === node ? "hot" : ""}" data-pin="${esc(node)}" cx="${q.x}" cy="${q.y}" r="${bb ? 3.4 : 4.4}"/>`;
+    const near = px != null && Math.hypot(q.x - px, q.y - py) <= R;
+    /* the pin the wire started from stays put, so the student can see where they came from */
+    if (!near && node !== src && node !== hoverPin) return;
+    s += `<circle class="pin ${used.has(node) ? "used" : ""} ${bb ? "bb" : ""} ${hoverPin === node ? "hot" : ""} ${node === src ? "src" : ""}" data-pin="${esc(node)}" cx="${q.x}" cy="${q.y}" r="${bb ? rbb : r0}"/>`;
   }));
   if (sel && sel.kind === "wire" && !running) { const w = project.wires[sel.id]; (w && w.pts || []).forEach(([x, y], k) => { s += `<circle class="whandle" data-wire="${sel.id}" data-pt="${k}" cx="${x}" cy="${y}" r="4.5"/>`; }); }
   g.innerHTML = s;
@@ -277,6 +325,33 @@ function pinTitle(node) {
   if (BOARDS[p.type]) { const bp = BOARDS[p.type].pins[pin]; return `${esc(BOARDS[p.type].label)} · <b>${esc(pin.replace(/\.\d$/, ""))}</b>${bp && bp.label && bp.label !== pin ? ` <span>${esc(bp.label)}${bp.pwm ? " · PWM" : ""}${bp.adc != null ? " · analog" : ""}</span>` : ""}`; }
   if (p.type === "breadboard") { if (/^[tb][np]\./.test(pin)) return `Breadboard · <b>${pin[1] === "p" ? "+ rail" : "− rail"}</b>`; return `Breadboard · hole <b>${esc(pin)}</b>`; }
   return `${esc(partLabel(p))} · <b>${esc(pin)}</b>`;
+}
+
+/* ---------- schematic view ----------
+   The circuit redrawn as a diagram. Read-only on purpose: it is generated from
+   the netlist each time it opens, so it can never disagree with what was built. */
+let schSVG = "";
+function showSchematic() {
+  if (!project.parts.length) return toast("Build a circuit first, then open the schematic.");
+  const states = {}; project.parts.forEach(q => { states[q.id] = rt[q.id] ? rt[q.id].state : {}; });
+  let net; try { net = new Netlist(project, pinsWorld, states); } catch (e) { return toast("Could not read the circuit", "warn"); }
+  let out; try { out = buildSchematic({ project, rt, net, PARTS, BOARDS, partLabel, title: project.name || "Circuit" }); }
+  catch (e) { console.error(e); return toast("Could not draw the schematic", "warn"); }
+  if (!out.svg) return toast("There is nothing to draw yet.");
+  schSVG = out.svg;
+  let box = $("#schview");
+  if (!box) { box = document.createElement("div"); box.id = "schview"; box.className = "schview"; $("#stage").appendChild(box); }
+  box.innerHTML = `<header><b>${ic("sch")}Schematic view</b><small>Drawn from your circuit. The breadboard is gone; the connections it made stay.</small><span class="grow"></span>`
+    + `<button class="cbtn" data-act="schsvg">${ic("dl")}Download SVG</button><button class="cbtn icon" data-act="schclose" title="Close">${ic("x")}</button></header>`
+    + `<div class="schbody">${out.svg}</div>`;
+  box.classList.add("on");
+}
+function downloadSchematic() {
+  if (!schSVG) return;
+  const a = document.createElement("a"), url = URL.createObjectURL(new Blob([schSVG], { type: "image/svg+xml" }));
+  a.href = url; a.download = (project.name || "circuit").replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-") + "-schematic.svg";
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast("Schematic saved as an SVG");
 }
 
 /* ---------- view ---------- */
@@ -311,7 +386,7 @@ function bounds() {
 }
 function fit() {
   if (!project.parts.length) return;
-  const b = bounds(), st = $("#stage").getBoundingClientRect(), padL = 40, padT = $("#lessoncard").classList.contains("on") ? 96 : 56, padB = 56;
+  const b = bounds(), st = $("#stage").getBoundingClientRect(), padL = 40, padT = $("#lessoncard").classList.contains("on") ? 124 : 56, padB = 56;
   view.z = Math.max(0.25, Math.min(1.7, Math.min((st.width - padL * 2) / (b.x1 - b.x0 || 1), (st.height - padT - padB) / (b.y1 - b.y0 || 1))));
   view.x = (st.width - (b.x1 - b.x0) * view.z) / 2 - b.x0 * view.z; view.y = padT + (st.height - padT - padB - (b.y1 - b.y0) * view.z) / 2 - b.y0 * view.z; applyView();
 }
@@ -338,7 +413,7 @@ function renderPalette() {
   $$("[data-thumb]").forEach(t => {
     const d = PARTS[t.dataset.thumb], el = document.createElement(d.tag);
     applyAttrs(el, d.attrs); t.appendChild(el);
-    const fitThumb = n => { const r = el.getBoundingClientRect(), w = r.width, h = r.height; if ((!w || !h) && n < 25) return setTimeout(() => fitThumb(n + 1), 60); const box = t.getBoundingClientRect(), bw = box.width || 64, bh = box.height || 48; const s = Math.min((bw - 6) / (w || bw), (bh - 6) / (h || bh), 1.4); el.style.transform = `translate(${(bw - w * s) / 2}px,${(bh - h * s) / 2}px) scale(${s})`; el.style.opacity = 1; };
+    const fitThumb = n => { const r = el.getBoundingClientRect(), w = r.width, h = r.height; if ((!w || !h) && n < 25) return setTimeout(() => fitThumb(n + 1), 60); const box = t.getBoundingClientRect(), bw = box.width || 64, bh = box.height || 48; const s = Math.min((bw - 6) / (w || bw), (bh - 6) / (h || bh), 1.8); el.style.transform = `translate(${(bw - w * s) / 2}px,${(bh - h * s) / 2}px) scale(${s})`; el.style.opacity = 1; };
     el.style.opacity = 0; (el.updateComplete || Promise.resolve()).then(() => requestAnimationFrame(() => fitThumb(0)));
   });
 }
@@ -398,7 +473,13 @@ function partCode(p) {
 function showInspector() {
   const box = $("#inspector"); drawFields();
   $("#partcodebtn").hidden = !(sel && sel.kind === "part" && PARTS[(project.parts.find(q => q.id === sel.id) || {}).type || ""]?.code);
-  $("#wcolors").innerHTML = sel && sel.kind === "wire" && !running ? WIRE_COLORS.map(c => `<button class="sw ${project.wires[sel.id] && project.wires[sel.id].color === c ? "on" : ""}" data-wcolor="${c}" style="--c:${c}" title="Wire colour"></button>`).join("") : "";
+  /* The swatches are always there, like Tinkercad's wire colour: they set the
+     colour the next wire is drawn in, and recolour the wire if one is selected. */
+  const selw = sel && sel.kind === "wire" ? project.wires[sel.id] : null;
+  const swOn = selw ? (selw.color || null) : (penColor === "auto" ? null : penColor);
+  $("#wcolors").innerHTML = running ? "" :
+    `<button class="sw auto ${swOn === null ? "on" : ""}" data-wcolor="auto" title="Automatic: red for 5V, black for GND, orange for 3V3">A</button>` +
+    WIRE_COLORS.map(c => `<button class="sw ${swOn === c ? "on" : ""}" data-wcolor="${c}" style="--c:${c}" title="Wire colour"></button>`).join("");
   if (!sel || sel.kind !== "part") { box.classList.remove("on"); box.innerHTML = ""; return; }
   const p = project.parts.find(q => q.id === sel.id); if (!p) { sel = null; return showInspector(); }
   const d = PARTS[p.type];
@@ -794,7 +875,19 @@ function onDown(e) {
   if (e.target.closest(".insp, .ctools, .zoombar, .lessoncard, .warns, .empty")) return;
   const handle = e.target.closest(".whandle");
   if (handle && !running) { snapshot(); drag = { kind: "handle", wire: +handle.dataset.wire, pt: +handle.dataset.pt }; e.preventDefault(); return; }
-  const pin = e.target.closest(".pin");
+  /* Pin dots are only drawn near the cursor now, so a fast click can land before
+     the dot exists. Fall back to the nearest pin within a few screen pixels, which
+     is what the student was aiming at anyway. */
+  let pin = e.target.closest(".pin");
+  if (!pin && !e.target.closest(".whit")) {
+    const [cx, cy] = toWorld(e.clientX, e.clientY);
+    let best = 7 / view.z, node = null;
+    project.parts.forEach(q => pinsWorld(q).forEach(z => {
+      const d = Math.hypot(z.x - cx, z.y - cy);
+      if (d < best) { best = d; node = q.id + ":" + z.name; }
+    }));
+    if (node) { ptr = [cx, cy]; drawPins(); pin = $(`#pins .pin[data-pin="${CSS.escape(node)}"]`); }
+  }
   if (pin && running && T.state.probe) { e.stopPropagation(); T.toggleChannel(pin.dataset.pin); return; }
   if (pin && !running) { e.stopPropagation(); const was = !!wiring; clickPin(pin.dataset.pin); pinDown = !was && wiring ? { sx: e.clientX, sy: e.clientY } : null; return; }
   // while wiring, a click close to a pin finishes on that pin (magnet)
@@ -824,6 +917,12 @@ function onDown(e) {
 function onBoard(q, bb) { const r = rt[bb.id]; return r && q.x > bb.x - 30 && q.x < bb.x + r.w + 10 && q.y > bb.y - 60 && q.y < bb.y + r.h + 10; }
 function onMove(e) {
   const [wx, wy] = toWorld(e.clientX, e.clientY);
+  ptr = [wx, wy];
+  /* redraw the pin targets only once the cursor has actually moved a few screen
+     pixels, so this costs nothing while the mouse is still */
+  if (!running || T.state.probe) {
+    if (!ptrDrawn || Math.hypot(wx - ptrDrawn[0], wy - ptrDrawn[1]) * view.z > 5) drawPins();
+  }
   let magnet = null;
   if (wiring) {
     // snap to the nearest pin within ~10 screen px
@@ -890,7 +989,7 @@ function clickPin(node) {
   if (!wiring) { wiring = { from: node, pts: [], mouse: null }; document.body.classList.add("wiring"); hint("Click (or drag to) another pin to finish the wire. Click empty space to add a bend. Esc cancels."); drawWires(); return; }
   if (node === wiring.from) { cancelWire(); return; }
   snapshot();
-  project.wires.push({ from: wiring.from, to: node, pts: wiring.pts, color: autoColor(wiring.from, node) });
+  project.wires.push({ from: wiring.from, to: node, pts: wiring.pts, color: penColor === "auto" ? autoColor(wiring.from, node) : penColor });
   sel = { kind: "wire", id: project.wires.length - 1 };
   cancelWire(); save(); drawWires(); showInspector();
 }
@@ -976,13 +1075,24 @@ function boot() {
     if (d.openp) { const p = listProjects()[d.openp]; closeModal(); return setProject(p, "Opened <b>" + esc(d.openp) + "</b>"); }
     if (d.delp) { if (!confirm("Delete " + d.delp + "?")) return; const all = listProjects(); delete all[d.delp]; store.set(LIST, all); return showLibrary(); }
     if (d.snip != null) { closeModal(); return useCode(SNIPPETS[+d.snip].code, d.mode); }
-    if (d.wcolor && sel && sel.kind === "wire") { snapshot(); project.wires[sel.id].color = d.wcolor; save(); drawWires(); return showInspector(); }
+    if (d.wcolor) {
+      penColor = d.wcolor;
+      if (sel && sel.kind === "wire" && project.wires[sel.id]) {
+        const w = project.wires[sel.id]; snapshot();
+        w.color = d.wcolor === "auto" ? autoColor(w.from, w.to) : d.wcolor;
+        save(); drawWires();
+      } else if (wiring) drawWires();
+      return showInspector();
+    }
     if (d.pcolor && sel) { const p = project.parts.find(q => q.id === sel.id); p.sim.color = d.pcolor; if (sim) sim.simChanged(p.id); save(); return showInspector(); }
     if (d.pbtn && sel) { const p = project.parts.find(q => q.id === sel.id); p.sim[d.pbtn] = true; if (sim) sim.simChanged(p.id); toast("Motion!"); return; }
     if (d.card != null && sel && sim) { const st = rt[sel.id].state, c = CARDS[+d.card]; st.tap = c; st.tapName = c.name; st.tapShow = performance.now() + 1600; toast(`Tapped <b>${esc(c.name)}</b>`); return; }
     if (d.bt) { btSend(d.bt); return; }
     if (d.exp) { T.handleExport(d.exp); return; }
     switch (d.act) {
+      case "schem": return showSchematic();
+      case "schclose": { const v = $("#schview"); if (v) v.classList.remove("on"); return; }
+      case "schsvg": return downloadSchematic();
       case "run": return running ? stopSim() : runSim();
       case "delete": return deleteSel();
       case "rotate": return rotateSel();
@@ -1065,7 +1175,7 @@ function boot() {
     if ((m = h.match(/^c=(.+)$/))) { T.openLink(m[1]).then(p => { if (p) { setProject(p, "Opened a shared circuit"); setHash("c=" + m[1]); } else toast("That shared link could not be read"); }); return; }
   };
   fromHash(); window.addEventListener("hashchange", fromHash);
-  window.CL = { get project() { return project; }, get sim() { return sim; }, get editor() { return editor; }, rt, PARTS, DEFAULT_PINS, defaultPin, pinsWorld, runSim, stopSim, setProject, openLesson, LESSONS, STARTERS, buildFromSpec, fit, phoneGo, partCode, zoomToPart, tools: T, setSelPublic: v => { sel = v; project.parts.forEach(placePart); showInspector(); }, get running() { return running; } };
+  window.CL = { get project() { return project; }, get sim() { return sim; }, get editor() { return editor; }, rt, PARTS, DEFAULT_PINS, defaultPin, pinsWorld, pinDir, routePts, runSim, stopSim, setProject, openLesson, LESSONS, STARTERS, buildFromSpec, fit, phoneGo, partCode, zoomToPart, tools: T, setSelPublic: v => { sel = v; project.parts.forEach(placePart); showInspector(); }, get running() { return running; } };
 }
 function sendSerial() { const i = $("#serialin"); if (!sim || !i.value) return; sim.serialIn(i.value + "\n"); const o = $("#serialout"); o.textContent += "› " + i.value + "\n"; i.value = ""; }
 function btSend(text) {

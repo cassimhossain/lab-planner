@@ -169,6 +169,12 @@
     const a = addDays(S.weekStart, 0), b = addDays(S.weekStart, 4);
     $("#wkLabel").textContent = `${fmt(a, { day: "numeric", month: "short" })} to ${fmt(b, { day: "numeric", month: "short" })}`;
   }
+  /* A tab switch is synchronous, so a loading overlay could never paint during it.
+     What the eye reads as "it responded" is a short transition on the new page. */
+  function pageSwap() {
+    const a = $("#app"); if (!a) return;
+    a.classList.remove("swap"); void a.offsetWidth; a.classList.add("swap");
+  }
   function render() {
     renderMenu();
     const r = route(), app = $("#app");
@@ -182,7 +188,7 @@
     history.replaceState(null, "", location.pathname + location.search + "#" + (a ? a.group : "home"));
     render(); if (a) openModal(a.code); return true;
   }
-  window.addEventListener("hashchange", () => { closeNav(); if (openFromHash()) return; render(); window.scrollTo(0, 0); });
+  window.addEventListener("hashchange", () => { closeNav(); if (openFromHash()) return; render(); pageSwap(); window.scrollTo(0, 0); });
   const shiftWeek = n => { S.weekStart = iso(addDays(S.weekStart, 7 * n)); save(); render(); toast(`Week of ${fmt(addDays(S.weekStart, 0), { day: "numeric", month: "long" })}`); };
   $("#wkPrev").onclick = () => shiftWeek(-1);
   $("#wkNext").onclick = () => shiftWeek(1);
@@ -734,6 +740,47 @@
       (list.length ? `<div class="hwgrid">${list.map(hwCard).join("")}</div>` : empty(sel === "WEEK" ? "Nothing planned this week yet." : "Nothing matches your search.", sel === "WEEK" ? `<a class="btn primary" href="#home">Start planning</a>` : ""));
   }
 
+  /* ---------- the robot, used wherever we have to wait ----------
+     The mascot is already drawn in the sidebar, so it is cloned rather than
+     duplicated: one logo, one place to change it. */
+  let ROBO = "";
+  function roboHTML() {
+    if (!ROBO) { const r = document.querySelector(".brand .robo"); ROBO = r ? r.outerHTML : ""; }
+    return ROBO;
+  }
+  function roboBlock(label, sub) {
+    return `<div class="robobox"><span class="robobot">${roboHTML()}</span>` +
+      `<b>${esc(label || "Loading")}</b>${sub ? `<small>${esc(sub)}</small>` : ""}` +
+      `<span class="robobar"><i></i></span></div>`;
+  }
+
+  const BUSY = { el: null, n: 0, at: 0, t: null };
+  function busyEl() {
+    if (BUSY.el) return BUSY.el;
+    const d = document.createElement("div");
+    d.className = "busy"; d.id = "busy"; d.setAttribute("aria-hidden", "true");
+    document.body.appendChild(d); BUSY.el = d; return d;
+  }
+  /* Shown only once the wait is long enough to notice. A robot that flashes for
+     80 ms on every click is worse than no robot at all. */
+  function busy(label, sub) {
+    BUSY.n++;
+    const el = busyEl();
+    el.innerHTML = roboBlock(label, sub);
+    if (BUSY.n === 1 && !BUSY.t) {
+      BUSY.t = setTimeout(() => { BUSY.t = null; if (BUSY.n > 0) { el.classList.add("on"); BUSY.at = Date.now(); } }, 200);
+    }
+  }
+  function idle() {
+    BUSY.n = Math.max(0, BUSY.n - 1);
+    if (BUSY.n > 0) return;
+    if (BUSY.t) { clearTimeout(BUSY.t); BUSY.t = null; return; }   // never became visible
+    const el = BUSY.el; if (!el || !el.classList.contains("on")) return;
+    /* once it is up, hold it a moment so it fades rather than strobes */
+    const left = Math.max(0, 360 - (Date.now() - BUSY.at));
+    setTimeout(() => { if (BUSY.n === 0) el.classList.remove("on"); }, left);
+  }
+
   /* ---------- PDF VIEWER (PDF.js from cdnjs; falls back to the browser's own viewer) ---------- */
   const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
   let pdfReady = null;
@@ -754,7 +801,7 @@
         <a class="vb" href="${esc(file)}" download aria-label="Download" title="Download">${ic("down")}</a>
         <a class="vb" href="${esc(file)}" target="_blank" rel="noopener" aria-label="Open in new tab" title="Open in new tab">${ic("ext")}</a>
         <button class="vb close" data-vclose aria-label="Close">${ic("x")}</button></div></div>
-      <div class="vstage ${mode === "slides" ? "slides" : "scroll"}" id="vStage"><div class="vload"><span class="spin"></span>Opening ${esc(title)}</div></div>
+      <div class="vstage ${mode === "slides" ? "slides" : "scroll"}" id="vStage"><div class="vload">${roboBlock("Opening " + title, "getting the slides ready")}</div></div>
       ${mode === "slides" ? `<button class="vzone l" data-vgo="-1" aria-label="Previous slide"></button><button class="vzone r" data-vgo="1" aria-label="Next slide"></button>` : ""}
       <div class="vprog"><i id="vProg"></i></div>`;
     document.body.classList.add("viewer-open");
@@ -939,4 +986,16 @@
 
   if (!S.weekStart) { S.weekStart = nextMonday(); save(); }
   if (!openFromHash()) render();
+
+  /* Drop the splash once the first page is on screen. It is held for a beat so a
+     fast load reads as a greeting rather than a flicker. */
+  (function clearBoot() {
+    const b = document.getElementById("boot"); if (!b) return;
+    const go = () => {
+      document.body.classList.add("booted");
+      setTimeout(() => b.classList.add("gone"), 420);
+    };
+    const wait = Math.max(0, 700 - performance.now());   // long enough to read as a greeting, short enough not to be a tax
+    requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(go, wait)));
+  })();
 })();

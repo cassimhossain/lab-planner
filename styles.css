@@ -421,7 +421,11 @@ body.viewer-open { overflow: hidden; }
 .vzone { position: absolute; top: 70px; bottom: 6px; width: 28%; border: 0; background: transparent; cursor: pointer; z-index: 2; }
 .vzone.l { left: 0; cursor: w-resize; } .vzone.r { right: 0; cursor: e-resize; }
 .vprog { height: 4px; background: #182740; flex: none; } .vprog i { display: block; height: 100%; width: 0; background: var(--c); transition: width .2s; }
-.vload { display: flex; align-items: center; gap: 12px; color: #A9B6CA; font-weight: 600; }
+.vload { display: grid; place-items: center; color: #A9B6CA; font-weight: 600; }
+/* the viewer sits on a dark stage, so the robot's caption has to lift off it */
+.vload .robobox b { color: #E8EEF7; }
+.vload .robobox small { color: #93A3BC; }
+.vload .robobar { background: rgba(255, 255, 255, .16); }
 .spin { width: 22px; height: 22px; border-radius: 50%; border: 3px solid #22365A; border-top-color: var(--amber); animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .viewer:fullscreen .vbar { opacity: 0; transition: opacity .3s; position: absolute; left: 0; right: 0; top: 0; z-index: 3; }
@@ -889,3 +893,52 @@ h3.unit { background: var(--l, #E8EEF8); color: var(--c, var(--navy)); border-ra
 .codecard .cc-lg.cpp { background: #00599C; }
 .codecard b { font-size: 16px; } .codecard small { color: #64748B; font-size: 13px; line-height: 1.5; }
 @media (max-width: 760px) { .codehero { grid-template-columns: 1fr; } }
+
+/* ===================== the robot, while you wait =====================
+   Same mascot as the sidebar, cloned and wound up: it bobs faster, looks
+   around and its bulbs pulse, so a wait feels like the robot is working. */
+.robobox { display: grid; justify-items: center; gap: 10px; text-align: center; padding: 8px; }
+.robobox b { font-size: 15px; font-weight: 700; color: var(--ink, #13213C); }
+.robobox small { font-size: 12.5px; color: var(--muted, #64748B); margin-top: -4px; }
+.robobot { display: block; width: 92px; height: 92px; animation: robo-hop 1.5s ease-in-out infinite; }
+.robobot svg.robo { width: 92px; height: 92px; overflow: visible; }
+/* wind the idle animations up */
+.robobot .robo .r-head { animation-duration: 1.2s; }
+.robobot .robo .r-hair { animation-duration: .5s; }
+.robobot .robo .r-eye { animation-duration: 2.4s; }
+.robobot .robo .r-pupil { animation-duration: 1.8s; }
+.robobot .robo .r-bulb { animation-duration: .7s; }
+.robobot .robo .r-teeth { animation-duration: .9s; }
+@keyframes robo-hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+/* the little track underneath, so there is a sense of progress even when the
+   real length of the wait is unknown */
+.robobar { display: block; width: 132px; height: 5px; border-radius: 99px; overflow: hidden;
+  background: rgba(27, 58, 107, .12); }
+.robobar i { display: block; width: 40%; height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, #00b9f1, #1B3A6B); animation: robo-run 1.15s ease-in-out infinite; }
+@keyframes robo-run { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
+
+/* full-screen version, for a wait that blocks everything */
+.busy { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center;
+  background: rgba(247, 249, 252, .82); backdrop-filter: blur(3px);
+  opacity: 0; pointer-events: none; transition: opacity .18s ease; }
+.busy.on { opacity: 1; pointer-events: auto; }
+.busy .robobox { background: #fff; border: 1px solid var(--line, #E3E8F0); border-radius: 18px;
+  padding: 22px 30px 20px; box-shadow: 0 18px 50px rgba(15, 29, 54, .18); }
+
+/* the page itself, when you move between tabs */
+#app.swap { animation: pagein .26s cubic-bezier(.22, .61, .36, 1) both; }
+@keyframes pagein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .robobot, .robobar i { animation: none !important; }
+  #app.swap { animation: none !important; }
+}
+
+/* first load: the robot holds the screen until the portal is ready */
+.boot { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center;
+  background: #F7F9FC; transition: opacity .35s ease; }
+.boot .robobox { gap: 12px; }
+body.booted .boot { opacity: 0; pointer-events: none; }
+body.booted .boot.gone { display: none; }

@@ -155,8 +155,29 @@ function pinDir(node) {
   if ((((p.rot || 0) % 180) + 180) % 180 === 90) vert = !vert;
   return vert ? "v" : "h";
 }
+/* The leg that follows a bend turns the corner: if the wire was running up it
+   now runs across, and the very first leg leaves the pin the way the pin faces.
+   The preview and the committed wire both use this, so they cannot disagree. */
+function legIsVertical() {
+  const n = wiring.pts.length;
+  if (!n) return pinDir(wiring.from) === "v";
+  const a = pinPos(wiring.from), last = wiring.pts[n - 1], prev = n > 1 ? wiring.pts[n - 2] : [a.x, a.y];
+  return !(Math.abs(last[0] - prev[0]) < 0.5);   // last leg vertical -> this one is not
+}
+function bendPts(x, y) {
+  const n = wiring.pts.length, a = pinPos(wiring.from);
+  const last = n ? wiring.pts[n - 1] : [a.x, a.y];
+  const X = Math.round(x), Y = Math.round(y);
+  return legIsVertical() ? [[last[0], Y], [X, Y]] : [[X, last[1]], [X, Y]];
+}
 function routePts(a, b, pts, from, to) {
-  if (pts && pts.length) return [a, ...pts.map(([x, y]) => ({ x, y })), b];
+  if (pts && pts.length) {
+    const mid = pts.map(([x, y]) => ({ x, y })), last = mid[mid.length - 1], out = [a, ...mid];
+    if (Math.abs(last.x - b.x) > 0.5 && Math.abs(last.y - b.y) > 0.5)
+      out.push(pinDir(to) === "v" ? { x: b.x, y: last.y } : { x: last.x, y: b.y });
+    out.push(b);
+    return out;
+  }
   if (Math.abs(a.x - b.x) < 1 || Math.abs(a.y - b.y) < 1) return [a, b];
   const da = pinDir(from), db = pinDir(to);
   if (da && db && da === db) {
@@ -285,10 +306,8 @@ function drawWires() {
   if (wiring) {
     const a = pinPos(wiring.from), m = wiring.mouse;
     if (a && m) {
-      const pts = [a, ...wiring.pts.map(([x, y]) => ({ x, y }))], last = pts[pts.length - 1];
-      const vertFirst = !wiring.pts.length && pinDir(wiring.from) === "v";
-      if (vertFirst) pts.push({ x: last.x, y: m[1] }); else pts.push({ x: m[0], y: last.y });
-      pts.push({ x: m[0], y: m[1] });
+      const pts = [a, ...wiring.pts.map(([x, y]) => ({ x, y }))];
+      bendPts(m[0], m[1]).forEach(([x, y]) => pts.push({ x, y }));
       const gc = penColor === "auto" ? (hoverPin ? autoColor(wiring.from, hoverPin) : "#94A3B8") : penColor;
       s += `<path class="wire ghost" d="${roundPath(pts)}" stroke="${gc}"/>`;
     }
@@ -478,6 +497,7 @@ function showInspector() {
   const selw = sel && sel.kind === "wire" ? project.wires[sel.id] : null;
   const swOn = selw ? (selw.color || null) : (penColor === "auto" ? null : penColor);
   $("#wcolors").innerHTML = running ? "" :
+    (selw && selw.pts && selw.pts.length ? `<button class="cbtn tiny" data-act="wstraight" title="Remove this wire\u2019s bends">Straighten</button>` : "") +
     `<button class="sw auto ${swOn === null ? "on" : ""}" data-wcolor="auto" title="Automatic: red for 5V, black for GND, orange for 3V3">A</button>` +
     WIRE_COLORS.map(c => `<button class="sw ${swOn === c ? "on" : ""}" data-wcolor="${c}" style="--c:${c}" title="Wire colour"></button>`).join("");
   if (!sel || sel.kind !== "part") { box.classList.remove("on"); box.innerHTML = ""; return; }
@@ -910,7 +930,7 @@ function onDown(e) {
     drag = { kind: "part", id, dx: wx - p.x, dy: wy - p.y, moved: false, riders, sx: e.clientX, sy: e.clientY };
     e.preventDefault(); return;
   }
-  if (wiring && e.button === 0) { const [x, y] = toWorld(e.clientX, e.clientY); const last = wiring.pts.length ? wiring.pts[wiring.pts.length - 1] : (() => { const a = pinPos(wiring.from); return [a.x, a.y]; })(); wiring.pts.push([Math.round(x), last[1]]); wiring.pts.push([Math.round(x), Math.round(y)]); drawWires(); return; }
+  if (wiring && e.button === 0) { const [x, y] = toWorld(e.clientX, e.clientY); wiring.pts.push(...bendPts(x, y)); drawWires(); return; }
   if (e.shiftKey && !running) { const [x, y] = toWorld(e.clientX, e.clientY); drag = { kind: "marquee", x0: x, y0: y, x1: x, y1: y }; return; }
   drag = { kind: "pan", sx: e.clientX, sy: e.clientY, vx: view.x, vy: view.y, moved: false };
 }
@@ -1090,6 +1110,10 @@ function boot() {
     if (d.bt) { btSend(d.bt); return; }
     if (d.exp) { T.handleExport(d.exp); return; }
     switch (d.act) {
+      case "wstraight": {
+        if (!sel || sel.kind !== "wire" || !project.wires[sel.id]) return;
+        snapshot(); project.wires[sel.id].pts = []; save(); drawWires(); return showInspector();
+      }
       case "schem": return showSchematic();
       case "schclose": { const v = $("#schview"); if (v) v.classList.remove("on"); return; }
       case "schsvg": return downloadSchematic();

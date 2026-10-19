@@ -104,11 +104,12 @@ body.wiring .stage { cursor: crosshair; }
 .ctools button { border: 0; background: transparent; width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; color: var(--ink2); }
 .ctools button:hover { background: var(--bg); color: var(--ink); }
 .ctools i { width: 1px; height: 22px; background: var(--line); margin: 0 3px; }
-.wcolors { display: flex; gap: 4px; padding: 0 4px; }
+.wcolors { display: flex; align-items: center; gap: 4px; padding: 0 4px; }
 .wcolors:empty { display: none; }
 .sw { width: 20px !important; height: 20px !important; border-radius: 50% !important; border: 2px solid #fff !important; background: var(--c) !important; box-shadow: 0 0 0 1px #CBD5E1; padding: 0; }
 .sw.on { box-shadow: 0 0 0 2px #2E6BE6; }
 /* "A" = automatic: red for 5V, black for GND, orange for 3V3 */
+.ctools .cbtn.tiny { width: auto; height: 26px; padding: 0 9px; font-size: 11.5px; border-radius: 8px; flex: none; white-space: nowrap; margin-right: 4px; }
 .sw.auto { background: #fff !important; color: #475569; font-size: 11px; font-weight: 800; line-height: 1; display: grid; place-items: center; }
 .wcolors::before { content: ""; width: 1px; height: 22px; background: var(--line); margin-right: 4px; align-self: center; }
 body.running .ctools button[data-act] { opacity: .35; pointer-events: none; }

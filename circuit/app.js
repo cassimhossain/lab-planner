@@ -1,14 +1,14 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=9";
-import { Netlist, Sim } from "./sim.js?v=9";
-import { BOARDS, loadHex } from "./boards.js?v=9";
-import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=9";
-import { layoutCircuit } from "./layout.js?v=9";
-import { SNIPPETS } from "./snippets.js?v=9";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=9";
-import * as T from "./tools.js?v=9";
-import { buildSchematic } from "./schematic.js?v=9";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=9";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=10";
+import { Netlist, Sim } from "./sim.js?v=10";
+import { BOARDS, loadHex } from "./boards.js?v=10";
+import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=10";
+import { layoutCircuit } from "./layout.js?v=10";
+import { SNIPPETS } from "./snippets.js?v=10";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=10";
+import * as T from "./tools.js?v=10";
+import { buildSchematic } from "./schematic.js?v=10";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=10";
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -544,7 +544,15 @@ function positionInspector() {
 /* ---------- compile + run ---------- */
 async function compile(code, board) {
   const prep = prepareSketch(code, board);
-  const res = await fetch(BUILD_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sketch: prep.sketch, files: prep.files, board: BOARDS[board].build }) });
+  /* The editor itself is cached and runs with no connection, but the sketch is
+     compiled by a server. Saying so plainly beats a raw network error. */
+  if (navigator.onLine === false) throw new Error("You are offline. The editor works offline, but compiling needs the internet. The desktop version of Circuit Lab has the compiler built in.");
+  let res;
+  try {
+    res = await fetch(BUILD_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sketch: prep.sketch, files: prep.files, board: BOARDS[board].build }) });
+  } catch (e) {
+    throw new Error("Could not reach the compiler. Check the connection and try again.");
+  }
   if (!res.ok) throw new Error("Build server error " + res.status);
   const r = await res.json(); r.prep = prep; return r;
 }
@@ -814,7 +822,7 @@ function renderLessonCard() {
     ${spec.try && spec.try.length ? `<div class="lbox"><b>Try this</b><ol class="checks">${spec.try.map((t, i) => `<li><label><input type="checkbox" data-try="${i}"><span>${esc(t)}</span></label></li>`).join("")}</ol></div>` : ""}
     ${spec.note ? `<div class="lbox note">${ic("info")}<p>${esc(spec.note)}</p></div>` : ""}
     <div class="lbox"><b>Parts in this circuit</b><div class="pchips">${[...new Set(project.parts.filter(p => p.type !== "breadboard").map(p => PARTS[p.type].label))].map(l => `<span>${esc(l)}</span>`).join("")}</div></div>
-    <div class="lbtns"><button class="btn" data-act="resetlesson">${ic("reload")}Reset to the original circuit</button>${spec.lesson ? `<a class="btn" href="index.html#open=${encodeURIComponent(spec.lesson)}">${ic("book")}Lesson in the portal</a>` : ""}</div>`;
+    <div class="lbtns"><button class="btn" data-act="resetlesson">${ic("reload")}Reset to the original circuit</button>${spec.lesson ? `<a class="btn" href="../index.html#open=${encodeURIComponent(spec.lesson)}">${ic("book")}Lesson in the portal</a>` : ""}</div>`;
 }
 
 /* ---------- library modal ---------- */

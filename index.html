@@ -16,14 +16,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=27">
+<link rel="stylesheet" href="styles.css?v=28">
 </head>
 <body>
 <!-- First load is a real wait: fonts, the curriculum data and the slide index.
      This sits in the HTML so the robot appears before any script runs. -->
 <div class="boot" id="boot">
   <div class="robobox">
-    <span class="robobot"><svg class="robo" viewBox="0 0 64 64" aria-hidden="true">
+    <span class="robobot">
+      <span class="roboglow"></span>
+      <span class="roboorbit"><i></i><i></i><i></i></span>
+      <span class="robobody"><svg class="robo" viewBox="0 0 64 64" aria-hidden="true">
         <path class="r-hair" d="M57.6 13.7c-.7-1-1.6-1.7-2.7-2.2c-3.4-1.7-11.6-1.3-12.3-5.7c-.9-5.7-5.9.1-6.8.1c-1.1 0-1.6-3.9-3.7-3.9c-2.2 0-2.7 3.9-3.7 3.9c-.9 0-5.9-5.8-6.8-.1c-.7 4.3-9 4-12.3 5.7c-1 .5-2 1.2-2.7 2.2c-.5.8.6 1.6 1.2.9c1.6-2 4.8-2.4 7.1-2.8c1.9-.4 4-.6 5.9-1.4c2.6-1 2.5-4.9 3.3-4.9c.6 0 2.7 3 4.5 3c1.6 0 2.6-3.7 3.5-3.7c.9 0 1.9 3.7 3.5 3.7c1.9 0 4-3 4.6-3c.8 0 .7 3.9 3.3 4.9c1.8.8 3.9 1 5.9 1.4c2.3.5 5.6.8 7.1 2.8c.5.7 1.6-.2 1.1-.9" fill="#00b9f1"/>
         <g class="r-head">
         <path d="M53 57c0 2.8-2.2 5-5 5H16c-2.8 0-5-2.2-5-5V36h42v21z" fill="#89967a"/>
@@ -37,9 +40,10 @@
         <g class="r-teeth" opacity=".7" fill="#3e4347"><path d="M21.2 50.7c0 1.2-2 1.2-2 0v-6.1c0-1.2 2-1.2 2 0v6.1"/><path d="M25.9 50.7c0 1.2-2 1.2-2 0v-6.1c0-1.2 2-1.2 2 0v6.1"/><path d="M30.6 50.7c0 1.2-2 1.2-2 0v-6.1c0-1.2 2-1.2 2 0v6.1"/><path d="M35.4 50.7c0 1.2-2 1.2-2 0v-6.1c0-1.2 2-1.2 2 0v6.1"/><path d="M40.1 50.7c0 1.2-2 1.2-2 0v-6.1c0-1.2 2-1.2 2 0v6.1"/><path d="M44.8 50.7c0 1.2-2 1.2-2 0v-6.1c0-1.2 2-1.2 2 0v6.1"/></g>
         <circle cx="32" cy="37" r="2" fill="#f5f5f5"/><path fill="#545b61" d="M30.316 35.862l.566-.565l2.828 2.828l-.565.566z"/>
         </g></svg></span>
-    <b>Robotics &amp; AI Club</b><small>loading the curriculum</small>
-    <span class="robobar"><i></i></span>
+      <span class="roboshadow"></span>
+    </span>
   </div>
+</div>
 </div>
 <div class="bgdoodle" aria-hidden="true"></div>
 <div class="shell">
@@ -91,10 +95,10 @@
 <div class="viewer" id="viewer" role="dialog" aria-modal="true"></div>
 <div id="toast" role="status"></div>
 
-<script src="data.js?v=27"></script>
-<script src="library.js?v=27"></script>
-<script src="videos.js?v=27"></script>
-<script src="sims.js?v=27"></script>
-<script src="app.js?v=27"></script>
+<script src="data.js?v=28"></script>
+<script src="library.js?v=28"></script>
+<script src="videos.js?v=28"></script>
+<script src="sims.js?v=28"></script>
+<script src="app.js?v=28"></script>
 </body>
 </html>

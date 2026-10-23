@@ -422,10 +422,9 @@ body.viewer-open { overflow: hidden; }
 .vzone.l { left: 0; cursor: w-resize; } .vzone.r { right: 0; cursor: e-resize; }
 .vprog { height: 4px; background: #182740; flex: none; } .vprog i { display: block; height: 100%; width: 0; background: var(--c); transition: width .2s; }
 .vload { display: grid; place-items: center; color: #A9B6CA; font-weight: 600; }
-/* the viewer sits on a dark stage, so the robot's caption has to lift off it */
-.vload .robobox b { color: #E8EEF7; }
-.vload .robobox small { color: #93A3BC; }
-.vload .robobar { background: rgba(255, 255, 255, .16); }
+/* the viewer sits on a dark stage, so the robot's shadow and rings lift off it */
+.vload .roboshadow { background: rgba(0, 0, 0, .5); }
+.vload .roboorbit i:nth-child(3) { background: #8FB7FF; }
 .spin { width: 22px; height: 22px; border-radius: 50%; border: 3px solid #22365A; border-top-color: var(--amber); animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .viewer:fullscreen .vbar { opacity: 0; transition: opacity .3s; position: absolute; left: 0; right: 0; top: 0; z-index: 3; }
@@ -895,50 +894,108 @@ h3.unit { background: var(--l, #E8EEF8); color: var(--c, var(--navy)); border-ra
 @media (max-width: 760px) { .codehero { grid-template-columns: 1fr; } }
 
 /* ===================== the robot, while you wait =====================
-   Same mascot as the sidebar, cloned and wound up: it bobs faster, looks
-   around and its bulbs pulse, so a wait feels like the robot is working. */
-.robobox { display: grid; justify-items: center; gap: 10px; text-align: center; padding: 8px; }
-.robobox b { font-size: 15px; font-weight: 700; color: var(--ink, #13213C); }
-.robobox small { font-size: 12.5px; color: var(--muted, #64748B); margin-top: -4px; }
-.robobot { display: block; width: 92px; height: 92px; animation: robo-hop 1.5s ease-in-out infinite; }
-.robobot svg.robo { width: 92px; height: 92px; overflow: visible; }
-/* wind the idle animations up */
-.robobot .robo .r-head { animation-duration: 1.2s; }
-.robobot .robo .r-hair { animation-duration: .5s; }
-.robobot .robo .r-eye { animation-duration: 2.4s; }
-.robobot .robo .r-pupil { animation-duration: 1.8s; }
-.robobot .robo .r-bulb { animation-duration: .7s; }
-.robobot .robo .r-teeth { animation-duration: .9s; }
-@keyframes robo-hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+   The mascot from the sidebar, wound up and given a stage: sonar rings
+   behind it, three dots in orbit, a hop with a real crouch and stretch, and
+   a shadow that shrinks as it leaves the ground. No caption and no progress
+   bar - the robot alone says "working". */
+.robobox { display: grid; justify-items: center; padding: 8px; }
+.robobot { --orb: 74px; position: relative; display: grid; place-items: center; width: 176px; height: 176px; }
 
-/* the little track underneath, so there is a sense of progress even when the
-   real length of the wait is unknown */
-.robobar { display: block; width: 132px; height: 5px; border-radius: 99px; overflow: hidden;
-  background: rgba(27, 58, 107, .12); }
-.robobar i { display: block; width: 40%; height: 100%; border-radius: 99px;
-  background: linear-gradient(90deg, #00b9f1, #1B3A6B); animation: robo-run 1.15s ease-in-out infinite; }
-@keyframes robo-run { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
+/* sonar: three rings leaving the robot, one behind the other */
+.roboglow, .roboglow::before, .roboglow::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 128px; height: 128px; margin: -64px 0 0 -64px;
+  border-radius: 50%; border: 2.5px solid rgba(0, 185, 241, .75);
+  animation: robo-ping 2.4s cubic-bezier(.2, .6, .35, 1) infinite;
+}
+.roboglow::before { animation-delay: .8s; border-color: rgba(255, 82, 99, .6); }
+.roboglow::after { animation-delay: 1.6s; border-color: rgba(27, 58, 107, .5); }
+@keyframes robo-ping {
+  0% { transform: scale(.7); opacity: 0; }
+  14% { opacity: .9; }
+  100% { transform: scale(2.05); opacity: 0; }
+}
+
+/* three dots going round, each winking on its own beat */
+.roboorbit { position: absolute; inset: 0; animation: robo-spin 4.2s linear infinite; }
+.roboorbit i { position: absolute; left: 50%; top: 50%; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px;
+  border-radius: 50%; animation: robo-dot 1.3s ease-in-out infinite; }
+.roboorbit i:nth-child(1) { transform: rotate(0deg) translateY(calc(var(--orb) * -1)); background: #00b9f1; }
+.roboorbit i:nth-child(2) { transform: rotate(120deg) translateY(calc(var(--orb) * -1)); background: #ff5263; animation-delay: .43s; }
+.roboorbit i:nth-child(3) { transform: rotate(240deg) translateY(calc(var(--orb) * -1)); background: #1B3A6B; animation-delay: .86s; }
+@keyframes robo-spin { to { transform: rotate(360deg); } }
+@keyframes robo-dot { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+/* the hop: crouch, spring, hang, land */
+.robobody { position: relative; display: block; transform-origin: 50% 100%;
+  animation: robo-hop 1.5s cubic-bezier(.45, 0, .55, 1) infinite; }
+.robobody svg.robo { display: block; width: 108px; height: 108px; overflow: visible;
+  filter: drop-shadow(0 8px 12px rgba(15, 29, 54, .18)); }
+@keyframes robo-hop {
+  0% { transform: translateY(0) scale(1, 1) rotate(0deg); }
+  16% { transform: translateY(3px) scale(1.08, .9) rotate(0deg); }
+  42% { transform: translateY(-20px) scale(.94, 1.08) rotate(-5deg); }
+  58% { transform: translateY(-18px) scale(.96, 1.05) rotate(5deg); }
+  84% { transform: translateY(2px) scale(1.07, .93) rotate(0deg); }
+  100% { transform: translateY(0) scale(1, 1) rotate(0deg); }
+}
+.roboshadow { position: absolute; bottom: 16px; width: 66px; height: 12px; border-radius: 50%;
+  background: rgba(15, 29, 54, .22); filter: blur(3px);
+  animation: robo-shadow 1.5s cubic-bezier(.45, 0, .55, 1) infinite; }
+@keyframes robo-shadow {
+  0%, 100% { transform: scale(1); opacity: .3; }
+  50% { transform: scale(.55); opacity: .1; }
+}
+
+/* wind the mascot's own parts up: faster bob, busier eyes, flashing bulbs */
+.robobot .robo .r-head { animation-duration: 1.05s; }
+.robobot .robo .r-hair { animation-duration: .45s; }
+.robobot .robo .r-eye { animation-duration: 2.2s; }
+.robobot .robo .r-pupil { animation: r-scan 1.7s ease-in-out infinite; }
+.robobot .robo .r-bulb { animation: r-flash .8s ease-in-out infinite; }
+.robobot .robo .r-bulb.b { animation-delay: .4s; filter: drop-shadow(0 0 5px rgba(0, 185, 241, .95)); }
+.robobot .robo .r-bulb.r { filter: drop-shadow(0 0 5px rgba(255, 82, 99, .95)); }
+.robobot .robo .r-teeth { animation-duration: .7s; }
+@keyframes r-scan {
+  0%, 100% { transform: translate(0, 0); }
+  18% { transform: translate(2.8px, .8px); }
+  42% { transform: translate(-2.8px, -1px); }
+  68% { transform: translate(1.6px, -1.6px); }
+}
+@keyframes r-flash {
+  0%, 100% { opacity: 1; transform: scale(1.15); }
+  50% { opacity: .3; transform: scale(.65); }
+}
 
 /* full-screen version, for a wait that blocks everything */
 .busy { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center;
   background: rgba(247, 249, 252, .82); backdrop-filter: blur(3px);
   opacity: 0; pointer-events: none; transition: opacity .18s ease; }
 .busy.on { opacity: 1; pointer-events: auto; }
-.busy .robobox { background: #fff; border: 1px solid var(--line, #E3E8F0); border-radius: 18px;
-  padding: 22px 30px 20px; box-shadow: 0 18px 50px rgba(15, 29, 54, .18); }
+/* no card: a box would clip the rings and the dots going round */
+.busy .robobox { background: none; border: 0; box-shadow: none; padding: 0; }
+.busy .robobot, .vload .robobot { --orb: 78px; width: 188px; height: 188px; }
+.busy .robobody svg.robo, .vload .robobody svg.robo { width: 110px; height: 110px; }
+.busy .roboshadow, .vload .roboshadow { bottom: 14px; width: 66px; }
+.busy .roboglow, .busy .roboglow::before, .busy .roboglow::after,
+.vload .roboglow, .vload .roboglow::before, .vload .roboglow::after { width: 112px; height: 112px; margin: -56px 0 0 -56px; }
 
 /* the page itself, when you move between tabs */
 #app.swap { animation: pagein .26s cubic-bezier(.22, .61, .36, 1) both; }
 @keyframes pagein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .robobot, .robobar i { animation: none !important; }
+  .robobody, .roboshadow, .roboorbit, .roboorbit i, .roboglow { animation: none !important; }
+  .roboglow::before, .roboglow::after { animation: none !important; }
   #app.swap { animation: none !important; }
 }
 
 /* first load: the robot holds the screen until the portal is ready */
 .boot { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center;
-  background: #F7F9FC; transition: opacity .35s ease; }
-.boot .robobox { gap: 12px; }
+  background: radial-gradient(120% 90% at 50% 40%, #FFFFFF 0%, #F7F9FC 55%, #EEF3F9 100%);
+  transition: opacity .4s ease; }
+.boot .robobot { --orb: 108px; width: 260px; height: 260px; }
+.boot .robobody svg.robo { width: 152px; height: 152px; }
+.boot .roboshadow { bottom: 22px; width: 92px; height: 15px; }
+.boot .roboglow, .boot .roboglow::before, .boot .roboglow::after { width: 152px; height: 152px; margin: -76px 0 0 -76px; }
 body.booted .boot { opacity: 0; pointer-events: none; }
 body.booted .boot.gone { display: none; }

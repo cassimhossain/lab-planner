@@ -748,10 +748,16 @@
     if (!ROBO) { const r = document.querySelector(".brand .robo"); ROBO = r ? r.outerHTML : ""; }
     return ROBO;
   }
-  function roboBlock(label, sub) {
-    return `<div class="robobox"><span class="robobot">${roboHTML()}</span>` +
-      `<b>${esc(label || "Loading")}</b>${sub ? `<small>${esc(sub)}</small>` : ""}` +
-      `<span class="robobar"><i></i></span></div>`;
+  /* No caption and no progress bar: the robot alone says "working". The
+     wrapper spans are what the animation hangs on - rings, orbiting dots,
+     the hop and the shadow that shrinks as it leaves the ground. */
+  function roboBlock() {
+    return `<div class="robobox"><span class="robobot">` +
+      `<span class="roboglow"></span>` +
+      `<span class="roboorbit"><i></i><i></i><i></i></span>` +
+      `<span class="robobody">${roboHTML()}</span>` +
+      `<span class="roboshadow"></span>` +
+      `</span></div>`;
   }
 
   const BUSY = { el: null, n: 0, at: 0, t: null };
@@ -766,7 +772,8 @@
   function busy(label, sub) {
     BUSY.n++;
     const el = busyEl();
-    el.innerHTML = roboBlock(label, sub);
+    el.innerHTML = roboBlock();
+    el.setAttribute("aria-label", (label || "Loading") + (sub ? ". " + sub : ""));
     if (BUSY.n === 1 && !BUSY.t) {
       BUSY.t = setTimeout(() => { BUSY.t = null; if (BUSY.n > 0) { el.classList.add("on"); BUSY.at = Date.now(); } }, 200);
     }
@@ -776,8 +783,9 @@
     if (BUSY.n > 0) return;
     if (BUSY.t) { clearTimeout(BUSY.t); BUSY.t = null; return; }   // never became visible
     const el = BUSY.el; if (!el || !el.classList.contains("on")) return;
-    /* once it is up, hold it a moment so it fades rather than strobes */
-    const left = Math.max(0, 360 - (Date.now() - BUSY.at));
+    /* once it is up, hold it long enough for the animation to play through
+       rather than flashing past */
+    const left = Math.max(0, 1000 - (Date.now() - BUSY.at));
     setTimeout(() => { if (BUSY.n === 0) el.classList.remove("on"); }, left);
   }
 
@@ -801,7 +809,7 @@
         <a class="vb" href="${esc(file)}" download aria-label="Download" title="Download">${ic("down")}</a>
         <a class="vb" href="${esc(file)}" target="_blank" rel="noopener" aria-label="Open in new tab" title="Open in new tab">${ic("ext")}</a>
         <button class="vb close" data-vclose aria-label="Close">${ic("x")}</button></div></div>
-      <div class="vstage ${mode === "slides" ? "slides" : "scroll"}" id="vStage"><div class="vload">${roboBlock("Opening " + title, "getting the slides ready")}</div></div>
+      <div class="vstage ${mode === "slides" ? "slides" : "scroll"}" id="vStage"><div class="vload">${roboBlock()}</div></div>
       ${mode === "slides" ? `<button class="vzone l" data-vgo="-1" aria-label="Previous slide"></button><button class="vzone r" data-vgo="1" aria-label="Next slide"></button>` : ""}
       <div class="vprog"><i id="vProg"></i></div>`;
     document.body.classList.add("viewer-open");
@@ -995,7 +1003,7 @@
       document.body.classList.add("booted");
       setTimeout(() => b.classList.add("gone"), 420);
     };
-    const wait = Math.max(0, 700 - performance.now());   // long enough to read as a greeting, short enough not to be a tax
+    const wait = Math.max(0, 1150 - performance.now());   // one full beat of the robot before the portal takes over
     requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(go, wait)));
   })();
 })();

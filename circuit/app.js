@@ -1,14 +1,15 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=11";
-import { Netlist, Sim } from "./sim.js?v=11";
-import { BOARDS, loadHex } from "./boards.js?v=11";
-import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=11";
-import { layoutCircuit } from "./layout.js?v=11";
-import { SNIPPETS } from "./snippets.js?v=11";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=11";
-import * as T from "./tools.js?v=11";
-import { buildSchematic } from "./schematic.js?v=11";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=11";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=12";
+import { Netlist, Sim } from "./sim.js?v=12";
+import { BOARDS, loadHex } from "./boards.js?v=12";
+import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=12";
+import { layoutCircuit } from "./layout.js?v=12";
+import { SNIPPETS } from "./snippets.js?v=12";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=12";
+import * as T from "./tools.js?v=12";
+import { buildSchematic } from "./schematic.js?v=12";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=12";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=12";
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -26,6 +27,7 @@ const ICON = {
   sound: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6"/>', mute: '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l4 6M21 9l-4 6"/>', search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
   chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>', wifi: '<path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1"/>',
   check: '<path d="M5 12l5 5 9-10"/>', arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>', ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>', bolt: '<path d="M13 2L5 14h6l-1 8 8-12h-6z"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
   sch: '<path d="M3 12h4l2-4 3 8 2-4h7"/><circle cx="3" cy="12" r="1.3"/><circle cx="21" cy="12" r="1.3"/>',
   dl: '<path d="M12 4v11M8 11l4 4 4-4"/><path d="M5 19h14"/>',
   probe: '<path d="M14 3l7 7-3 3-7-7z"/><path d="M11 10L3 18v3h3l8-8"/>', volt: '<path d="M12 3v18M7 7h10M7 12h10M7 17h10"/>',
@@ -1134,6 +1136,7 @@ function boot() {
         if (!sel || sel.kind !== "wire" || !project.wires[sel.id]) return;
         snapshot(); project.wires[sel.id].pts = []; save(); drawWires(); return showInspector();
       }
+      case "home": { location.hash = "home"; if (isHome()) return; return showHome(); }
       case "schem": return showSchematic();
       case "schclose": { const v = $("#schview"); if (v) v.classList.remove("on"); return; }
       case "schsvg": return downloadSchematic();
@@ -1213,11 +1216,26 @@ function boot() {
   // links: #lesson=LE-07, #ex=blink, #new=esp32
   const fromHash = () => {
     const h = decodeURIComponent(location.hash.slice(1)); let m;
+    if (!h || h === "home") return showHome();
+    hideHome();
     if ((m = h.match(/^lesson=(.+)$/)) && LESSONS[m[1]]) return openLesson(m[1]);
     if ((m = h.match(/^ex=([\w-]+)$/)) && STARTERS.find(s => s.key === m[1])) return openLesson(m[1]);
     if ((m = h.match(/^new=(uno|esp32|nano|mega|none)$/))) return setProject(blank(m[1] === "none" ? null : m[1]), "New circuit");
     if ((m = h.match(/^c=(.+)$/))) { T.openLink(m[1]).then(p => { if (p) { setProject(p, "Opened a shared circuit"); setHash("c=" + m[1]); } else toast("That shared link could not be read"); }); return; }
   };
+  initHome({
+    ic, PARTS, BOARDS, LESSONS, STARTERS, GROUPS, buildFromSpec, listProjects,
+    chip: () => `<svg viewBox="0 0 1024 1024" aria-hidden="true"><path d="M938.666667 384v-85.333333H725.333333V85.333333h-85.333333v213.333334h-85.333333V85.333333h-85.333334v213.333334h-85.333333V85.333333h-85.333333v213.333334H85.333333v85.333333h213.333334v85.333333H85.333333v85.333334h213.333334v85.333333H85.333333v85.333333h213.333334v213.333334h85.333333V725.333333h85.333333v213.333334h85.333334V725.333333h85.333333v213.333334h85.333333V725.333333h213.333334v-85.333333H725.333333v-85.333333h213.333334v-85.333334H725.333333v-85.333333h213.333334z" fill="#FF9800"/><path d="M170.666667 256v512c0 46.933333 38.4 85.333333 85.333333 85.333333h512c46.933333 0 85.333333-38.4 85.333333-85.333333V256c0-46.933333-38.4-85.333333-85.333333-85.333333H256c-46.933333 0-85.333333 38.4-85.333333 85.333333z" fill="#4CAF50"/><path d="M661.333333 661.333333H362.666667c-23.466667 0-42.666667-19.2-42.666667-42.666666V405.333333c0-23.466667 19.2-42.666667 42.666667-42.666666h298.666666c23.466667 0 42.666667 19.2 42.666667 42.666666v213.333334c0 23.466667-19.2 42.666667-42.666667 42.666666z" fill="#37474F"/></svg>`,
+    /* what the student was last working on, for the Continue card */
+    /* what is open right now, lesson or their own work: that is what Continue
+       takes them back to, and the editor already holds it */
+    draft: () => project && project.parts && project.parts.length ? { name: project.name, parts: project.parts.length, board: (project.parts.find(q => BOARDS[q.type]) || {}).type } : null,
+    draftProject: () => project,
+    resume: () => { setHash(project.lessonKey ? (LESSONS[project.lessonKey] ? "lesson=" : "ex=") + project.lessonKey : ""); },
+    newCircuit: b => { project.lessonKey = null; setProject(blank(b), "New circuit"); setHash(b ? "new=" + b : ""); },
+    openSaved: n => { const p = listProjects()[n]; if (p) setProject(p, "Opened <b>" + esc(n) + "</b>"); setHash(""); },
+    openLesson: k => openLesson(k),
+  });
   fromHash(); window.addEventListener("hashchange", fromHash);
   /* the chip held the screen while the modules and the parts loaded; it comes
      down once there is a real editor behind it, with one beat of the animation

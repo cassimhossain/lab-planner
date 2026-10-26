@@ -1,5 +1,5 @@
 /* Circuit Lab - chips, drivers and multi-digit displays (round 2). */
-import { P, KIT, defineEls } from "./elements.js?v=10";
+import { P, KIT, defineEls } from "./elements.js?v=11";
 const { CL, txt, pcb, smd, chip, leftHeader, bottomHeader, termBlock, ledDot, mount, moduleBase, modGuts, F, MONO } = KIT;
 const DEFS = {};
 

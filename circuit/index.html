@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Circuit Lab · Robotics &amp; AI Club</title>
 <meta name="description" content="Build Arduino and ESP32 circuits, write code and run them in the browser. Ready-made circuits for every lesson.">
-<link rel="icon" type="image/svg+xml" href="../logo.svg">
+<link rel="icon" type="image/svg+xml" href="chip.svg?v=11">
+<link rel="alternate icon" href="icon-192.png">
 <!-- installed-app plumbing: the manifest makes this page installable on its own,
      with its own icon and window, and the service worker keeps it working when
      the connection drops. Compiling still needs the internet. -->
-<link rel="manifest" href="manifest.webmanifest?v=10">
+<link rel="manifest" href="manifest.webmanifest?v=11">
 <meta name="theme-color" content="#1B3A6B">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,8 +20,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../vendor/codemirror/codemirror.css?v=10">
-<link rel="stylesheet" href="circuit.css?v=10">
+<link rel="stylesheet" href="../vendor/codemirror/codemirror.css?v=11">
+<link rel="stylesheet" href="circuit.css?v=11">
 <style>
 /* installed as an app: there is no portal around it, so the back arrow would
    fling the student out of the window it is running in */
@@ -31,6 +32,57 @@
 </style>
 </head>
 <body>
+<!-- The chip holds the screen while the editor, the parts and the lessons
+     load. app.js takes it down once there is something behind it. -->
+<div class="clboot" id="clboot"><div class="chipwrap"><svg class="chip" viewBox="0 0 1024 1024" aria-hidden="true">
+      <defs>
+        <clipPath id="chipdie"><rect x="320" y="362.67" width="384" height="298.66" rx="42.67"/></clipPath>
+        <linearGradient id="chipscan" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#4FC3F7" stop-opacity="0"/>
+          <stop offset=".45" stop-color="#4FC3F7" stop-opacity=".8"/>
+          <stop offset="1" stop-color="#4FC3F7" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path class="chip-frame" d="M938.666667 384v-85.333333H725.333333V85.333333h-85.333333v213.333334h-85.333333V85.333333h-85.333334v213.333334h-85.333333V85.333333h-85.333333v213.333334H85.333333v85.333333h213.333334v85.333333H85.333333v85.333334h213.333334v85.333333H85.333333v85.333333h213.333334v213.333334h85.333333V725.333333h85.333333v213.333334h85.333334V725.333333h85.333333v213.333334h85.333333V725.333333h213.333334v-85.333333H725.333333v-85.333333h213.333334v-85.333334H725.333333v-85.333333h213.333334z" fill="#FF9800"/>
+      <g class="chip-pins">
+        <rect x="298.67" y="85.33" width="85.33" height="213.33" rx="14"/>
+        <rect x="469.33" y="85.33" width="85.33" height="213.33" rx="14"/>
+        <rect x="640.00" y="85.33" width="85.33" height="213.33" rx="14"/>
+        <rect x="725.33" y="298.67" width="213.33" height="85.33" rx="14"/>
+        <rect x="725.33" y="469.33" width="213.33" height="85.33" rx="14"/>
+        <rect x="725.33" y="640.00" width="213.33" height="85.33" rx="14"/>
+        <rect x="640.00" y="725.33" width="85.33" height="213.33" rx="14"/>
+        <rect x="469.33" y="725.33" width="85.33" height="213.33" rx="14"/>
+        <rect x="298.67" y="725.33" width="85.33" height="213.33" rx="14"/>
+        <rect x="85.33" y="640.00" width="213.33" height="85.33" rx="14"/>
+        <rect x="85.33" y="469.33" width="213.33" height="85.33" rx="14"/>
+        <rect x="85.33" y="298.67" width="213.33" height="85.33" rx="14"/>
+      </g>
+      <path class="chip-body" d="M170.666667 256v512c0 46.933333 38.4 85.333333 85.333333 85.333333h512c46.933333 0 85.333333-38.4 85.333333-85.333333V256c0-46.933333-38.4-85.333333-85.333333-85.333333H256c-46.933333 0-85.333333 38.4-85.333333 85.333333z" fill="#4CAF50"/>
+      <g class="chip-trace"><rect x="236" y="236" width="552" height="552" rx="54"/></g>
+      <g class="chip-vias"><circle cx="236" cy="236" r="17"/><circle cx="788" cy="236" r="17"/><circle cx="788" cy="788" r="17"/><circle cx="236" cy="788" r="17"/></g>
+      <path class="chip-die" d="M661.333333 661.333333H362.666667c-23.466667 0-42.666667-19.2-42.666667-42.666666V405.333333c0-23.466667 19.2-42.666667 42.666667-42.666666h298.666666c23.466667 0 42.666667 19.2 42.666667 42.666666v213.333334c0 23.466667-19.2 42.666667-42.666667 42.666666z" fill="#37474F"/>
+      <g clip-path="url(#chipdie)">
+        <g class="chip-bits">
+          <rect x="352" y="396" width="62" height="20" rx="10"/>
+          <rect x="426" y="396" width="38" height="20" rx="10"/>
+          <rect x="476" y="396" width="86" height="20" rx="10"/>
+          <rect x="574" y="396" width="30" height="20" rx="10"/>
+          <rect x="616" y="396" width="56" height="20" rx="10"/>
+          <rect x="352" y="440" width="34" height="20" rx="10"/>
+          <rect x="398" y="440" width="78" height="20" rx="10"/>
+          <rect x="488" y="440" width="44" height="20" rx="10"/>
+          <rect x="544" y="440" width="66" height="20" rx="10"/>
+          <rect x="622" y="440" width="50" height="20" rx="10"/>
+          <rect x="352" y="572" width="54" height="20" rx="10"/>
+          <rect x="418" y="572" width="92" height="20" rx="10"/>
+          <rect x="522" y="572" width="36" height="20" rx="10"/>
+          <rect x="570" y="572" width="102" height="20" rx="10"/>
+        </g>
+        <g class="chip-core"><rect x="454" y="486" width="116" height="58" rx="14"/></g>
+        <rect class="chip-scan" x="0" y="362" width="150" height="300" fill="url(#chipscan)"/>
+      </g>
+    </svg></div></div>
 <header class="top">
   <a class="brand" href="../index.html#sims" title="Back to the portal"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg><img src="../logo.svg" alt=""><span><b>Circuit Lab</b><small>Robotics &amp; AI Club</small></span></a>
   <div class="pname-wrap"><input id="pname" class="pname" aria-label="Circuit name" value="My circuit"><span id="boardchip" class="boardchip"></span></div>
@@ -82,6 +134,55 @@
     <div id="warns" class="warns"></div>
     <div id="hint" class="hint"></div>
     <div id="empty" class="empty"></div>
+    <div id="clbusy" class="clbusy" aria-hidden="true"><div class="chipwrap"><svg class="chip" viewBox="0 0 1024 1024" aria-hidden="true">
+      <defs>
+        <clipPath id="chipdie"><rect x="320" y="362.67" width="384" height="298.66" rx="42.67"/></clipPath>
+        <linearGradient id="chipscan" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#4FC3F7" stop-opacity="0"/>
+          <stop offset=".45" stop-color="#4FC3F7" stop-opacity=".8"/>
+          <stop offset="1" stop-color="#4FC3F7" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path class="chip-frame" d="M938.666667 384v-85.333333H725.333333V85.333333h-85.333333v213.333334h-85.333333V85.333333h-85.333334v213.333334h-85.333333V85.333333h-85.333333v213.333334H85.333333v85.333333h213.333334v85.333333H85.333333v85.333334h213.333334v85.333333H85.333333v85.333333h213.333334v213.333334h85.333333V725.333333h85.333333v213.333334h85.333334V725.333333h85.333333v213.333334h85.333333V725.333333h213.333334v-85.333333H725.333333v-85.333333h213.333334v-85.333334H725.333333v-85.333333h213.333334z" fill="#FF9800"/>
+      <g class="chip-pins">
+        <rect x="298.67" y="85.33" width="85.33" height="213.33" rx="14"/>
+        <rect x="469.33" y="85.33" width="85.33" height="213.33" rx="14"/>
+        <rect x="640.00" y="85.33" width="85.33" height="213.33" rx="14"/>
+        <rect x="725.33" y="298.67" width="213.33" height="85.33" rx="14"/>
+        <rect x="725.33" y="469.33" width="213.33" height="85.33" rx="14"/>
+        <rect x="725.33" y="640.00" width="213.33" height="85.33" rx="14"/>
+        <rect x="640.00" y="725.33" width="85.33" height="213.33" rx="14"/>
+        <rect x="469.33" y="725.33" width="85.33" height="213.33" rx="14"/>
+        <rect x="298.67" y="725.33" width="85.33" height="213.33" rx="14"/>
+        <rect x="85.33" y="640.00" width="213.33" height="85.33" rx="14"/>
+        <rect x="85.33" y="469.33" width="213.33" height="85.33" rx="14"/>
+        <rect x="85.33" y="298.67" width="213.33" height="85.33" rx="14"/>
+      </g>
+      <path class="chip-body" d="M170.666667 256v512c0 46.933333 38.4 85.333333 85.333333 85.333333h512c46.933333 0 85.333333-38.4 85.333333-85.333333V256c0-46.933333-38.4-85.333333-85.333333-85.333333H256c-46.933333 0-85.333333 38.4-85.333333 85.333333z" fill="#4CAF50"/>
+      <g class="chip-trace"><rect x="236" y="236" width="552" height="552" rx="54"/></g>
+      <g class="chip-vias"><circle cx="236" cy="236" r="17"/><circle cx="788" cy="236" r="17"/><circle cx="788" cy="788" r="17"/><circle cx="236" cy="788" r="17"/></g>
+      <path class="chip-die" d="M661.333333 661.333333H362.666667c-23.466667 0-42.666667-19.2-42.666667-42.666666V405.333333c0-23.466667 19.2-42.666667 42.666667-42.666666h298.666666c23.466667 0 42.666667 19.2 42.666667 42.666666v213.333334c0 23.466667-19.2 42.666667-42.666667 42.666666z" fill="#37474F"/>
+      <g clip-path="url(#chipdie)">
+        <g class="chip-bits">
+          <rect x="352" y="396" width="62" height="20" rx="10"/>
+          <rect x="426" y="396" width="38" height="20" rx="10"/>
+          <rect x="476" y="396" width="86" height="20" rx="10"/>
+          <rect x="574" y="396" width="30" height="20" rx="10"/>
+          <rect x="616" y="396" width="56" height="20" rx="10"/>
+          <rect x="352" y="440" width="34" height="20" rx="10"/>
+          <rect x="398" y="440" width="78" height="20" rx="10"/>
+          <rect x="488" y="440" width="44" height="20" rx="10"/>
+          <rect x="544" y="440" width="66" height="20" rx="10"/>
+          <rect x="622" y="440" width="50" height="20" rx="10"/>
+          <rect x="352" y="572" width="54" height="20" rx="10"/>
+          <rect x="418" y="572" width="92" height="20" rx="10"/>
+          <rect x="522" y="572" width="36" height="20" rx="10"/>
+          <rect x="570" y="572" width="102" height="20" rx="10"/>
+        </g>
+        <g class="chip-core"><rect x="454" y="486" width="116" height="58" rx="14"/></g>
+        <rect class="chip-scan" x="0" y="362" width="150" height="300" fill="url(#chipscan)"/>
+      </g>
+    </svg></div></div>
   </section>
 
   <div id="gutter" class="gutter" title="Drag to resize"></div>
@@ -145,14 +246,14 @@
 <div id="stagebox" class="stagebox" aria-hidden="true"></div>
 <input type="file" id="fileup" accept=".json,application/json" hidden>
 
-<script src="../vendor/wokwi-elements.js?v=10"></script>
-<script src="../vendor/codemirror/codemirror.min.js?v=10"></script>
-<script type="module" src="app.js?v=10"></script>
+<script src="../vendor/wokwi-elements.js?v=11"></script>
+<script src="../vendor/codemirror/codemirror.min.js?v=11"></script>
+<script type="module" src="app.js?v=11"></script>
 <script>
   /* Registered after load so it never competes with the editor starting up.
      The worker caches this app only; the portal is left alone. */
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=10").catch(() => {}));
+    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=11").catch(() => {}));
   }
 </script>
 </body>

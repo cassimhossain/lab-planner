@@ -12,9 +12,9 @@
    index.html and in VERSION below, and the old cache is thrown away whole on
    the next visit, so a student never runs half an old version. */
 
-const VERSION = "v10";
+const VERSION = "v11";
 const CACHE = "circuitlab-" + VERSION;
-const V = "?" + VERSION.replace("v", "v=");          // "?v=10", the same string the page uses
+const V = "?" + VERSION.replace("v", "v=");          // "?v=11", the same string the page uses
 
 const MODULES = ["app", "assist", "boards", "elements", "elements2", "elements3", "elements4", "elements5",
   "layout", "lessons", "lessons-jm", "lessons-le", "lessons-tl", "lessons-yi",
@@ -29,7 +29,7 @@ const FONT_CSS = "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wgh
 
 const SHELL = [
   "./", "./index.html", "./circuit.css" + V, "./manifest.webmanifest" + V,
-  "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png",
+  "./chip.svg" + V, "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png",
   ...MODULES.map(m => "./" + m + ".js" + V),
   "../vendor/wokwi-elements.js" + V,
   "../vendor/codemirror/codemirror.min.js" + V,

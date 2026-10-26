@@ -1,14 +1,14 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=10";
-import { Netlist, Sim } from "./sim.js?v=10";
-import { BOARDS, loadHex } from "./boards.js?v=10";
-import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=10";
-import { layoutCircuit } from "./layout.js?v=10";
-import { SNIPPETS } from "./snippets.js?v=10";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=10";
-import * as T from "./tools.js?v=10";
-import { buildSchematic } from "./schematic.js?v=10";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=10";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=11";
+import { Netlist, Sim } from "./sim.js?v=11";
+import { BOARDS, loadHex } from "./boards.js?v=11";
+import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=11";
+import { layoutCircuit } from "./layout.js?v=11";
+import { SNIPPETS } from "./snippets.js?v=11";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=11";
+import * as T from "./tools.js?v=11";
+import { buildSchematic } from "./schematic.js?v=11";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=11";
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -575,12 +575,22 @@ function friendly(e) {
   else if (/invalid conversion|cannot convert/.test(msg)) tip = "The value is the wrong type here (for example text where a number is needed).";
   return `<div class="emsg"><b>Line ${e.line}</b> ${esc(msg)}${tip ? `<small>${esc(tip)}</small>` : ""}</div>`;
 }
+/* Compiling takes a second or two every time Start simulation is pressed, so
+   the chip comes up over the canvas. It waits 250ms first: a fast compile
+   should not make the screen flash. */
+let buildT = null;
+function buildBusy(on) {
+  const box = $("#clbusy"); if (!box) return;
+  if (on) { clearTimeout(buildT); buildT = setTimeout(() => box.classList.add("on"), 250); }
+  else { clearTimeout(buildT); buildT = null; box.classList.remove("on"); }
+}
 async function runSim() {
   if (running) return;
   project.code = editor.getValue(); save();
   const btn = $("#runbtn"), board = boardType();
   if (!project.parts.length) return toast("Add some parts first");
   btn.disabled = true; btn.innerHTML = `<span class="spin"></span><span>Compiling…</span>`;
+  if (board) buildBusy(true);
   let program, bt = board;
   try {
     if (board) {
@@ -597,6 +607,7 @@ async function runSim() {
       setOutput(`<span class="ok">${ic("check")}Compiled</span> ${used ? `· program ${used[2]}%` : ""} ${ram ? `· memory ${ram[2]}%` : ""}${board === "esp32" ? " · ESP32 teaching mode" : ""}`);
       program = loadHex(r.hex, BOARDS[board].mcu.flash);
     } else { bt = "uno"; program = new Uint16Array(BOARDS.uno.mcu.flash / 2); setOutput("No board: running the circuit without code."); }
+    buildBusy(false);
     project.parts.forEach(p => measure(p.id));
     const states = {}; project.parts.forEach(p => { states[p.id] = rt[p.id].state; });
     const net = new Netlist(project, pinsWorld, states);
@@ -610,6 +621,7 @@ async function runSim() {
     lastT = performance.now(); raf = requestAnimationFrame(loop);
     showInspector(); drawPins(); renderPhone();
   } catch (e) {
+    buildBusy(false);
     if (e) { setOutput(`Could not reach the compile service. Check the internet connection.<br><small>${esc(e.message || "")}</small>`, true); console.error(e); }
     btn.disabled = false; btn.innerHTML = `${ic("play")}<span>Start simulation</span>`;
   }
@@ -1207,6 +1219,16 @@ function boot() {
     if ((m = h.match(/^c=(.+)$/))) { T.openLink(m[1]).then(p => { if (p) { setProject(p, "Opened a shared circuit"); setHash("c=" + m[1]); } else toast("That shared link could not be read"); }); return; }
   };
   fromHash(); window.addEventListener("hashchange", fromHash);
+  /* the chip held the screen while the modules and the parts loaded; it comes
+     down once there is a real editor behind it, with one beat of the animation
+     guaranteed so it never just blinks */
+  {
+    const bt = $("#clboot");
+    if (bt) {
+      const wait = Math.max(0, 1150 - performance.now());
+      setTimeout(() => { document.body.classList.add("clready"); setTimeout(() => bt.classList.add("gone"), 420); }, wait);
+    }
+  }
   window.CL = { get project() { return project; }, get sim() { return sim; }, get editor() { return editor; }, rt, PARTS, DEFAULT_PINS, defaultPin, pinsWorld, pinDir, routePts, runSim, stopSim, setProject, openLesson, LESSONS, STARTERS, buildFromSpec, fit, phoneGo, partCode, zoomToPart, tools: T, setSelPublic: v => { sel = v; project.parts.forEach(placePart); showInspector(); }, get running() { return running; } };
 }
 function sendSerial() { const i = $("#serialin"); if (!sim || !i.value) return; sim.serialIn(i.value + "\n"); const o = $("#serialout"); o.textContent += "› " + i.value + "\n"; i.value = ""; }

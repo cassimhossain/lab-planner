@@ -2,15 +2,15 @@
    kind: board | bb (sits on the breadboard) | module (wired with jumper wires)
    pw: power pins { vcc:[...], gnd:[...] } used by the auto-layout and the "is it powered" check
    code: a ready-made example for the part. {PIN:name} is replaced by the board pin it is wired to. */
-import "./elements.js?v=13";
-import { PARTS2 } from "./parts2.js?v=13";
-import { PARTS3 } from "./parts3.js?v=13";
-import { PARTS4 } from "./parts4.js?v=13";
-import { PARTS5 } from "./parts5.js?v=13";
-import { PARTS6 } from "./parts6.js?v=13";
-import { PARTS7 } from "./parts7.js?v=13";
-import { PARTS8 } from "./parts8.js?v=13";
-export { P as PITCH, BB, BB_GROUPS, bbGroupOf, bbLayout } from "./elements.js?v=13";
+import "./elements.js?v=14";
+import { PARTS2 } from "./parts2.js?v=14";
+import { PARTS3 } from "./parts3.js?v=14";
+import { PARTS4 } from "./parts4.js?v=14";
+import { PARTS5 } from "./parts5.js?v=14";
+import { PARTS6 } from "./parts6.js?v=14";
+import { PARTS7 } from "./parts7.js?v=14";
+import { PARTS8 } from "./parts8.js?v=14";
+export { P as PITCH, BB, BB_GROUPS, bbGroupOf, bbLayout } from "./elements.js?v=14";
 
 const COLORS = ["red", "green", "yellow", "blue", "white", "orange"];
 export const CATS = ["Boards", "Basics", "Logic & chips", "Input", "Sensors", "Displays", "Light & sound", "Motion", "Power", "Communication"];

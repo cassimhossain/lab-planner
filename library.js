@@ -42,6 +42,16 @@ window.LIBRARY = {
    "kb": 673
   },
   {
+   "code": "F-04",
+   "group": "F",
+   "title": "Introduction to Actuators",
+   "file": "library/slides/F-04_Introduction_to_Actuators_Slides.pdf",
+   "thumb": "library/thumbs/F-04.jpg",
+   "banner": "library/banners/F-04.jpg",
+   "pages": 19,
+   "kb": 2103
+  },
+  {
    "code": "JM-00",
    "group": "JM",
    "title": "Intro to Robotics Art Bot",
@@ -1250,16 +1260,6 @@ window.LIBRARY = {
    "banner": "library/banners/YI-32.jpg",
    "pages": 19,
    "kb": 543
-  },
-  {
-   "code": "YI-33",
-   "group": "YI",
-   "title": "Introduction to Actuators",
-   "file": "library/slides/YI-33_Introduction_to_Actuators_Slides.pdf",
-   "thumb": "library/thumbs/YI-33.jpg",
-   "banner": "library/banners/YI-33.jpg",
-   "pages": 19,
-   "kb": 2098
   }
  ],
  "docs": [

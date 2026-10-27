@@ -999,7 +999,7 @@ window.VIDEOS = {
    "mins": 3
   }
  ],
- "YI-33": [
+ "F-04": [
   {
    "id": "LXURLvga8bQ",
    "title": "How Servo Motors Work & How To Control Servos using Arduino",

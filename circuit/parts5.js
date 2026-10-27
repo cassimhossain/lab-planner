@@ -1,7 +1,7 @@
 /* Circuit Lab - part catalogue, round 3: logic chips, analogue chips and counters.
    Every chip here is a real DIP package drawn by cl-dip, with the manufacturer pin order. */
 
-import "./elements5.js?v=15";
+import "./elements5.js?v=16";
 
 /* truth-table sketch shared by the six gate chips: drive A and B, read Y, print the table */
 const gateCode = (name, sym, expr) => `// ${name}: the ${sym} gate, checked against its truth table

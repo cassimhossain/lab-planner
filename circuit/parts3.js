@@ -1,5 +1,5 @@
 /* Circuit Lab - part catalogue, round 2: chips, drivers and multi-digit displays. */
-import "./elements3.js?v=15";
+import "./elements3.js?v=16";
 
 const v = (k, label, min, max, unit = "", step = 1) => ({ k, label, type: "range", min, max, step, unit, sim: true, live: true });
 

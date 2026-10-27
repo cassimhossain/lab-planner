@@ -1,5 +1,58 @@
 /* Foundation + Little Explorers (ages 5-7) circuits. Code stays short and friendly. */
 export default {
+  "F-04": {
+    title: "Introduction to Actuators", goal: "An ultrasonic sensor measures distance and the servo turns to match it, with green, yellow and red LEDs showing which third of the sweep the arm is in.",
+    parts: [{ t: "hcsr04", pins: { TRIG: 9, ECHO: 10 } }, { t: "servo", pins: { PWM: 6 } },
+      { t: "led", color: "green", pin: 2 }, { t: "led", color: "yellow", pin: 3 }, { t: "led", color: "red", pin: 4 }],
+    try: ["Start the simulation, then drag the ball in front of the sensor and watch the servo follow it.", "Find the distance where the yellow LED hands over to red. Does it match the table on the slides?", "Swap FAR_CM and NEAR_CM in the map() line so the servo turns the other way.", "Only move the servo when the new angle differs from the old one by more than 3 degrees, so it stops twitching."],
+    code: `// Distance-controlled servo with a 3-LED angle indicator
+// The nearer the object, the further the servo turns.
+#include <Servo.h>
+
+const int TRIG = 9, ECHO = 10, SERVO = 6;
+const int GREEN = 2, YELLOW = 3, RED = 4;
+
+// the window we care about, in centimetres
+const int NEAR_CM = 10;    // 10 cm or closer  -> servo at 180
+const int FAR_CM  = 60;    // 60 cm or further -> servo at 0
+
+Servo arm;
+
+long readDistanceCm() {
+  digitalWrite(TRIG, LOW);  delayMicroseconds(2);
+  digitalWrite(TRIG, HIGH); delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+  long us = pulseIn(ECHO, HIGH, 30000);   // give up after 30 ms
+  if (us == 0) return FAR_CM;             // nothing came back: treat as far
+  return us / 58;                         // sound there and back, in cm
+}
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
+  pinMode(GREEN, OUTPUT); pinMode(YELLOW, OUTPUT); pinMode(RED, OUTPUT);
+  arm.attach(SERVO);
+  arm.write(0);
+}
+
+void loop() {
+  long cm = readDistanceCm();
+  cm = constrain(cm, NEAR_CM, FAR_CM);           // keep it inside our window
+
+  // near = big angle, far = small angle
+  int angle = map(cm, FAR_CM, NEAR_CM, 0, 180);
+  arm.write(angle);
+
+  // one LED for each third of the turn
+  digitalWrite(GREEN,  angle <  60);
+  digitalWrite(YELLOW, angle >= 60 && angle < 120);
+  digitalWrite(RED,    angle >= 120);
+
+  Serial.print(cm); Serial.print(" cm -> "); Serial.print(angle); Serial.println(" deg");
+  delay(100);                                     // the servo needs time to move
+}
+` },
   "F-00": {
     title: "Welcome to Robotics: Distance Alarm", goal: "Like a car parking sensor: when something comes closer than 20 cm the LED lights and the buzzer sounds.",
     parts: [{ t: "hcsr04", pins: { TRIG: 9, ECHO: 10 } }, { t: "led", color: "red", pin: 13 }, { t: "buzzer", pin: 8 }],

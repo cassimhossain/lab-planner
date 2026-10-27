@@ -531,7 +531,11 @@ body.clready .clboot.gone { display: none; }
 body.athome .home { display: block; }
 /* on the dashboard the top bar keeps only what still means something there:
    the way back to the portal, the sound, theme and full-screen switches */
-body.athome .main, body.athome .tb, body.athome .pname-wrap,
+/* The workspace is only hidden, never removed from the layout: a part that is
+   display:none measures zero, and the palette thumbnails are sized from real
+   measurements while the dashboard is still on top. */
+body.athome .main { visibility: hidden; }
+body.athome .tb, body.athome .pname-wrap,
 body.athome #runbtn, body.athome .runctl, body.athome .clock { display: none; }
 body.athome .home-btn { display: none; }
 .home-btn { display: inline-flex; }

@@ -1,15 +1,15 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=12";
-import { Netlist, Sim } from "./sim.js?v=12";
-import { BOARDS, loadHex } from "./boards.js?v=12";
-import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=12";
-import { layoutCircuit } from "./layout.js?v=12";
-import { SNIPPETS } from "./snippets.js?v=12";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=12";
-import * as T from "./tools.js?v=12";
-import { buildSchematic } from "./schematic.js?v=12";
-import { initHome, showHome, hideHome, isHome } from "./home.js?v=12";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=12";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=13";
+import { Netlist, Sim } from "./sim.js?v=13";
+import { BOARDS, loadHex } from "./boards.js?v=13";
+import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=13";
+import { layoutCircuit } from "./layout.js?v=13";
+import { SNIPPETS } from "./snippets.js?v=13";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=13";
+import * as T from "./tools.js?v=13";
+import { buildSchematic } from "./schematic.js?v=13";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=13";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=13";
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -414,6 +414,24 @@ function fit() {
 
 /* ---------- component panel ---------- */
 function renderCats() { $("#pcats").innerHTML = ["All", ...CATS].map(c => `<button class="${c === catFilter ? "on" : ""}" data-cat="${esc(c)}">${esc(c)}</button>`).join(""); }
+/* Fit one palette thumbnail inside its tile.
+   A hidden element measures zero, and the palette is built while the
+   dashboard is still covering the workspace, so a measurement of zero is
+   worth waiting for rather than scaling from: that is what left the board
+   artwork oversized and clipped. The transform is cleared first so a refit
+   measures the real size rather than the size it was last scaled to. */
+function fitThumb(t, el, n) {
+  el.style.transform = "";
+  const box = t.getBoundingClientRect(), r = el.getBoundingClientRect();
+  if ((!r.width || !r.height || !box.width) && n < 80) return setTimeout(() => fitThumb(t, el, n + 1), 70);
+  if (!r.width || !r.height || !box.width) return;
+  const s = Math.min((box.width - 6) / r.width, (box.height - 6) / r.height, 1.8);
+  el.style.transform = `translate(${(box.width - r.width * s) / 2}px,${(box.height - r.height * s) / 2}px) scale(${s})`;
+  el.style.opacity = 1;
+}
+/* called when the workspace becomes visible again, so anything measured while
+   it was hidden is put right */
+function refitThumbs() { $$("[data-thumb]").forEach(t => { const el = t.firstElementChild; if (el) fitThumb(t, el, 79); }); }
 function renderPalette() {
   const q = ($("#psearch").value || "").toLowerCase();
   const cats = catFilter === "All" ? CATS : [catFilter];
@@ -434,8 +452,8 @@ function renderPalette() {
   $$("[data-thumb]").forEach(t => {
     const d = PARTS[t.dataset.thumb], el = document.createElement(d.tag);
     applyAttrs(el, d.attrs); t.appendChild(el);
-    const fitThumb = n => { const r = el.getBoundingClientRect(), w = r.width, h = r.height; if ((!w || !h) && n < 25) return setTimeout(() => fitThumb(n + 1), 60); const box = t.getBoundingClientRect(), bw = box.width || 64, bh = box.height || 48; const s = Math.min((bw - 6) / (w || bw), (bh - 6) / (h || bh), 1.8); el.style.transform = `translate(${(bw - w * s) / 2}px,${(bh - h * s) / 2}px) scale(${s})`; el.style.opacity = 1; };
-    el.style.opacity = 0; (el.updateComplete || Promise.resolve()).then(() => requestAnimationFrame(() => fitThumb(0)));
+    el.style.opacity = 0;
+    (el.updateComplete || Promise.resolve()).then(() => requestAnimationFrame(() => fitThumb(t, el, 0)));
   });
 }
 function addPart(type, x, y) {
@@ -1217,7 +1235,7 @@ function boot() {
   const fromHash = () => {
     const h = decodeURIComponent(location.hash.slice(1)); let m;
     if (!h || h === "home") return showHome();
-    hideHome();
+    if (isHome()) { hideHome(); requestAnimationFrame(refitThumbs); }
     if ((m = h.match(/^lesson=(.+)$/)) && LESSONS[m[1]]) return openLesson(m[1]);
     if ((m = h.match(/^ex=([\w-]+)$/)) && STARTERS.find(s => s.key === m[1])) return openLesson(m[1]);
     if ((m = h.match(/^new=(uno|esp32|nano|mega|none)$/))) return setProject(blank(m[1] === "none" ? null : m[1]), "New circuit");

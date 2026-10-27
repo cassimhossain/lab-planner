@@ -1,6 +1,6 @@
 /* Circuit Lab - second part catalogue (round 1: boards, simple sensors, more displays and loads).
    Same shape as PARTS in parts.js. Merged in by parts.js. */
-import "./elements2.js?v=12";
+import "./elements2.js?v=13";
 
 const v = (k, label, min, max, unit = "", step = 1) => ({ k, label, type: "range", min, max, step, unit, sim: true, live: true });
 const tog = (k, text) => ({ k, label: text, type: "toggle", text, sim: true, live: true });

@@ -998,5 +998,13 @@ window.VIDEOS = {
    "channel": "XBOX",
    "mins": 3
   }
+ ],
+ "YI-33": [
+  {
+   "id": "LXURLvga8bQ",
+   "title": "How Servo Motors Work & How To Control Servos using Arduino",
+   "channel": "How To Mechatronics",
+   "mins": 9
+  }
  ]
 };

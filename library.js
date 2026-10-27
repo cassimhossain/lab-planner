@@ -1250,6 +1250,16 @@ window.LIBRARY = {
    "banner": "library/banners/YI-32.jpg",
    "pages": 19,
    "kb": 543
+  },
+  {
+   "code": "YI-33",
+   "group": "YI",
+   "title": "Introduction to Actuators",
+   "file": "library/slides/YI-33_Introduction_to_Actuators_Slides.pdf",
+   "thumb": "library/thumbs/YI-33.jpg",
+   "banner": "library/banners/YI-33.jpg",
+   "pages": 19,
+   "kb": 2098
   }
  ],
  "docs": [

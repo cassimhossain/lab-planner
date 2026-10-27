@@ -1,15 +1,15 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=14";
-import { Netlist, Sim } from "./sim.js?v=14";
-import { BOARDS, loadHex } from "./boards.js?v=14";
-import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=14";
-import { layoutCircuit } from "./layout.js?v=14";
-import { SNIPPETS } from "./snippets.js?v=14";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=14";
-import * as T from "./tools.js?v=14";
-import { buildSchematic } from "./schematic.js?v=14";
-import { initHome, showHome, hideHome, isHome } from "./home.js?v=14";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=14";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=15";
+import { Netlist, Sim } from "./sim.js?v=15";
+import { BOARDS, loadHex } from "./boards.js?v=15";
+import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=15";
+import { layoutCircuit } from "./layout.js?v=15";
+import { SNIPPETS } from "./snippets.js?v=15";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=15";
+import * as T from "./tools.js?v=15";
+import { buildSchematic } from "./schematic.js?v=15";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=15";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=15";
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];

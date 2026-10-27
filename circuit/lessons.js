@@ -1,8 +1,8 @@
 /* Circuit Lab - ready-made circuits for the club's lessons. Generated layouts come from layout.js. */
-import LE from "./lessons-le.js?v=14";
-import JM from "./lessons-jm.js?v=14";
-import YI from "./lessons-yi.js?v=14";
-import TL from "./lessons-tl.js?v=14";
+import LE from "./lessons-le.js?v=15";
+import JM from "./lessons-jm.js?v=15";
+import YI from "./lessons-yi.js?v=15";
+import TL from "./lessons-tl.js?v=15";
 export const GROUPS = {
   F: { name: "Foundation", color: "#475569" },
   LE: { name: "Little Explorers", color: "#16A34A" },
@@ -250,7 +250,7 @@ export const NOT_SIMULATED = {
   "YI-20": "The ESP32-CAM camera can't be simulated.",
   "TL-18": "The ESP32-CAM camera can't be simulated.",
 };
-import { SNIPPETS } from "./snippets.js?v=14";
+import { SNIPPETS } from "./snippets.js?v=15";
 const snip = t => SNIPPETS.find(x => x.title === t).code;
 export const STARTERS = [
   { key: "blink", cat: "Basics", title: "Blink", goal: "The classic first program: the on-board LED blinks.", parts: [], board: "uno", code: snip("Blink") },
@@ -267,55 +267,4 @@ export const STARTERS = [
   { key: "keypad", cat: "Input", title: "Keypad", goal: "Read keys from a 4×4 keypad.", parts: [{ t: "keypad", pins: { R1: 9, R2: 8, R3: 7, R4: 6, C1: 5, C2: 4, C3: 3, C4: 2 } }], code: null },
   { key: "espweb", cat: "ESP32", board: "esp32", title: "ESP32 web lamp", goal: "Switch an LED from a phone web page.", parts: [{ t: "led", color: "blue", pin: 2 }], code: snip("Web page that switches an LED") },
   { key: "espmqtt", cat: "ESP32", board: "esp32", title: "ESP32 MQTT", goal: "Publish a sensor and obey MQTT commands.", parts: [{ t: "led", color: "green", pin: 2 }, { t: "pot", pin: 34 }], code: snip("MQTT publish and subscribe") },
-  { key: "servo-radar", cat: "Motion", title: "Distance controls a servo", goal: "An ultrasonic sensor measures distance and the servo turns to match it, with three LEDs showing which third of the turn it is in.",
-    parts: [{ t: "hcsr04", pins: { TRIG: 9, ECHO: 10 } }, { t: "servo", pins: { PWM: 6 } },
-      { t: "led", color: "green", pin: 2 }, { t: "led", color: "yellow", pin: 3 }, { t: "led", color: "red", pin: 4 }],
-    board: "uno", code: `// Distance-controlled servo with a 3-LED angle indicator
-// The nearer the object, the further the servo turns.
-#include <Servo.h>
-
-const int TRIG = 9, ECHO = 10, SERVO = 6;
-const int GREEN = 2, YELLOW = 3, RED = 4;
-
-// the window we care about, in centimetres
-const int NEAR_CM = 10;    // 10 cm or closer  -> servo at 180
-const int FAR_CM  = 60;    // 60 cm or further -> servo at 0
-
-Servo arm;
-
-long readDistanceCm() {
-  digitalWrite(TRIG, LOW);  delayMicroseconds(2);
-  digitalWrite(TRIG, HIGH); delayMicroseconds(10);
-  digitalWrite(TRIG, LOW);
-  long us = pulseIn(ECHO, HIGH, 30000);   // give up after 30 ms
-  if (us == 0) return FAR_CM;             // nothing came back: treat as far
-  return us / 58;                         // sound there and back, in cm
-}
-
-void setup() {
-  Serial.begin(9600);
-  pinMode(TRIG, OUTPUT);
-  pinMode(ECHO, INPUT);
-  pinMode(GREEN, OUTPUT); pinMode(YELLOW, OUTPUT); pinMode(RED, OUTPUT);
-  arm.attach(SERVO);
-  arm.write(0);
-}
-
-void loop() {
-  long cm = readDistanceCm();
-  cm = constrain(cm, NEAR_CM, FAR_CM);           // keep it inside our window
-
-  // near = big angle, far = small angle
-  int angle = map(cm, FAR_CM, NEAR_CM, 0, 180);
-  arm.write(angle);
-
-  // one LED for each third of the turn
-  digitalWrite(GREEN,  angle <  60);
-  digitalWrite(YELLOW, angle >= 60 && angle < 120);
-  digitalWrite(RED,    angle >= 120);
-
-  Serial.print(cm); Serial.print(" cm -> "); Serial.print(angle); Serial.println(" deg");
-  delay(100);                                     // the servo needs time to move
-}
-` },
 ];

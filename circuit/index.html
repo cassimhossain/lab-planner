@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Circuit Lab · Robotics &amp; AI Club</title>
 <meta name="description" content="Build Arduino and ESP32 circuits, write code and run them in the browser. Ready-made circuits for every lesson.">
-<link rel="icon" type="image/svg+xml" href="chip.svg?v=17">
+<link rel="icon" type="image/svg+xml" href="chip.svg?v=18">
 <link rel="alternate icon" href="icon-192.png">
 <!-- installed-app plumbing: the manifest makes this page installable on its own,
      with its own icon and window, and the service worker keeps it working when
      the connection drops. Compiling still needs the internet. -->
-<link rel="manifest" href="manifest.webmanifest?v=17">
+<link rel="manifest" href="manifest.webmanifest?v=18">
 <meta name="theme-color" content="#1B3A6B">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,9 +19,12 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../vendor/codemirror/codemirror.css?v=17">
-<link rel="stylesheet" href="circuit.css?v=17">
+<!-- the fonts are not worth a blank screen: the page paints in the fallback
+     and swaps when they arrive -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"></noscript>
+<link rel="stylesheet" href="circuit.css?v=18" fetchpriority="high">
+
 <style>
 /* installed as an app: there is no portal around it, so the back arrow would
    fling the student out of the window it is running in */
@@ -254,14 +257,45 @@
 <div id="stagebox" class="stagebox" aria-hidden="true"></div>
 <input type="file" id="fileup" accept=".json,application/json" hidden>
 
-<script src="../vendor/wokwi-elements.js?v=17"></script>
-<script src="../vendor/codemirror/codemirror.min.js?v=17"></script>
-<script type="module" src="app.js?v=17"></script>
+<!-- async, not defer: 450 KB of part artwork must not hold up the dashboard.
+     app.js opens the page as soon as its own modules are in and waits for
+     these elements only for the things that draw a part.
+     CodeMirror is pulled in by app.js once the first screen is up. -->
+<!-- The modules import each other four deep, so the browser would otherwise
+     discover them one round trip at a time. Named here, they all start at once. -->
+<link rel="modulepreload" href="app.js?v=18">
+<link rel="modulepreload" href="parts.js?v=18">
+<link rel="modulepreload" href="elements.js?v=18">
+<link rel="modulepreload" href="elements2.js?v=18">
+<link rel="modulepreload" href="elements3.js?v=18">
+<link rel="modulepreload" href="elements4.js?v=18">
+<link rel="modulepreload" href="elements5.js?v=18">
+<link rel="modulepreload" href="parts2.js?v=18">
+<link rel="modulepreload" href="parts3.js?v=18">
+<link rel="modulepreload" href="parts4.js?v=18">
+<link rel="modulepreload" href="parts5.js?v=18">
+<link rel="modulepreload" href="parts6.js?v=18">
+<link rel="modulepreload" href="parts7.js?v=18">
+<link rel="modulepreload" href="parts8.js?v=18">
+<link rel="modulepreload" href="boards.js?v=18">
+<link rel="modulepreload" href="layout.js?v=18">
+<link rel="modulepreload" href="snippets.js?v=18">
+<link rel="modulepreload" href="lessons.js?v=18">
+<link rel="modulepreload" href="lessons-le.js?v=18">
+<link rel="modulepreload" href="lessons-jm.js?v=18">
+<link rel="modulepreload" href="lessons-yi.js?v=18">
+<link rel="modulepreload" href="lessons-tl.js?v=18">
+<link rel="modulepreload" href="tools.js?v=18">
+<link rel="modulepreload" href="home.js?v=18">
+<link rel="modulepreload" href="assist.js?v=18">
+<link rel="modulepreload" href="../vendor/avr8js.mjs">
+<script async src="../vendor/wokwi-elements.js?v=18"></script>
+<script type="module" src="app.js?v=18"></script>
 <script>
   /* Registered after load so it never competes with the editor starting up.
      The worker caches this app only; the portal is left alone. */
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=17").catch(() => {}));
+    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=18").catch(() => {}));
   }
 </script>
 </body>

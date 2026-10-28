@@ -22,7 +22,8 @@ export function initHome(ctx) {
   const box = $("#home"); if (!box) return;   /* a page without the dashboard still works */
   box.addEventListener("click", onClick);
   box.addEventListener("input", e => { if (e.target.id === "hq") { hq = e.target.value.trim().toLowerCase(); renderBody(); } });
-  render();
+  /* showHome() draws it. Drawing it here too built the whole dashboard twice
+     on every open, and built it for nothing when the link went to a lesson. */
 }
 
 export function showHome() {
@@ -157,6 +158,9 @@ function drawPreview(box) {
 }
 
 async function build(box) {
+  /* the part artwork arrives after the dashboard does; drawing a miniature
+     before the elements are defined would measure an empty box */
+  if (C.ready) await C.ready;
   let parts, wires;
   if (box.dataset.saved) {
     const p = C.listProjects()[box.dataset.saved]; if (!p) return;

@@ -1,15 +1,65 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=17";
-import { Netlist, Sim } from "./sim.js?v=17";
-import { BOARDS, loadHex } from "./boards.js?v=17";
-import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=17";
-import { layoutCircuit } from "./layout.js?v=17";
-import { SNIPPETS } from "./snippets.js?v=17";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=17";
-import * as T from "./tools.js?v=17";
-import { buildSchematic } from "./schematic.js?v=17";
-import { initHome, showHome, hideHome, isHome } from "./home.js?v=17";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=17";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=18";
+import { BOARDS, loadHex } from "./boards.js?v=18";
+import { layoutCircuit } from "./layout.js?v=18";
+import { SNIPPETS } from "./snippets.js?v=18";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=18";
+import * as T from "./tools.js?v=18";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=18";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=18";
+
+/* The simulator, the Arduino library bundler and the schematic drawer are
+   roughly a third of the code and none of it is needed to open the page, so
+   they are fetched on their own right after the first screen is up. Anything
+   that needs them waits for loadEngine() once; by the time a student presses
+   Start they are long since in. */
+let Netlist = null, Sim = null, prepareSketch = null, buildSchematic = null;
+let BUILTIN_LIBS = [], EXTRA_LIBS = [], enginePromise = null;
+function loadEngine() {
+  if (enginePromise) return enginePromise;
+  enginePromise = Promise.all([
+    import("./sim.js?v=18"), import("./libs.js?v=18"), import("./schematic.js?v=18"),
+  ]).then(([s, l, c]) => {
+    Netlist = s.Netlist; Sim = s.Sim; Sim.muted = muted;
+    prepareSketch = l.prepareSketch; BUILTIN_LIBS = l.BUILTIN_LIBS; EXTRA_LIBS = l.EXTRA_LIBS;
+    buildSchematic = c.buildSchematic;
+    const ll = $("#liblist");
+    if (ll) ll.innerHTML = `<b>Built in:</b> ${BUILTIN_LIBS.join(", ")}.<br><b>Added by Circuit Lab:</b> ${EXTRA_LIBS.map(n => n.replace(".h", "")).join(", ")}.`;
+  });
+  return enginePromise;
+}
+
+/* CodeMirror is 220 KB and the student is looking at the dashboard, not the
+   editor, when the page opens: its script, its stylesheet and the editor
+   itself are created once the first screen is done. */
+let cmPromise = null;
+function loadCodeMirror() {
+  if (cmPromise) return cmPromise;
+  cmPromise = new Promise((res, rej) => {
+    const css = document.createElement("link");
+    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=18";
+    document.head.appendChild(css);
+    const sc = document.createElement("script");
+    sc.src = "../vendor/codemirror/codemirror.min.js?v=18";
+    sc.onload = () => res(window.CodeMirror); sc.onerror = () => rej(new Error("CodeMirror failed to load"));
+    document.head.appendChild(sc);
+  });
+  return cmPromise;
+}
+let editorPromise = null;
+function ensureEditor() {
+  if (editorPromise) return editorPromise;
+  editorPromise = loadCodeMirror().then(CodeMirror => {
+    editor = CodeMirror($("#editor"), { value: project.code || "", mode: "text/x-c++src", lineNumbers: true, matchBrackets: true, autoCloseBrackets: true, indentUnit: 2, tabSize: 2, theme: "cl", extraKeys: { "Ctrl-Enter": () => (running ? stopSim() : runSim()), "Cmd-Enter": () => (running ? stopSim() : runSim()), "Ctrl-S": () => saveAs(), "Cmd-S": () => saveAs() } });
+    installAutocomplete(CodeMirror, editor);
+    editor.on("change", () => { clearTimeout(boot._t); boot._t = setTimeout(() => { project.code = editor.getValue(); save(); renderPhone(); }, 400); });
+    /* the project may have changed while the script was in flight */
+    if (editor.getValue() !== (project.code || "")) editor.setValue(project.code || "");
+    editor.refresh();
+    return editor;
+  });
+  return editorPromise;
+}
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -354,6 +404,7 @@ function pinTitle(node) {
 let schSVG = "";
 function showSchematic() {
   if (!project.parts.length) return toast("Build a circuit first, then open the schematic.");
+  if (!Netlist || !buildSchematic) return void loadEngine().then(showSchematic);
   const states = {}; project.parts.forEach(q => { states[q.id] = rt[q.id] ? rt[q.id].state : {}; });
   let net; try { net = new Netlist(project, pinsWorld, states); } catch (e) { return toast("Could not read the circuit", "warn"); }
   let out; try { out = buildSchematic({ project, rt, net, PARTS, BOARDS, partLabel, title: project.name || "Circuit" }); }
@@ -431,8 +482,9 @@ function fitThumb(t, el, n) {
 }
 /* called when the workspace becomes visible again, so anything measured while
    it was hidden is put right */
-function refitThumbs() { $$("[data-thumb]").forEach(t => { const el = t.firstElementChild; if (el) fitThumb(t, el, 79); }); }
+function refitThumbs() { wireThumbs(); $$("[data-thumb]").forEach(t => { const el = t.firstElementChild; if (el) fitThumb(t, el, 79); }); }
 function renderPalette() {
+  paletteDrawn = true;
   const q = ($("#psearch").value || "").toLowerCase();
   const cats = catFilter === "All" ? CATS : [catFilter];
   $("#plist").innerHTML = cats.map(c => {
@@ -449,12 +501,31 @@ function renderPalette() {
       .map(g => `<div class="tshelf"><h5>${esc(g)}</h5><div class="tgrid">${bins[g].map(tile).join("")}</div></div>`).join("");
     return `<div class="tcat">${head}${shelves}</div>`;
   }).join("") || `<p class="muted pad">No parts match “${esc(q)}”.</p>`;
-  $$("[data-thumb]").forEach(t => {
-    const d = PARTS[t.dataset.thumb], el = document.createElement(d.tag);
-    applyAttrs(el, d.attrs); t.appendChild(el);
-    el.style.opacity = 0;
-    (el.updateComplete || Promise.resolve()).then(() => requestAnimationFrame(() => fitThumb(t, el, 0)));
-  });
+  wireThumbs();
+}
+/* 165 parts means 165 custom elements, each of which draws its own artwork.
+   Making them all at once cost about a third of a second of the opening and
+   most of them are below the fold, so a thumbnail is drawn when its tile is
+   about to be seen. */
+let paletteDrawn = false;
+function ensurePalette() { if (paletteDrawn) return; paletteDrawn = true; renderPalette(); }
+let thumbIO = null;
+function drawThumb(t) {
+  if (t.firstElementChild) return;
+  const d = PARTS[t.dataset.thumb]; if (!d) return;
+  const el = document.createElement(d.tag);
+  applyAttrs(el, d.attrs); t.appendChild(el);
+  el.style.opacity = 0;
+  (el.updateComplete || Promise.resolve()).then(() => requestAnimationFrame(() => fitThumb(t, el, 0)));
+}
+function wireThumbs() {
+  if (thumbIO) { thumbIO.disconnect(); thumbIO = null; }
+  const tiles = $$("[data-thumb]"); if (!tiles.length) return;
+  if (!("IntersectionObserver" in window)) return tiles.forEach(drawThumb);
+  thumbIO = new IntersectionObserver((ents, obs) => {
+    ents.forEach(en => { if (!en.isIntersecting) return; obs.unobserve(en.target); drawThumb(en.target); });
+  }, { root: $("#plist"), rootMargin: "300px 0px" });
+  tiles.forEach(t => thumbIO.observe(t));
 }
 function addPart(type, x, y) {
   if (running) return toast("Stop the simulation to change the circuit");
@@ -465,7 +536,7 @@ function addPart(type, x, y) {
   while (project.parts.some(q => Math.abs(q.x - x) < 14 && Math.abs(q.y - y) < 14)) { x += 36; y += 28; }
   const p = { id: uid(type), type, x: Math.round(x), y: Math.round(y), rot: type === "esp32" ? 90 : 0 };
   project.parts.push(p); makePart(p); sel = { kind: "part", id: p.id };
-  if (def.kind === "board") { updateBoardChip(); if (type === "esp32" && /LED_BUILTIN, OUTPUT\);\n}\n\nvoid loop\(\) {\n  digitalWrite\(LED_BUILTIN, HIGH/.test(editor.getValue())) editor.setValue(CODE_ESP); }
+  if (def.kind === "board") { updateBoardChip(); if (type === "esp32" && editor && /LED_BUILTIN, OUTPUT\);\n}\n\nvoid loop\(\) {\n  digitalWrite\(LED_BUILTIN, HIGH/.test(editor.getValue())) editor.setValue(CODE_ESP); }
   save(); setTimeout(() => { showInspector(); drawWires(); updateEmpty(); }, 60);
 }
 function allSel() { const ids = new Set(T.multi); if (sel && sel.kind === "part") ids.add(sel.id); return [...ids]; }
@@ -579,6 +650,7 @@ async function compile(code, board) {
 function setOutput(html, err) { const o = $("#buildout"); o.innerHTML = html; o.classList.toggle("err", !!err); }
 function errLines(stderr, map) { const out = []; const re = /sketch\.ino:(\d+):(\d+): (error|warning): (.*)/g; let m; while ((m = re.exec(stderr))) out.push({ line: map(+m[1]), col: +m[2], kind: m[3], msg: m[4] }); return out; }
 function markErrors(list) {
+  if (!editor) return;
   for (let i = 0; i < editor.lineCount(); i++) editor.removeLineClass(i, "background", "cm-errline");
   const errs = list.filter(e => e.kind === "error");
   errs.forEach(e => { if (e.line >= 1) editor.addLineClass(e.line - 1, "background", "cm-errline"); });
@@ -606,6 +678,8 @@ function buildBusy(on) {
 }
 async function runSim() {
   if (running) return;
+  if (!Sim) { const btn0 = $("#runbtn"); btn0.disabled = true; await loadEngine(); btn0.disabled = false; }
+  await ensureEditor();
   project.code = editor.getValue(); save();
   const btn = $("#runbtn"), board = boardType();
   if (!project.parts.length) return toast("Add some parts first");
@@ -860,7 +934,7 @@ function renderLessonCard() {
 /* ---------- library modal ---------- */
 function listProjects() { return store.get(LIST) || {}; }
 function saveAs() {
-  project.code = editor.getValue(); project.name = $("#pname").value.trim() || "My circuit";
+  project.code = editor ? editor.getValue() : project.code; project.name = $("#pname").value.trim() || "My circuit";
   const all = listProjects(); all[project.name] = Object.assign({}, project, { saved: new Date().toISOString() });
   if (store.set(LIST, all)) toast(`${ic("check")}Saved as <b>${esc(project.name)}</b>`, "ok"); else toast("Could not save (browser storage is full)");
   save();
@@ -902,6 +976,7 @@ function showSnippets() {
   </div>`, "wide");
 }
 function useCode(code, how) {
+  if (!editor) return void ensureEditor().then(() => useCode(code, how));
   if (how === "insert") { editor.replaceSelection(code); editor.focus(); toast("Inserted"); }
   else { const cur = editor.getValue(); if (cur.trim() && cur !== code && !confirm("Replace the code in the editor? (Undo with Ctrl+Z in the editor.)")) return; editor.setValue(code); toast("Code replaced"); }
   tab("code"); save();
@@ -912,13 +987,13 @@ function download() {
   a.download = (project.name || "circuit").replace(/[^\w-]+/g, "_") + ".circuit.json"; document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 300);
 }
 function downloadIno() {
-  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([editor.getValue()], { type: "text/plain" }));
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([editor ? editor.getValue() : (project.code || "")], { type: "text/plain" }));
   a.download = (project.name || "sketch").replace(/[^\w-]+/g, "_") + ".ino"; document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 300);
 }
 function tab(t) {
   $$("[data-tab]").forEach(b => { if (b.closest(".tabs")) b.classList.toggle("on", b.dataset.tab === t); });
   $$(".tpane").forEach(p => p.classList.toggle("on", p.id === "t-" + t));
-  if (t === "code") editor.refresh(); if (t === "serial") { $("[data-tab=serial]").classList.remove("ping"); plot.draw(); } if (t === "phone") $("#phonetab").classList.remove("ping");
+  if (t === "code") ensureEditor().then(e => e.refresh()); if (t === "serial") { $("[data-tab=serial]").classList.remove("ping"); plot.draw(); } if (t === "phone") $("#phonetab").classList.remove("ping");
 }
 let restoreable = null;
 function setProject(p, msg) {
@@ -1068,12 +1143,8 @@ document.addEventListener("fullscreenchange", () => syncViewButtons());
 
 /* ---------- boot ---------- */
 function boot() {
-  applyTheme(currentTheme()); syncViewButtons();
-  renderCats(); renderPalette();
-  $("#liblist").innerHTML = `<b>Built in:</b> ${BUILTIN_LIBS.join(", ")}.<br><b>Added by Circuit Lab:</b> ${EXTRA_LIBS.map(n => n.replace(".h", "")).join(", ")}.`;
-  editor = CodeMirror($("#editor"), { value: project.code || "", mode: "text/x-c++src", lineNumbers: true, matchBrackets: true, autoCloseBrackets: true, indentUnit: 2, tabSize: 2, theme: "cl", extraKeys: { "Ctrl-Enter": () => (running ? stopSim() : runSim()), "Cmd-Enter": () => (running ? stopSim() : runSim()), "Ctrl-S": () => saveAs(), "Cmd-S": () => saveAs() } });
-  installAutocomplete(CodeMirror, editor);
-  editor.on("change", () => { clearTimeout(boot._t); boot._t = setTimeout(() => { project.code = editor.getValue(); save(); renderPhone(); }, 400); });
+  syncViewButtons();
+  renderCats();
   T.initTools({
     ic, toast, esc, pinTitle, partLabel, drawWires, placePart, showInspector, rebuildAll, snapshot, save, uid, bounds,
     openModal, closeModal, download, downloadIno, stepOnce, PARTS, BOARDS, rt,
@@ -1173,10 +1244,10 @@ function boot() {
       case "download": return download();
       case "upload": return $("#fileup").click();
       case "snippets": return showSnippets();
-      case "partcode": { if (!sel || sel.kind !== "part") return; const p = project.parts.find(q => q.id === sel.id); const r = partCode(p); if (!r) return; useCode(r.code, "replace"); if (r.missing.length) toast(`Pins not wired yet (${esc(r.missing.join(", "))}): example pins used.`); return; }
-      case "copycode": navigator.clipboard && navigator.clipboard.writeText(editor.getValue()).then(() => toast("Code copied")); return;
+      case "partcode": { if (!sel || sel.kind !== "part") return; if (!Netlist) return void loadEngine().then(() => t.click()); const p = project.parts.find(q => q.id === sel.id); const r = partCode(p); if (!r) return; useCode(r.code, "replace"); if (r.missing.length) toast(`Pins not wired yet (${esc(r.missing.join(", "))}): example pins used.`); return; }
+      case "copycode": navigator.clipboard && navigator.clipboard.writeText(editor ? editor.getValue() : (project.code || "")).then(() => toast("Code copied")); return;
       case "ino": return downloadIno();
-      case "mute": muted = !muted; Sim.muted = muted; t.innerHTML = ic(muted ? "mute" : "sound"); return;
+      case "mute": muted = !muted; if (Sim) Sim.muted = muted; t.innerHTML = ic(muted ? "mute" : "sound"); return;
       case "theme": toggleTheme(); syncViewButtons(); return;
       case "fullscreen": toggleFullscreen(); setTimeout(syncViewButtons, 120); return;
       case "clearserial": $("#serialout").textContent = ""; plot.reset(); return;
@@ -1229,12 +1300,15 @@ function boot() {
   // resizable code panel
   const gut = $("#gutter"); let gx = null;
   gut.addEventListener("pointerdown", e => { gx = e.clientX; gut.setPointerCapture(e.pointerId); });
-  gut.addEventListener("pointermove", e => { if (gx === null) return; const w = Math.max(320, Math.min(window.innerWidth - 560, window.innerWidth - e.clientX)); document.documentElement.style.setProperty("--sidew", w + "px"); editor.refresh(); positionInspector(); });
+  gut.addEventListener("pointermove", e => { if (gx === null) return; const w = Math.max(320, Math.min(window.innerWidth - 560, window.innerWidth - e.clientX)); document.documentElement.style.setProperty("--sidew", w + "px"); if (editor) editor.refresh(); positionInspector(); });
   gut.addEventListener("pointerup", () => { gx = null; fit(); });
   // links: #lesson=LE-07, #ex=blink, #new=esp32
+  let firstRoute = true;
   const fromHash = () => {
     const h = decodeURIComponent(location.hash.slice(1)); let m;
-    if (!h || h === "home") return showHome();
+    if (!h || h === "home") { if (firstRoute) { firstRoute = false; return; } return showHome(); }
+    firstRoute = false;
+    ensurePalette();
     if (isHome()) { hideHome(); requestAnimationFrame(refitThumbs); }
     if ((m = h.match(/^lesson=(.+)$/)) && LESSONS[m[1]]) return openLesson(m[1]);
     if ((m = h.match(/^ex=([\w-]+)$/)) && STARTERS.find(s => s.key === m[1])) return openLesson(m[1]);
@@ -1248,30 +1322,11 @@ function boot() {
     if (pb) { let last = ""; try { last = localStorage.getItem("labplanner.lastRoute") || ""; } catch (e) { }
       pb.href = "../index.html" + (last && /^[A-Za-z0-9_=,.-]+$/.test(last) ? "#" + last : ""); }
   }
-  initHome({
-    ic, PARTS, BOARDS, LESSONS, STARTERS, GROUPS, buildFromSpec, listProjects,
-    chip: () => `<svg viewBox="0 0 1024 1024" aria-hidden="true"><path d="M938.666667 384v-85.333333H725.333333V85.333333h-85.333333v213.333334h-85.333333V85.333333h-85.333334v213.333334h-85.333333V85.333333h-85.333333v213.333334H85.333333v85.333333h213.333334v85.333333H85.333333v85.333334h213.333334v85.333333H85.333333v85.333333h213.333334v213.333334h85.333333V725.333333h85.333333v213.333334h85.333334V725.333333h85.333333v213.333334h85.333333V725.333333h213.333334v-85.333333H725.333333v-85.333333h213.333334v-85.333334H725.333333v-85.333333h213.333334z" fill="#FF9800"/><path d="M170.666667 256v512c0 46.933333 38.4 85.333333 85.333333 85.333333h512c46.933333 0 85.333333-38.4 85.333333-85.333333V256c0-46.933333-38.4-85.333333-85.333333-85.333333H256c-46.933333 0-85.333333 38.4-85.333333 85.333333z" fill="#4CAF50"/><path d="M661.333333 661.333333H362.666667c-23.466667 0-42.666667-19.2-42.666667-42.666666V405.333333c0-23.466667 19.2-42.666667 42.666667-42.666666h298.666666c23.466667 0 42.666667 19.2 42.666667 42.666666v213.333334c0 23.466667-19.2 42.666667-42.666667 42.666666z" fill="#37474F"/></svg>`,
-    /* what the student was last working on, for the Continue card */
-    /* what is open right now, lesson or their own work: that is what Continue
-       takes them back to, and the editor already holds it */
-    draft: () => project && project.parts && project.parts.length ? { name: project.name, parts: project.parts.length, board: (project.parts.find(q => BOARDS[q.type]) || {}).type } : null,
-    draftProject: () => project,
-    resume: () => { setHash(project.lessonKey ? (LESSONS[project.lessonKey] ? "lesson=" : "ex=") + project.lessonKey : ""); },
-    newCircuit: b => { project.lessonKey = null; setProject(blank(b), "New circuit"); setHash(b ? "new=" + b : ""); },
-    openSaved: n => { const p = listProjects()[n]; if (p) setProject(p, "Opened <b>" + esc(n) + "</b>"); setHash(""); },
-    openLesson: k => openLesson(k),
-  });
   fromHash(); window.addEventListener("hashchange", fromHash);
-  /* the chip held the screen while the modules and the parts loaded; it comes
-     down once there is a real editor behind it, with one beat of the animation
-     guaranteed so it never just blinks */
-  {
-    const bt = $("#clboot");
-    if (bt) {
-      const wait = Math.max(0, 1150 - performance.now());
-      setTimeout(() => { document.body.classList.add("clready"); setTimeout(() => bt.classList.add("gone"), 420); }, wait);
-    }
-  }
+  /* the first screen is up; everything the student has not asked for yet comes
+     in behind it, so pressing Start or opening the code tab never waits */
+  const warm = () => { ensureEditor().catch(() => {}); loadEngine().catch(() => {}); setTimeout(ensurePalette, 1500); };
+  if (window.requestIdleCallback) requestIdleCallback(warm, { timeout: 1200 }); else setTimeout(warm, 600);
   window.CL = { get project() { return project; }, get sim() { return sim; }, get editor() { return editor; }, rt, PARTS, DEFAULT_PINS, defaultPin, pinsWorld, pinDir, routePts, runSim, stopSim, setProject, openLesson, LESSONS, STARTERS, buildFromSpec, fit, phoneGo, partCode, zoomToPart, tools: T, setSelPublic: v => { sel = v; project.parts.forEach(placePart); showInspector(); }, get running() { return running; } };
 }
 function sendSerial() { const i = $("#serialin"); if (!sim || !i.value) return; sim.serialIn(i.value + "\n"); const o = $("#serialout"); o.textContent += "› " + i.value + "\n"; i.value = ""; }
@@ -1280,4 +1335,46 @@ function btSend(text) {
   if (!sim.btSend(t + (text != null ? "" : "\n"))) toast("No Bluetooth module is connected in the code yet");
   phone.bt.push({ from: "phone", text: t, done: true }); if (i && text == null) i.value = ""; renderPhone();
 }
-Promise.all(Object.values(PARTS).map(d => customElements.whenDefined(d.tag))).then(boot);
+/* ---------- opening the page, in two stages ----------
+   Wokwi Elements is 450 KB of part artwork and the dashboard is cards and
+   text, so stage one puts the dashboard on the screen while that bundle is
+   still arriving. Stage two - the canvas, the components rail, the tools and
+   every listener - runs the moment the parts are defined. Anything that draws
+   a part waits for partsReady, so nothing can run early. */
+const partsReady = Promise.all(Object.values(PARTS).map(d => customElements.whenDefined(d.tag)));
+function preboot() {
+  applyTheme(currentTheme());
+
+  initHome({
+    ready: partsReady,
+    ic, PARTS, BOARDS, LESSONS, STARTERS, GROUPS, buildFromSpec, listProjects,
+    chip: () => `<svg viewBox="0 0 1024 1024" aria-hidden="true"><path d="M938.666667 384v-85.333333H725.333333V85.333333h-85.333333v213.333334h-85.333333V85.333333h-85.333334v213.333334h-85.333333V85.333333h-85.333333v213.333334H85.333333v85.333333h213.333334v85.333333H85.333333v85.333334h213.333334v85.333333H85.333333v85.333333h213.333334v213.333334h85.333333V725.333333h85.333333v213.333334h85.333334V725.333333h85.333333v213.333334h85.333333V725.333333h213.333334v-85.333333H725.333333v-85.333333h213.333334v-85.333334H725.333333v-85.333333h213.333334z" fill="#FF9800"/><path d="M170.666667 256v512c0 46.933333 38.4 85.333333 85.333333 85.333333h512c46.933333 0 85.333333-38.4 85.333333-85.333333V256c0-46.933333-38.4-85.333333-85.333333-85.333333H256c-46.933333 0-85.333333 38.4-85.333333 85.333333z" fill="#4CAF50"/><path d="M661.333333 661.333333H362.666667c-23.466667 0-42.666667-19.2-42.666667-42.666666V405.333333c0-23.466667 19.2-42.666667 42.666667-42.666666h298.666666c23.466667 0 42.666667 19.2 42.666667 42.666666v213.333334c0 23.466667-19.2 42.666667-42.666667 42.666666z" fill="#37474F"/></svg>`,
+    /* what the student was last working on, for the Continue card */
+    /* what is open right now, lesson or their own work: that is what Continue
+       takes them back to, and the editor already holds it */
+    draft: () => project && project.parts && project.parts.length ? { name: project.name, parts: project.parts.length, board: (project.parts.find(q => BOARDS[q.type]) || {}).type } : null,
+    draftProject: () => project,
+    resume: () => partsReady.then(() => { ensurePalette(); setHash(project.lessonKey ? (LESSONS[project.lessonKey] ? "lesson=" : "ex=") + project.lessonKey : ""); }),
+    newCircuit: b => partsReady.then(() => { ensurePalette(); project.lessonKey = null; setProject(blank(b), "New circuit"); setHash(b ? "new=" + b : ""); }),
+    openSaved: n => partsReady.then(() => { ensurePalette(); const p = listProjects()[n]; if (p) setProject(p, "Opened <b>" + esc(n) + "</b>"); setHash(""); }),
+    openLesson: k => partsReady.then(() => { ensurePalette(); openLesson(k); }),
+  });
+  const h = decodeURIComponent(location.hash.slice(1));
+  if (!h || h === "home") showHome();
+  /* a link straight into a lesson lands on the code pane, so the editor is
+     wanted at once rather than after the first screen */
+  else ensureEditor().catch(() => {});
+
+  /* the chip held the screen while the modules and the parts loaded; it comes
+     down once there is a real editor behind it, with one beat of the animation
+     guaranteed so it never just blinks */
+  {
+    const bt = $("#clboot");
+    if (bt) {
+      const wait = Math.max(0, 420 - performance.now());
+      setTimeout(() => { document.body.classList.add("clready"); setTimeout(() => bt.classList.add("gone"), 420); }, wait);
+    }
+  }
+}
+preboot();
+partsReady.then(boot);

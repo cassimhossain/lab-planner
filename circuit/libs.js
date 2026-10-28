@@ -2,10 +2,10 @@
    These are small, API-compatible re-implementations written for the simulator (not copies of the originals).
    Devices talk to the simulator through cl_hc.h: the sketch writes the address of a request block to GPIOR1/2 and
    pokes GPIOR0; the simulator answers instantly. */
-import { L2, DEPS2 } from "./libs2.js?v=17";
-import { L3, DEPS3 } from "./libs3.js?v=17";
-import { L4, DEPS4 } from "./libs4.js?v=17";
-import { L5, DEPS5 } from "./libs5.js?v=17";
+import { L2, DEPS2 } from "./libs2.js?v=18";
+import { L3, DEPS3 } from "./libs3.js?v=18";
+import { L4, DEPS4 } from "./libs4.js?v=18";
+import { L5, DEPS5 } from "./libs5.js?v=18";
 const L = {};
 
 L["cl_hc.h"] = String.raw`#pragma once

@@ -597,7 +597,10 @@ body.athome .home-btn { display: none; }
 
 /* a circuit card */
 .hcard { text-align: left; border: 1px solid var(--line); border-radius: 17px; background: #fff;
-  overflow: hidden; display: flex; flex-direction: column; transition: transform .14s, box-shadow .14s, border-color .14s; }
+  overflow: hidden; display: flex; flex-direction: column; transition: transform .14s, box-shadow .14s, border-color .14s;
+  /* a hundred cards is a hundred card layouts on open; the ones below the fold
+     are skipped until they are scrolled to, at the height declared here */
+  content-visibility: auto; contain-intrinsic-size: auto 268px; }
 .hcard:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(15, 29, 54, .14); border-color: var(--c); }
 .hprev { position: relative; display: block; height: 132px; overflow: hidden;
   background: radial-gradient(120% 120% at 50% 0%, #FFFFFF, #EEF3FA 75%);

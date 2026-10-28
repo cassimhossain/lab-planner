@@ -1111,7 +1111,16 @@
       return;
     }
     if (e.key === "Escape" && modalCode) closeModal(); });
-  window.addEventListener("beforeprint", () => { if (route() !== "print") { location.hash = "#print"; render(); } });
+  /* Ctrl+P from anywhere should still give a usable sheet, so a page with
+     nothing printable on it hands over to the Print lists page first. A page
+     that already has a #printArea - the kit lists and every activity's
+     hardware list - prints itself and must be left alone: redirecting here
+     swapped the hardware list out from under the print dialog, which is why
+     it came out as the empty "plan some sessions" page. */
+  window.addEventListener("beforeprint", () => {
+    if (document.getElementById("printArea")) return;
+    if (route() !== "print") { location.hash = "#print"; render(); }
+  });
 
   if (!S.weekStart) { S.weekStart = nextMonday(); save(); }
   if (!openFromHash()) render();

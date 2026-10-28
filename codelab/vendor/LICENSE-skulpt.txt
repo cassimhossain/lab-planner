@@ -1,0 +1,4 @@
+Skulpt — Python in the browser (https://skulpt.org)
+Copyright (c) 2009-2024 Scott Graham and the Skulpt contributors.
+Released under the MIT licence. Full text: https://github.com/skulpt/skulpt/blob/master/LICENSE
+Used here for the Turtle tab: skulpt.min.js and skulpt-stdlib.js, unmodified.

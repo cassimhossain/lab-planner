@@ -111,3 +111,82 @@ kbd { font: 600 11px "JetBrains Mono", monospace; background: #fff; border: 1px 
   .tbtn span, .engine, .brand span { display: none; }
   .langs button { padding: 6px 8px 6px 6px; font-size: 0; } .langs .lg { font-size: 10.5px; }
 }
+
+/* =====================================================================
+   Turtle, p5.js, Processing and Web
+   ---------------------------------------------------------------------
+   Four languages whose output is a picture rather than a line of text, so
+   the output pane gains a stage above the log. Everything else - the
+   editor, toolbar, examples, download, font size - is the same machinery
+   the Python and C++ tabs already use.
+   ===================================================================== */
+
+/* the language strip now carries six tabs: it scrolls rather than wraps */
+.langs { max-width: min(560px, 46vw); overflow-x: auto; scrollbar-width: none; flex: 0 1 auto; }
+.langs::-webkit-scrollbar { height: 0; }
+.langs button { flex: none; white-space: nowrap; }
+.lg.tu { background: #2E8B57; }
+.lg.p5 { background: #ED225D; }
+.lg.pr { background: #0096D8; }
+.lg.web { background: linear-gradient(135deg, #E34F26 50%, #1572B6 50%); font-size: 11px; }
+
+/* the stage: a white sheet the program draws on, above the output log */
+.stage { flex: 1 1 58%; min-height: 120px; position: relative; background: #fff;
+  border-bottom: 1px solid #1E293B; overflow: auto; display: grid; place-items: center; }
+.stage[hidden] { display: none; }
+.frame { width: 100%; height: 100%; border: 0; background: #fff; display: block; }
+.frame[hidden] { display: none; }
+.turtlewrap { padding: 10px; display: grid; place-items: center; }
+.turtlewrap[hidden] { display: none; }
+#turtlecanvas { position: relative; line-height: 0; }
+#turtlecanvas canvas { max-width: 100%; height: auto; }
+/* when a stage is showing, the log is a strip under it rather than the whole pane */
+/* the drawing gets the room; the log grows to fit what was printed and
+   stops at 42% of the pane */
+body.hasstage .stage { flex: 1 1 auto; }
+body.hasstage .term { flex: 0 1 auto; min-height: 72px; max-height: 42%; }
+body.hasstage .stdin { display: none; }
+
+/* the three files of a web page */
+.webfiles { display: flex; gap: 2px; padding: 6px 8px 0; background: var(--bg); border-bottom: 1px solid var(--line); }
+.webfiles[hidden] { display: none; }
+.webfiles button { border: 0; background: transparent; padding: 7px 12px 8px; border-radius: 8px 8px 0 0;
+  font: 700 12.5px/1 "JetBrains Mono", monospace; color: var(--muted); border-bottom: 2.5px solid transparent; }
+.webfiles button:hover { color: var(--ink); background: var(--card); }
+.webfiles button.on { color: var(--blue); background: var(--card); border-bottom-color: var(--blue); }
+
+/* the Live toggle and the open-in-a-tab button */
+#autorun[aria-pressed="true"] { background: #1D4ED8; border-color: #1D4ED8; color: #fff; }
+#autorun[hidden], #popout[hidden] { display: none; }
+
+/* a stopped or crashed program says so on the stage itself */
+.stagenote { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  font: 600 13px/1.5 "Plus Jakarta Sans", system-ui, sans-serif; color: var(--muted);
+  text-align: center; max-width: 80%; }
+
+@media (max-width: 860px) {
+  .langs { max-width: none; }
+  .stage { flex-basis: 50%; }
+}
+@media (max-width: 620px) {
+  .langs button { padding: 6px 8px 6px 5px; font-size: 12.5px; }
+  .langs button span.lg { width: 22px; height: 19px; font-size: 9.5px; }
+}
+
+/* the frame fills the stage; the turtle canvas stays centred at its own size */
+.stage > * { grid-area: 1 / 1; }
+.frame { justify-self: stretch; align-self: stretch; }
+.turtlewrap { justify-self: center; align-self: center; }
+
+/* Phone and small tablet: six language tabs cannot share a row with the
+   toolbar and the Run button, so they get a row of their own under it
+   rather than being squeezed to nothing. */
+@media (max-width: 760px) {
+  body { display: flex; flex-direction: column; }
+  .top { flex-wrap: wrap; height: auto; padding: 8px 10px; row-gap: 8px; flex: none; }
+  .langs { order: 10; flex: 1 0 100%; max-width: none; }
+  .langs button { font-size: 12.5px; padding: 7px 11px 7px 6px; }
+  .langs .lg { font-size: 10.5px; }
+  .main { flex: 1 1 auto; height: auto; min-height: 0; }
+  .brand span { display: none; }
+}

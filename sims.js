@@ -2,7 +2,7 @@
    PhET simulations: PhET Interactive Simulations, University of Colorado Boulder, https://phet.colorado.edu (CC BY 4.0). Stored in sims/phet so they work without internet.
    BlocksCAD: https://www.blockscad3d.com (open source, GPL v3). Loaded from the official site, needs internet.
    Circuit Lab: our own Arduino simulator (circuit/, installable as an app).
-   Code Lab: Python (Pyodide, runs in the browser) and C++ (g++ on the Wandbox online compiler), in codelab/. */
+   Code Lab: Python (Pyodide), C++ (g++ online), Python turtle (Skulpt), p5.js, Processing and web pages, in codelab/. */
 window.SIMS = {
   list: [
     { key: "circuit-lab", name: "Circuit Lab", by: "Robotics & AI Club", kind: "build", href: "circuit/", offline: false,

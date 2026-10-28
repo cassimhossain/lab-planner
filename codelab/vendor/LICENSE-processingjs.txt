@@ -1,0 +1,6 @@
+Processing.js (http://processingjs.org) v1.6.6
+Copyright (c) 2008-2018 John Resig and the Processing.js contributors.
+Released under the MIT licence. Full text: https://github.com/processing-js/processing-js/blob/master/LICENSE
+Used here for the Processing tab: processing.min.js, unmodified.
+Note: this project is no longer maintained upstream. The p5.js tab is the
+supported route for new work.

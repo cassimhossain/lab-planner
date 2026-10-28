@@ -1,5 +1,11 @@
-/* Code Lab - Python (Pyodide, in the browser) and C++ (g++ on an online compiler) for the Robotics & AI Club. */
-import { EXAMPLES } from "./examples.js?v=1";
+/* Code Lab - six languages for the Robotics & AI Club.
+
+   Text output: Python (Pyodide, in the browser) and C++ (g++ on an online
+   compiler). Picture output: Python turtle (Skulpt, bundled and offline),
+   p5.js, Processing and a web page - those three run inside a sandboxed
+   frame. The editor, toolbar, examples, saving and font size are shared. */
+import { EXAMPLES } from "./examples.js?v=3";
+import { runTurtle, stopTurtle, turtleHint, turtleReady, runFrame, stopFrame, docUrl, frameHint } from "./visual.js?v=3";
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -19,15 +25,113 @@ int main() {
     return 0;
 }
 ` },
+  turtle: {
+    name: "Turtle", badge: "tu", file: "drawing.py", mode: "python", kind: "canvas",
+    start: `# Turtle graphics. Press Run (Ctrl+Enter) and watch it draw.
+import turtle
+
+t = turtle.Turtle()
+t.shape("turtle")
+t.speed(6)
+
+for side in range(4):
+    t.forward(120)
+    t.right(90)
+
+turtle.done()
+` },
+  p5: {
+    name: "p5.js", badge: "p5", file: "sketch.js", mode: "javascript", kind: "frame",
+    start: `// p5.js. setup() runs once, draw() runs about 60 times a second.
+function setup() {
+  createCanvas(400, 400);
+}
+
+function draw() {
+  background(20, 24, 40);
+  noStroke();
+  fill(46, 107, 230);
+  circle(mouseX, mouseY, 60);
+}
+` },
+  processing: {
+    name: "Processing", badge: "pr", file: "sketch.pde", mode: "text/x-java", kind: "frame",
+    start: `// Processing. Same ideas as p5.js, written in the Java style:
+// every variable says what type it is.
+void setup() {
+  size(400, 400);
+}
+
+void draw() {
+  background(20, 24, 40);
+  noStroke();
+  fill(0, 150, 216);
+  ellipse(mouseX, mouseY, 60, 60);
+}
+` },
+  web: {
+    name: "Web", badge: "web", file: "index.html", mode: "htmlmixed", kind: "frame", web: true,
+    files: { html: { name: "index.html", mode: "htmlmixed" }, css: { name: "style.css", mode: "css" }, js: { name: "script.js", mode: "javascript" } },
+    start: {
+      html: `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>My page</title>
+</head>
+<body>
+  <h1>Hello!</h1>
+  <p>Edit the HTML, the CSS and the JavaScript, then press Run.</p>
+  <button id="go">Click me</button>
+  <p id="out"></p>
+</body>
+</html>
+`,
+      css: `body {
+  font-family: system-ui, sans-serif;
+  margin: 24px;
+  color: #13213C;
+}
+
+h1 { color: #2E6BE6; }
+
+button {
+  background: #2E6BE6;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 15px;
+}
+`,
+      js: `let clicks = 0;
+
+document.getElementById("go").addEventListener("click", () => {
+  clicks = clicks + 1;
+  document.getElementById("out").textContent = "You clicked " + clicks + " times.";
+  console.log("click", clicks);
+});
+`,
+    } },
 };
+const isWeb = l => !!LANGS[l].web;
+const kindOf = l => LANGS[l].kind || "term";
 const saved = store.get(KEY) || {};
-const S = { lang: saved.lang || "python", code: saved.code || {}, stdin: saved.stdin || {}, fs: saved.fs || 15, iow: saved.iow || null };
+const S = { lang: saved.lang || "python", code: saved.code || {}, stdin: saved.stdin || {}, fs: saved.fs || 15, iow: saved.iow || null, webfile: saved.webfile || "html", live: saved.live || {} };
+/* the Web tab is three files, so its slot in S.code is an object */
+if (typeof S.code.web !== "object" || S.code.web === null) S.code.web = {};
+const webStart = k => LANGS.web.start[k];
+const webCode = k => S.code.web[k] ?? webStart(k);
+const startOf = l => isWeb(l) ? webCode(S.webfile) : (S.code[l] ?? LANGS[l].start);
 const fromHash = location.hash.slice(1);
 if (LANGS[fromHash]) S.lang = fromHash;
 
 /* ---------- editor ---------- */
 const editor = CodeMirror($("#editor"), {
-  value: S.code[S.lang] ?? LANGS[S.lang].start, mode: LANGS[S.lang].mode, theme: "cl", lineNumbers: true, indentUnit: 4, tabSize: 4,
+  /* the Web tab keeps three files in S.code.web, so it must never be handed
+     to CodeMirror as a value: reloading on that tab used to build the editor
+     from an object and throw */
+  value: startOf(S.lang), mode: (isWeb(S.lang) ? LANGS.web.files[S.webfile].mode : LANGS[S.lang].mode), theme: "cl", lineNumbers: true, indentUnit: 4, tabSize: 4,
   matchBrackets: true, autoCloseBrackets: true, styleActiveLine: true, viewportMargin: 30,
   extraKeys: { "Ctrl-Enter": () => run(), "Cmd-Enter": () => run(), "Tab": cm => cm.somethingSelected() ? cm.indentSelection("add") : cm.replaceSelection("    "), "Shift-Tab": cm => cm.indentSelection("subtract"), "Ctrl-/": "toggleComment", "Cmd-/": "toggleComment" },
 });
@@ -35,7 +139,11 @@ let errMark = null;
 const clearErr = () => { if (errMark != null) { editor.removeLineClass(errMark, "background", "errline"); editor.removeLineClass(errMark, "gutter", "errline-g"); errMark = null; } };
 const markErr = n => { clearErr(); if (!n || n < 1 || n > editor.lineCount()) return; errMark = n - 1; editor.addLineClass(errMark, "background", "errline"); editor.addLineClass(errMark, "gutter", "errline-g"); editor.scrollIntoView({ line: errMark, ch: 0 }, 120); };
 editor.on("change", () => { clearErr(); clearTimeout(editor._t); editor._t = setTimeout(save, 300); });
-function save() { S.code[S.lang] = editor.getValue(); S.stdin[S.lang] = $("#stdin").value; store.set(KEY, S); }
+function save() {
+  if (isWeb(S.lang)) S.code.web[S.webfile] = editor.getValue();
+  else S.code[S.lang] = editor.getValue();
+  S.stdin[S.lang] = $("#stdin").value; store.set(KEY, S);
+}
 const applyFont = () => { document.documentElement.style.setProperty("--fs", S.fs + "px"); editor.refresh(); };
 applyFont();
 if (S.iow) document.documentElement.style.setProperty("--iow", S.iow + "px");
@@ -52,13 +160,22 @@ function out(text, cls = "") {
 }
 function outHTML(html) { const d = document.createElement("div"); d.innerHTML = html; while (d.firstChild) term.appendChild(d.firstChild); term.scrollTop = term.scrollHeight; }
 function clearTerm() { term.innerHTML = ""; }
+const EMPTY = {
+  turtle: `<div class="empty"><b>Press Run</b> (or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>) and the turtle draws above.<br><code>import turtle</code>, then <code>t = turtle.Turtle()</code> and commands like <code>t.forward(100)</code> and <code>t.right(90)</code>.<br>Anything you <code>print()</code> shows up here. Works with no internet.</div>`,
+  p5: `<div class="empty"><b>Press Run</b> (or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>) to draw the sketch above.<br><code>setup()</code> runs once, <code>draw()</code> runs about 60 times a second.<br>Anything you <code>console.log()</code> shows up here. Works with no internet.</div>`,
+  processing: `<div class="empty"><b>Press Run</b> (or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>) to draw the sketch above.<br>This is Processing's Java style: <code>void setup()</code>, <code>size(400, 400)</code>, and a type on every variable.<br>For new work the <b>p5.js</b> tab is the one that is still maintained.</div>`,
+  web: `<div class="empty"><b>Press Run</b> (or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>) to see your page above.<br>Three files make one page: <b>index.html</b> is the content, <b>style.css</b> is how it looks, <b>script.js</b> makes it do things.<br>Turn on <b>Live</b> and it updates as you type. <code>console.log()</code> shows up here.</div>`,
+};
 function emptyTerm() {
+  if (EMPTY[S.lang]) { term.innerHTML = EMPTY[S.lang]; return; }
   term.innerHTML = S.lang === "python"
     ? `<div class="empty"><b>Press Run</b> (or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>) to run your Python program. Output appears here.<br>When the program asks for input, type your answer here and press <kbd>Enter</kbd>.<br>numpy, pandas and matplotlib work: plots show up right here.</div>`
     : `<div class="empty"><b>Press Run</b> (or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>) to compile and run your C++ program with g++.<br>If it reads input with <code>cin</code>, type the input in the <b>Input</b> box below first.<br>Needs an internet connection.</div>`;
 }
 const state = (t, cls = "") => { const r = $("#runstate"); r.textContent = t; r.className = "runstate " + cls; };
 const engine = (t, cls = "") => { const e = $("#engine"); e.innerHTML = `<i></i>${esc(t)}`; e.className = "engine " + cls; };
+/* the Python worker keeps reporting after the student has switched tabs */
+const pyEngine = (t, cls = "") => { if (S.lang === "python") engine(t, cls); };
 function toast(m) { const t = $("#toast"); t.innerHTML = m; t.classList.add("on"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("on"), 2400); }
 
 /* ---------- Python ---------- */
@@ -66,17 +183,17 @@ const PY = { worker: null, ready: false, sab: null, irq: null, ctl: null, data: 
 const canWait = () => typeof SharedArrayBuffer !== "undefined" && self.crossOriginIsolated;
 function startPython() {
   if (PY.worker) return;
-  PY.ready = false; engine("Python loading…");
+  PY.ready = false; pyEngine("Python loading…");
   PY.worker = new Worker("py-worker.js?v=1");
   if (canWait()) { PY.sab = new SharedArrayBuffer(8 + 65536); PY.ctl = new Int32Array(PY.sab, 0, 2); PY.data = new Uint8Array(PY.sab, 8); PY.irq = new SharedArrayBuffer(1); }
   PY.worker.onmessage = e => onPy(e.data);
-  PY.worker.onerror = e => { engine("Python failed to load", "bad"); out("\nPython could not start: " + (e.message || "unknown error") + "\n", "bad"); };
+  PY.worker.onerror = e => { pyEngine("Python failed to load", "bad"); out("\nPython could not start: " + (e.message || "unknown error") + "\n", "bad"); };
   PY.worker.postMessage({ type: "init", sab: PY.sab, irq: PY.irq });
 }
 function onPy(m) {
-  if (m.type === "status") { if (!PY.ready) engine(m.text); else state(m.text, "busy"); }
-  if (m.type === "ready") { PY.ready = true; engine(`Python ${m.python}`, "ok"); if (PY.pending) { const p = PY.pending; PY.pending = null; runPython(p); } }
-  if (m.type === "fatal") { engine("Python unavailable", "bad"); out(m.text + "\n", "bad"); setRunning(false); }
+  if (m.type === "status") { if (!PY.ready) pyEngine(m.text); else if (S.lang === "python") state(m.text, "busy"); }
+  if (m.type === "ready") { PY.ready = true; pyEngine(`Python ${m.python}`, "ok"); if (PY.pending) { const p = PY.pending; PY.pending = null; runPython(p); } }
+  if (m.type === "fatal") { pyEngine("Python unavailable", "bad"); out(m.text + "\n", "bad"); setRunning(false); }
   if (m.type === "out") out(m.text);
   if (m.type === "err") out(m.text, "err");
   if (m.type === "echo") out(m.text, "echo");
@@ -202,10 +319,116 @@ function cppHint(e) {
   return "";
 }
 
+/* ===================== the stage =====================
+   Turtle draws into a div in this page; p5, Processing and Web run inside the
+   sandboxed frame. Only one of the two is ever showing. */
+const stage = $("#stage"), frame = $("#frame"), turtleWrap = $("#turtlewrap");
+function showStage(which) {        /* "turtle" | "frame" | null */
+  document.body.classList.toggle("hasstage", !!which);
+  stage.hidden = !which;
+  turtleWrap.hidden = which !== "turtle";
+  frame.hidden = which !== "frame";
+  $("#popout").hidden = which !== "frame";
+  $("#autorun").hidden = which !== "frame";
+}
+function stageNote(text) {
+  const old = stage.querySelector(".stagenote"); if (old) old.remove();
+  if (!text) return;
+  const n = document.createElement("div"); n.className = "stagenote"; n.textContent = text;
+  stage.appendChild(n);
+}
+
+/* ---------- Python turtle, on Skulpt ---------- */
+let turtleBusy = false;
+function askTurtle(prompt) {
+  if (prompt) out(prompt);
+  /* lines typed into the Input box are used first, exactly like the Python tab */
+  const pending = ($("#stdin").value || "").split("\n").filter(x => x !== "");
+  if (askTurtle.i == null) askTurtle.i = 0;
+  if (askTurtle.i < pending.length) { const v = pending[askTurtle.i++]; out(v + "\n", "echo"); return Promise.resolve(v); }
+  return new Promise(res => {
+    removeAsk();
+    const row = document.createElement("span"); row.className = "inrow";
+    row.innerHTML = `<input aria-label="Type your answer and press Enter" autocomplete="off" spellcheck="false">`;
+    term.appendChild(row); term.scrollTop = term.scrollHeight;
+    const inp = row.querySelector("input"); inp.focus();
+    state("Waiting for your input…", "busy");
+    inp.addEventListener("keydown", e => {
+      if (e.key !== "Enter") return;
+      const v = inp.value; row.remove(); out(v + "\n", "echo"); state("Running…", "busy"); res(v);
+    });
+  });
+}
+async function runTurtleTab(code) {
+  turtleBusy = true; askTurtle.i = 0; stageNote("");
+  engine("Turtle · offline", "ok");
+  const r = await runTurtle(code, { out: t => out(t), ask: askTurtle }, "turtlecanvas", turtleSize());
+  turtleBusy = false; setRunning(false); removeAsk();
+  if (r.ok) { state("Finished", "ok"); return; }
+  if (r.stopped) { out("\nStopped.\n", "sys"); state("Stopped"); stageNote("Stopped"); return; }
+  const e = r.error;
+  out("\n" + e.message + "\n", "bad");
+  if (e.line) { markErr(e.line); out(`Line ${e.line}\n`, "err"); }
+  const h = turtleHint(e.message); if (h) outHTML(`<span class="hintbox">${h}</span>`);
+  state("Error", "bad");
+}
+/* the drawing surface is sized to the pane, so it is not a postage stamp on a
+   projector or cut off on a laptop */
+function turtleSize() {
+  const r = stage.getBoundingClientRect();
+  const w = Math.max(320, Math.min(900, Math.round(r.width - 24) || 560));
+  const h = Math.max(240, Math.min(700, Math.round(r.height - 24) || 420));
+  return { w, h };
+}
+
+/* ---------- p5.js, Processing and the web page ---------- */
+const framePayload = () => {
+  if (S.lang === "p5") return { js: editor.getValue() };
+  if (S.lang === "processing") return { pde: editor.getValue() };
+  save();
+  return { html: webCode("html"), css: webCode("css"), js: webCode("js") };
+};
+function runFrameTab() {
+  stageNote("");
+  engine(S.lang === "p5" ? "p5.js · offline" : S.lang === "processing" ? "Processing.js · offline" : "Your browser", "ok");
+  runFrame(frame, S.lang, framePayload(), {
+    ready: () => { setRunning(false); state("Running", "ok"); },
+    log: (kind, text, line) => {
+      if (kind === "error") {
+        out(text + (line ? `  (line ${line})` : "") + "\n", "bad");
+        if (line) markErr(line);
+        const h = frameHint(text, S.lang); if (h) outHTML(`<span class="hintbox">${h}</span>`);
+        state("Error", "bad");
+      } else out(text + "\n", kind === "warn" ? "err" : "");
+    },
+  });
+}
+
+/* "Live": re-run as the student types. Only for the frame languages, where a
+   run is just replacing the frame's contents. */
+let liveT = null;
+function liveTick() {
+  if (!S.live[S.lang] || kindOf(S.lang) !== "frame") return;
+  clearTimeout(liveT);
+  liveT = setTimeout(() => { if (!running) { clearTerm(); clearErr(); runFrameTab(); } }, 700);
+}
+function toggleLive() {
+  S.live[S.lang] = !S.live[S.lang]; save();
+  $("#autorun").setAttribute("aria-pressed", S.live[S.lang] ? "true" : "false");
+  toast(S.live[S.lang] ? "Live: the result updates as you type" : "Live off");
+  if (S.live[S.lang]) liveTick();
+}
+function popout() {
+  const url = docUrl(S.lang, framePayload());
+  window.open(url, "_blank", "noopener");
+  setTimeout(() => URL.revokeObjectURL(url), 20000);
+}
+
 /* ---------- run / stop ---------- */
 let running = false, needAsked = false;
 function setRunning(on) {
   running = on; PY.running = on && S.lang === "python";
+  if (on) stageNote("");
   const b = $("#runbtn"); b.classList.toggle("stop", on);
   b.innerHTML = on ? `<svg class="ic" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span>Stop</span>` : `<svg class="ic" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg><span>Run</span>`;
 }
@@ -220,51 +443,149 @@ function run() {
   }
   needAsked = false;
   setRunning(true); state("Running…", "busy");
-  if (S.lang === "python") runPython(code); else runCpp(code);
+  if (S.lang === "python") runPython(code);
+  else if (S.lang === "cpp") runCpp(code);
+  else if (S.lang === "turtle") runTurtleTab(code);
+  else runFrameTab();
 }
-function stop() { if (S.lang === "python") stopPython(); else if (cppAbort) cppAbort.abort(); }
+function stop() {
+  if (S.lang === "python") stopPython();
+  else if (S.lang === "cpp") { if (cppAbort) cppAbort.abort(); }
+  else if (S.lang === "turtle") { stopTurtle(); }
+  else { stopFrame(frame); setRunning(false); state("Stopped"); stageNote("Stopped"); out("\nStopped.\n", "sys"); }
+}
 
 /* ---------- language switch ---------- */
 function setLang(l) {
   if (running) stop();
   save(); S.lang = l; store.set(KEY, S);
-  document.querySelectorAll(".langs button").forEach(b => b.classList.toggle("on", b.dataset.lang === l));
-  editor.setOption("mode", LANGS[l].mode); editor.setValue(S.code[l] ?? LANGS[l].start); editor.clearHistory();
-  $("#fname").value = LANGS[l].file; $("#stdin").value = S.stdin[l] || "";
-  $("#stdinhelp").textContent = l === "python" ? "Optional. Lines typed here are read first by input(). Leave it empty to type answers while the program runs." : "Type everything the program reads with cin before you press Run, one value or line at a time.";
-  emptyTerm(); state("");
+  document.querySelectorAll(".langs button").forEach(b => {
+    const on = b.dataset.lang === l;
+    b.classList.toggle("on", on); b.setAttribute("aria-selected", on ? "true" : "false");
+  });
+  const k = kindOf(l);
+  /* the Web tab edits three files; everything else edits one */
+  $("#webfiles").hidden = !isWeb(l);
+  if (isWeb(l)) setWebFile(S.webfile, true);
+  else { editor.setOption("mode", LANGS[l].mode); editor.setValue(S.code[l] ?? LANGS[l].start); $("#fname").value = LANGS[l].file; }
+  editor.clearHistory();
+  $("#stdin").value = S.stdin[l] || "";
+  $("#stdinhelp").textContent = l === "python"
+    ? "Optional. Lines typed here are read first by input(). Leave it empty to type answers while the program runs."
+    : l === "turtle" ? "Optional. Lines typed here are read first by input()."
+    : "Type everything the program reads with cin before you press Run, one value or line at a time.";
+
+  /* leaving the Turtle tab clears its canvases: they are large, and leaving
+     them in the page made the next tab look like it had already drawn */
+  if (k !== "canvas") { const tc = document.getElementById("turtlecanvas"); if (tc) tc.innerHTML = ""; }
+  showStage(k === "canvas" ? "turtle" : k === "frame" ? "frame" : null);
+  if (k === "frame") { stopFrame(frame); $("#autorun").setAttribute("aria-pressed", S.live[l] ? "true" : "false"); }
+  stageNote(k === "term" ? "" : "Press Run to see it here");
+  emptyTerm(); state(""); clearErr();
+
   if (l === "python") { startPython(); if (PY.ready) engine("Python ready", "ok"); }
-  else engine("g++ 13 · online", "ok");
+  else if (l === "cpp") engine("g++ 13 · online", "ok");
+  else if (l === "turtle") { engine("Turtle · offline", ""); turtleReady().then(() => engine("Turtle ready · offline", "ok")).catch(() => engine("Turtle failed to load", "bad")); }
+  else if (l === "p5") engine("p5.js · offline", "ok");
+  else if (l === "processing") engine("Processing.js · offline", "ok");
+  else engine("Your browser", "ok");
   history.replaceState(null, "", "#" + l);
 }
 
+/* ---------- the three files of a web page ---------- */
+function setWebFile(k, force) {
+  if (!LANGS.web.files[k]) k = "html";
+  if (!force && S.webfile === k) return;
+  if (!force) S.code.web[S.webfile] = editor.getValue();
+  S.webfile = k; store.set(KEY, S);
+  document.querySelectorAll("#webfiles button").forEach(b => {
+    const on = b.dataset.file === k;
+    b.classList.toggle("on", on); b.setAttribute("aria-selected", on ? "true" : "false");
+  });
+  editor.setOption("mode", LANGS.web.files[k].mode);
+  editor.setValue(webCode(k));
+  $("#fname").value = LANGS.web.files[k].name;
+  clearErr();
+}
+
 /* ---------- examples ---------- */
+/* a web example is three files, so its card previews the HTML */
+const exSource = x => x.code != null ? x.code : (x.html || x.js || x.css || "");
+const exPreview = x => exSource(x).split("\n")
+  .filter(l => l.trim() && !/^#include|^using|^<!doctype/i.test(l.trim()))
+  .slice(0, 2).join("\n");
+const exUsesInput = x => !!x.input || /input\(|cin\s*>>/.test(exSource(x));
 function showExamples() {
   const list = EXAMPLES[S.lang], cats = [...new Set(list.map(x => x.cat))];
-  $("#mbox").innerHTML = `<div class="mh"><span class="lg ${S.lang === "python" ? "py" : "cpp"}">${S.lang === "python" ? "Py" : "C++"}</span><h2>${LANGS[S.lang].name} examples</h2><div class="grow"></div><button class="mx" data-act="close" title="Close"><svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <div class="mb">${cats.map(c => `<div class="excat">${esc(c)}</div><div class="exgrid">${list.map((x, i) => x.cat !== c ? "" : `<button class="excard" data-ex="${i}"><b>${esc(x.title)}</b><code>${esc(x.code.split("\n").filter(l => l.trim() && !/^#include|^using/.test(l)).slice(0, 2).join("\n"))}</code>${x.input || /input\(|cin/.test(x.code) ? `<em>uses input</em>` : ""}</button>`).join("")}</div>`).join("")}</div>`;
+  if (!list || !list.length) { toast("No examples for this tab yet."); return; }
+  const bd = LANGS[S.lang].badge || (S.lang === "python" ? "py" : "cpp");
+  const bl = { py: "Py", cpp: "C++", tu: "Tu", p5: "p5", pr: "Pr", web: "&lt;&gt;" }[bd] || bd;
+  $("#mbox").innerHTML = `<div class="mh"><span class="lg ${bd}">${bl}</span><h2>${LANGS[S.lang].name} examples</h2><div class="grow"></div><button class="mx" data-act="close" title="Close"><svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="mb">${cats.map(c => `<div class="excat">${esc(c)}</div><div class="exgrid">${list.map((x, i) => x.cat !== c ? "" : `<button class="excard" data-ex="${i}"><b>${esc(x.title)}</b><code>${esc(exPreview(x))}</code>${exUsesInput(x) ? `<em>uses input</em>` : ""}</button>`).join("")}</div>`).join("")}</div>`;
   $("#modal").classList.add("on");
 }
 function loadExample(i) {
   const x = EXAMPLES[S.lang][i]; if (!x) return;
-  editor.setValue(x.code); $("#stdin").value = x.input || ""; save(); closeModal(); emptyTerm(); state("");
+  if (isWeb(S.lang)) {
+    /* a web example is three files at once */
+    S.code.web = { html: x.html ?? webStart("html"), css: x.css ?? webStart("css"), js: x.js ?? webStart("js") };
+    setWebFile("html", true);
+  } else editor.setValue(x.code);
+  $("#stdin").value = x.input || ""; save(); closeModal(); emptyTerm(); state(""); clearErr();
+  if (kindOf(S.lang) !== "term") stageNote("Press Run to see it here");
   toast(`Opened <b>${esc(x.title)}</b>. Press Run.`); editor.focus();
 }
 const closeModal = () => $("#modal").classList.remove("on");
 
 /* ---------- files ---------- */
+function saveBlob(text, name, type = "text/plain") {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
 function download() {
-  const name = ($("#fname").value || LANGS[S.lang].file).trim();
-  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([editor.getValue()], { type: "text/plain" })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  save();
+  if (isWeb(S.lang)) {
+    /* one file that opens anywhere beats three the student has to keep together */
+    const { html } = buildWebFile();
+    saveBlob(html, ($("#fname").value || "page").replace(/\.(css|js)$/, ".html").replace(/^(?!.*\.html?$).*$/, "page.html"), "text/html");
+    toast("Saved as one .html file, with the CSS and JavaScript inside it.");
+    return;
+  }
+  saveBlob(editor.getValue(), ($("#fname").value || LANGS[S.lang].file).trim());
+}
+/* the three files, flattened into one document that works on its own */
+function buildWebFile() {
+  const css = webCode("css"), js = webCode("js");
+  let html = webCode("html");
+  const head = `<style>\n${css}\n</style>`;
+  const tail = `<script>\n${js}\n<\/script>`;
+  if (/<\/head>/i.test(html)) html = html.replace(/<\/head>/i, head + "</head>");
+  else html = head + html;
+  if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, tail + "</body>");
+  else html += tail;
+  return { html };
 }
 $("#fileup").addEventListener("change", e => {
   const f = e.target.files[0]; if (!f) return;
-  const l = /\.py$/i.test(f.name) ? "python" : /\.(cpp|cc|c|h)$/i.test(f.name) ? "cpp" : S.lang;
-  f.text().then(t => { if (l !== S.lang) setLang(l); editor.setValue(t); $("#fname").value = f.name; save(); toast(`Opened <b>${esc(f.name)}</b>`); });
+  const n = f.name;
+  const l = /\.py$/i.test(n) ? (S.lang === "turtle" ? "turtle" : "python")
+    : /\.(cpp|cc|c|h)$/i.test(n) ? "cpp"
+    : /\.pde$/i.test(n) ? "processing"
+    : /\.js$/i.test(n) ? (S.lang === "web" ? "web" : "p5")
+    : /\.(html?|css)$/i.test(n) ? "web" : S.lang;
+  f.text().then(t => {
+    if (l !== S.lang) setLang(l);
+    if (isWeb(l)) {
+      const k = /\.css$/i.test(n) ? "css" : /\.js$/i.test(n) ? "js" : "html";
+      S.code.web[k] = t; setWebFile(k, true);
+    } else { editor.setValue(t); $("#fname").value = n; }
+    save(); toast(`Opened <b>${esc(n)}</b>`);
+  });
   e.target.value = "";
 });
 function tidy() {
-  if (S.lang === "cpp") { const n = editor.lineCount(); editor.operation(() => { for (let i = 0; i < n; i++) editor.indentLine(i, "smart"); }); }
+  if (S.lang === "cpp" || S.lang === "processing" || S.lang === "p5" || isWeb(S.lang)) { const n = editor.lineCount(); editor.operation(() => { for (let i = 0; i < n; i++) editor.indentLine(i, "smart"); }); }
   else editor.setValue(editor.getValue().replace(/\t/g, "    ").replace(/[ \t]+$/gm, ""));
   toast("Tidied");
 }
@@ -273,15 +594,25 @@ function tidy() {
 document.addEventListener("click", e => {
   const t = e.target.closest("button"); if (!t) { if (e.target.id === "modal") closeModal(); return; }
   if (t.dataset.lang) return setLang(t.dataset.lang);
+  if (t.dataset.file) return setWebFile(t.dataset.file);
   if (t.dataset.ex != null) return loadExample(+t.dataset.ex);
   switch (t.dataset.act) {
     case "run": return run();
     case "examples": return showExamples();
     case "close": return closeModal();
-    case "new": if (editor.getValue().trim() && editor.getValue() !== LANGS[S.lang].start && !confirm("Start a new program? The current one will be replaced.")) return; editor.setValue(LANGS[S.lang].start); $("#stdin").value = ""; save(); emptyTerm(); return;
+    case "new": {
+      const cur = editor.getValue();
+      if (cur.trim() && cur !== (isWeb(S.lang) ? webStart(S.webfile) : LANGS[S.lang].start) && !confirm("Start a new program? The current one will be replaced.")) return;
+      if (isWeb(S.lang)) { S.code.web = {}; setWebFile("html", true); } else editor.setValue(LANGS[S.lang].start);
+      $("#stdin").value = ""; save(); emptyTerm(); clearErr();
+      if (kindOf(S.lang) !== "term") { stopFrame(frame); stageNote("Press Run to see it here"); }
+      return;
+    }
+    case "autorun": return toggleLive();
+    case "popout": return popout();
     case "download": return download();
     case "upload": return $("#fileup").click();
-    case "clear": clearTerm(); state(""); return;
+    case "clear": clearTerm(); clearErr(); emptyTerm(); state(""); return;
     case "copy": navigator.clipboard && navigator.clipboard.writeText(editor.getValue()).then(() => toast("Code copied")); return;
     case "bigger": S.fs = Math.min(24, S.fs + 1); applyFont(); save(); return;
     case "smaller": S.fs = Math.max(11, S.fs - 1); applyFont(); save(); return;
@@ -294,11 +625,22 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") closeModal();
 });
 $("#stdin").addEventListener("input", () => { clearTimeout(save._t); save._t = setTimeout(save, 300); });
+editor.on("change", () => { clearTimeout(save._q); save._q = setTimeout(save, 400); liveTick(); });
+/* the turtle canvas is sized to the pane, so a resize needs a redraw to match */
+window.addEventListener("resize", () => { clearTimeout(window._rs); window._rs = setTimeout(() => { if (S.lang === "turtle") stageNote(turtleBusy ? "" : "Press Run to see it here"); }, 250); });
 term.addEventListener("click", () => { const i = term.querySelector(".inrow input"); if (i) i.focus(); });
 const gut = $("#gutter"); let gx = null;
 gut.addEventListener("pointerdown", e => { gx = e.clientX; gut.setPointerCapture(e.pointerId); });
 gut.addEventListener("pointermove", e => { if (gx === null) return; const w = Math.max(300, Math.min(window.innerWidth - 360, window.innerWidth - e.clientX)); S.iow = w; document.documentElement.style.setProperty("--iow", w + "px"); editor.refresh(); });
 gut.addEventListener("pointerup", () => { gx = null; save(); });
+
+/* The portal links straight to codelab/#python and codelab/#cpp, and the
+   browser's Back button moves between tabs the same way. Changing only the
+   fragment does not reload the page, so without this the tab never changed. */
+window.addEventListener("hashchange", () => {
+  const h = location.hash.slice(1);
+  if (LANGS[h] && h !== S.lang) setLang(h);
+});
 
 setLang(S.lang);
 window.CODELAB = { editor, run, setLang, get running() { return running; }, PY, loadExample };

@@ -1,0 +1,4 @@
+p5.js (https://p5js.org) v1.11.3
+Copyright (c) the p5.js contributors, the Processing Foundation.
+Released under the GNU LGPL 2.1. Full text: https://github.com/processing/p5.js/blob/main/license.txt
+Used here for the p5.js tab: p5.min.js, unmodified.

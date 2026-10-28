@@ -423,3 +423,771 @@ int main() {
 ` },
   ],
 };
+
+/* ---------------- Python turtle (Skulpt, offline) ---------------- */
+EXAMPLES.turtle = [
+  { cat: "Start here", title: "A square", code: `# Four sides, four right turns.
+import turtle
+
+t = turtle.Turtle()
+t.shape("turtle")
+
+for side in range(4):
+    t.forward(120)
+    t.right(90)
+
+turtle.done()
+` },
+  { cat: "Start here", title: "Your name in colour", code: `import turtle
+
+t = turtle.Turtle()
+t.penup()
+t.goto(-120, 0)
+t.pendown()
+t.color("#2E6BE6")
+t.width(4)
+t.write("Hello!", font=("Arial", 28, "bold"))
+
+turtle.done()
+` },
+  { cat: "Start here", title: "Ask, then draw", code: `# input() waits for you to type, same as on the Python tab.
+import turtle
+
+sides = int(input("How many sides? "))
+size = int(input("How long is each side? "))
+
+t = turtle.Turtle()
+t.shape("turtle")
+t.speed(8)
+
+angle = 360 / sides
+for i in range(sides):
+    t.forward(size)
+    t.right(angle)
+
+turtle.done()
+`, input: "6\n100" },
+
+  { cat: "Shapes and loops", title: "Any shape you like", code: `import turtle
+
+def polygon(t, sides, size):
+    for i in range(sides):
+        t.forward(size)
+        t.right(360 / sides)
+
+t = turtle.Turtle()
+t.speed(0)
+
+for sides in range(3, 9):
+    polygon(t, sides, 70)
+    t.penup()
+    t.forward(20)
+    t.pendown()
+
+turtle.done()
+` },
+  { cat: "Shapes and loops", title: "Spiral", code: `import turtle
+
+t = turtle.Turtle()
+t.speed(0)
+t.width(2)
+
+colours = ["#E63946", "#F08C00", "#16A34A", "#2E6BE6", "#7B3FC4"]
+
+for step in range(90):
+    t.color(colours[step % len(colours)])
+    t.forward(step * 3)
+    t.right(89)
+
+turtle.done()
+` },
+  { cat: "Shapes and loops", title: "Star", code: `import turtle
+
+t = turtle.Turtle()
+t.color("#F59E0B")
+t.width(3)
+t.speed(6)
+
+t.begin_fill()
+for point in range(5):
+    t.forward(180)
+    t.right(144)
+t.end_fill()
+
+turtle.done()
+` },
+
+  { cat: "Pictures", title: "A house", code: `import turtle
+
+t = turtle.Turtle()
+t.speed(7)
+t.width(3)
+
+# walls
+t.color("#8D6E63")
+t.begin_fill()
+for side in range(4):
+    t.forward(140)
+    t.left(90)
+t.end_fill()
+
+# roof
+t.color("#E63946")
+t.begin_fill()
+t.forward(140)
+t.left(120)
+t.forward(140)
+t.left(120)
+t.forward(140)
+t.end_fill()
+
+t.hideturtle()
+turtle.done()
+` },
+  { cat: "Pictures", title: "Rainbow fan", code: `import turtle
+
+t = turtle.Turtle()
+t.speed(0)
+t.width(6)
+
+colours = ["#E63946", "#F08C00", "#F5B83D", "#2E9E5B", "#20B8A6", "#1F6FD1", "#7B3FC4"]
+
+for i, c in enumerate(colours):
+    t.color(c)
+    t.forward(150)
+    t.backward(150)
+    t.left(180 / len(colours))
+
+t.hideturtle()
+turtle.done()
+` },
+  { cat: "Pictures", title: "Random walk", code: `import turtle
+import random
+
+t = turtle.Turtle()
+t.speed(0)
+t.width(2)
+
+for step in range(120):
+    t.color(random.choice(["#2E6BE6", "#16A34A", "#E63946", "#F59E0B"]))
+    t.forward(random.randint(10, 40))
+    t.right(random.randint(-120, 120))
+
+turtle.done()
+` },
+];
+
+/* ---------------- p5.js ---------------- */
+EXAMPLES.p5 = [
+  { cat: "Start here", title: "Follow the mouse", code: `function setup() {
+  createCanvas(400, 400);
+}
+
+function draw() {
+  background(20, 24, 40);
+  noStroke();
+  fill(46, 107, 230);
+  circle(mouseX, mouseY, 60);
+}
+` },
+  { cat: "Start here", title: "Draw with the mouse", code: `function setup() {
+  createCanvas(400, 400);
+  background(250);
+}
+
+function draw() {
+  if (mouseIsPressed) {
+    stroke(46, 107, 230);
+    strokeWeight(6);
+    line(pmouseX, pmouseY, mouseX, mouseY);
+  }
+}
+
+function keyPressed() {
+  if (key === "c") background(250);   // press c to clear
+}
+` },
+  { cat: "Start here", title: "Shapes and colour", code: `function setup() {
+  createCanvas(400, 400);
+  noLoop();            // draw once, not 60 times a second
+}
+
+function draw() {
+  background(245, 247, 251);
+
+  fill(230, 57, 70);   noStroke();
+  circle(120, 120, 120);
+
+  fill(46, 158, 91);
+  rect(220, 60, 120, 120, 16);
+
+  fill(245, 184, 61);
+  triangle(200, 340, 120, 220, 280, 220);
+}
+` },
+
+  { cat: "Movement", title: "Bouncing ball", code: `let x, y, dx = 4, dy = 3;
+
+function setup() {
+  createCanvas(400, 400);
+  x = width / 2;
+  y = height / 2;
+}
+
+function draw() {
+  background(20, 24, 40);
+
+  x = x + dx;
+  y = y + dy;
+  if (x < 20 || x > width - 20) dx = -dx;
+  if (y < 20 || y > height - 20) dy = -dy;
+
+  noStroke();
+  fill(245, 184, 61);
+  circle(x, y, 40);
+}
+` },
+  { cat: "Movement", title: "A hundred stars", code: `let stars = [];
+
+function setup() {
+  createCanvas(400, 400);
+  for (let i = 0; i < 100; i++) {
+    stars.push({ x: random(width), y: random(height), s: random(1, 3) });
+  }
+}
+
+function draw() {
+  background(8, 12, 26);
+  noStroke();
+  fill(255);
+  for (const st of stars) {
+    circle(st.x, st.y, st.s);
+    st.y = st.y + st.s * 0.4;
+    if (st.y > height) { st.y = 0; st.x = random(width); }
+  }
+}
+` },
+  { cat: "Movement", title: "Clock", code: `function setup() {
+  createCanvas(400, 400);
+  angleMode(DEGREES);
+}
+
+function draw() {
+  background(245, 247, 251);
+  translate(width / 2, height / 2);
+
+  stroke(190); strokeWeight(2); noFill();
+  circle(0, 0, 320);
+
+  hand(second() * 6, 140, 2, color(230, 57, 70));
+  hand(minute() * 6, 120, 5, color(19, 33, 60));
+  hand(hour() % 12 * 30 + minute() * 0.5, 80, 7, color(19, 33, 60));
+}
+
+function hand(deg, len, w, c) {
+  push();
+  rotate(deg);
+  stroke(c); strokeWeight(w);
+  line(0, 0, 0, -len);
+  pop();
+}
+` },
+
+  { cat: "Interactive", title: "Catch the dot", code: `let dx, dy, score = 0;
+
+function setup() {
+  createCanvas(400, 400);
+  place();
+  textFont("system-ui");
+}
+
+function place() {
+  dx = random(30, width - 30);
+  dy = random(30, height - 30);
+}
+
+function draw() {
+  background(20, 24, 40);
+  noStroke();
+  fill(46, 158, 91);
+  circle(dx, dy, 44);
+  fill(255);
+  textSize(18);
+  text("Score: " + score, 14, 28);
+}
+
+function mousePressed() {
+  if (dist(mouseX, mouseY, dx, dy) < 22) {
+    score = score + 1;
+    console.log("caught one, score is now", score);
+    place();
+  }
+}
+` },
+  { cat: "Interactive", title: "Sound bars (no microphone)", code: `// A pretend equaliser: good practice with arrays and map().
+let bars = [];
+
+function setup() {
+  createCanvas(400, 300);
+  for (let i = 0; i < 24; i++) bars.push(random(20, 260));
+}
+
+function draw() {
+  background(12, 18, 32);
+  noStroke();
+  for (let i = 0; i < bars.length; i++) {
+    bars[i] = bars[i] + random(-14, 14);
+    bars[i] = constrain(bars[i], 20, 280);
+    const c = map(bars[i], 20, 280, 140, 360);
+    colorMode(HSB);
+    fill(c % 360, 70, 95);
+    rect(i * 16 + 6, height - bars[i], 11, bars[i], 4);
+    colorMode(RGB);
+  }
+}
+` },
+];
+
+/* ---------------- Processing (Java syntax, via Processing.js) ---------------- */
+EXAMPLES.processing = [
+  { cat: "Start here", title: "Follow the mouse", code: `void setup() {
+  size(400, 400);
+}
+
+void draw() {
+  background(20, 24, 40);
+  noStroke();
+  fill(0, 150, 216);
+  ellipse(mouseX, mouseY, 60, 60);
+}
+` },
+  { cat: "Start here", title: "Draw with the mouse", code: `void setup() {
+  size(400, 400);
+  background(250);
+}
+
+void draw() {
+  if (mousePressed) {
+    stroke(0, 150, 216);
+    strokeWeight(6);
+    line(pmouseX, pmouseY, mouseX, mouseY);
+  }
+}
+
+void keyPressed() {
+  if (key == 'c') background(250);
+}
+` },
+  { cat: "Start here", title: "Shapes and colour", code: `// In Processing every variable says what type it is: int, float, color.
+void setup() {
+  size(400, 400);
+  noLoop();
+}
+
+void draw() {
+  background(245, 247, 251);
+
+  fill(230, 57, 70);
+  noStroke();
+  ellipse(120, 120, 120, 120);
+
+  fill(46, 158, 91);
+  rect(220, 60, 120, 120, 16);
+
+  fill(245, 184, 61);
+  triangle(200, 340, 120, 220, 280, 220);
+}
+` },
+
+  { cat: "Movement", title: "Bouncing ball", code: `float x, y;
+float dx = 4;
+float dy = 3;
+
+void setup() {
+  size(400, 400);
+  x = width / 2;
+  y = height / 2;
+}
+
+void draw() {
+  background(20, 24, 40);
+
+  x = x + dx;
+  y = y + dy;
+  if (x < 20 || x > width - 20) dx = -dx;
+  if (y < 20 || y > height - 20) dy = -dy;
+
+  noStroke();
+  fill(245, 184, 61);
+  ellipse(x, y, 40, 40);
+}
+` },
+  { cat: "Movement", title: "Falling stars with an array", code: `int COUNT = 100;
+float[] xs = new float[COUNT];
+float[] ys = new float[COUNT];
+float[] ss = new float[COUNT];
+
+void setup() {
+  size(400, 400);
+  for (int i = 0; i < COUNT; i++) {
+    xs[i] = random(width);
+    ys[i] = random(height);
+    ss[i] = random(1, 3);
+  }
+}
+
+void draw() {
+  background(8, 12, 26);
+  noStroke();
+  fill(255);
+  for (int i = 0; i < COUNT; i++) {
+    ellipse(xs[i], ys[i], ss[i], ss[i]);
+    ys[i] = ys[i] + ss[i] * 0.4;
+    if (ys[i] > height) { ys[i] = 0; xs[i] = random(width); }
+  }
+}
+` },
+  { cat: "Movement", title: "Spinning squares", code: `float angle = 0;
+
+void setup() {
+  size(400, 400);
+  rectMode(CENTER);
+}
+
+void draw() {
+  background(245, 247, 251);
+  translate(width / 2, height / 2);
+
+  for (int i = 0; i < 8; i++) {
+    pushMatrix();
+    rotate(angle + i * PI / 8);
+    noFill();
+    stroke(0, 150, 216, 200 - i * 20);
+    strokeWeight(3);
+    rect(0, 0, 60 + i * 28, 60 + i * 28, 10);
+    popMatrix();
+  }
+  angle = angle + 0.01;
+}
+` },
+
+  { cat: "Interactive", title: "Catch the dot", code: `float dx, dy;
+int score = 0;
+
+void setup() {
+  size(400, 400);
+  place();
+}
+
+void place() {
+  dx = random(30, width - 30);
+  dy = random(30, height - 30);
+}
+
+void draw() {
+  background(20, 24, 40);
+  noStroke();
+  fill(46, 158, 91);
+  ellipse(dx, dy, 44, 44);
+  fill(255);
+  textSize(18);
+  text("Score: " + score, 14, 28);
+}
+
+void mousePressed() {
+  if (dist(mouseX, mouseY, dx, dy) < 22) {
+    score = score + 1;
+    println("caught one, score is now " + score);
+    place();
+  }
+}
+` },
+  { cat: "Interactive", title: "A simple bar chart", code: `int[] values = { 12, 30, 22, 44, 18, 36, 27 };
+String[] labels = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+
+void setup() {
+  size(420, 320);
+  noLoop();
+}
+
+void draw() {
+  background(255);
+  int w = 40;
+  for (int i = 0; i < values.length; i++) {
+    float h = map(values[i], 0, 50, 0, 220);
+    fill(46, 107, 230);
+    noStroke();
+    rect(20 + i * (w + 14), height - 40 - h, w, h, 6);
+    fill(70);
+    textAlign(CENTER);
+    text(labels[i], 20 + i * (w + 14) + w / 2, height - 20);
+  }
+}
+` },
+];
+
+/* ---------------- Web: HTML, CSS and JavaScript ---------------- */
+EXAMPLES.web = [
+  {
+    cat: "Start here", title: "Your first page",
+    html: `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>My page</title>
+</head>
+<body>
+  <h1>Hello!</h1>
+  <p>This page is made of three files.</p>
+  <button id="go">Click me</button>
+  <p id="out"></p>
+</body>
+</html>
+`,
+    css: `body {
+  font-family: system-ui, sans-serif;
+  margin: 24px;
+  color: #13213C;
+}
+
+h1 { color: #2E6BE6; }
+
+button {
+  background: #2E6BE6;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 15px;
+}
+`,
+    js: `let clicks = 0;
+
+document.getElementById("go").addEventListener("click", () => {
+  clicks = clicks + 1;
+  document.getElementById("out").textContent = "You clicked " + clicks + " times.";
+});
+`,
+  },
+  {
+    cat: "Start here", title: "A page about you",
+    html: `<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>About me</title></head>
+<body>
+  <header>
+    <div class="avatar">RA</div>
+    <h1>Your name here</h1>
+    <p class="sub">Robotics &amp; AI Club</p>
+  </header>
+
+  <h2>Three things about me</h2>
+  <ul>
+    <li>I am learning to build circuits.</li>
+    <li>My favourite sensor is the ultrasonic one.</li>
+    <li>One day I want to build a robot that tidies my room.</li>
+  </ul>
+</body>
+</html>
+`,
+    css: `body {
+  font-family: system-ui, sans-serif;
+  max-width: 520px;
+  margin: 32px auto;
+  color: #13213C;
+  line-height: 1.6;
+}
+
+header {
+  text-align: center;
+  padding: 24px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #2E6BE6, #7B3FC4);
+  color: #fff;
+}
+
+.avatar {
+  width: 68px; height: 68px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .22);
+  display: grid; place-items: center;
+  font-size: 24px; font-weight: 800;
+}
+
+header h1 { margin: 0; font-size: 26px; }
+.sub { margin: 4px 0 0; opacity: .85; }
+
+li { margin: 6px 0; }
+`,
+    js: `console.log("The page loaded. Try changing the colours in style.css.");
+`,
+  },
+
+  {
+    cat: "Make it do things", title: "Counter with buttons",
+    html: `<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Counter</title></head>
+<body>
+  <h1>Counter</h1>
+  <p class="num" id="n">0</p>
+  <button id="down">-1</button>
+  <button id="reset">Reset</button>
+  <button id="up">+1</button>
+</body>
+</html>
+`,
+    css: `body { font-family: system-ui, sans-serif; text-align: center; margin-top: 48px; color: #13213C; }
+.num { font-size: 72px; font-weight: 800; margin: 12px 0 24px; color: #2E6BE6; }
+button { font-size: 18px; padding: 12px 20px; margin: 0 4px; border: 1px solid #E3E8F0;
+  background: #fff; border-radius: 12px; cursor: pointer; }
+button:hover { border-color: #2E6BE6; color: #2E6BE6; }
+`,
+    js: `let n = 0;
+const show = () => document.getElementById("n").textContent = n;
+
+document.getElementById("up").onclick = () => { n = n + 1; show(); };
+document.getElementById("down").onclick = () => { n = n - 1; show(); };
+document.getElementById("reset").onclick = () => { n = 0; show(); };
+`,
+  },
+  {
+    cat: "Make it do things", title: "To-do list",
+    html: `<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>To do</title></head>
+<body>
+  <h1>Things to do</h1>
+  <form id="f">
+    <input id="what" placeholder="What needs doing?" autocomplete="off">
+    <button>Add</button>
+  </form>
+  <ul id="list"></ul>
+</body>
+</html>
+`,
+    css: `body { font-family: system-ui, sans-serif; max-width: 460px; margin: 40px auto; color: #13213C; }
+form { display: flex; gap: 8px; }
+input { flex: 1; padding: 11px 13px; border: 1px solid #E3E8F0; border-radius: 10px; font-size: 15px; }
+button { padding: 11px 18px; border: 0; border-radius: 10px; background: #2E6BE6; color: #fff; font-size: 15px; }
+ul { list-style: none; padding: 0; margin-top: 18px; }
+li { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border: 1px solid #E3E8F0;
+  border-radius: 10px; margin-bottom: 8px; }
+li.done span { text-decoration: line-through; color: #94A3B8; }
+li span { flex: 1; }
+`,
+    js: `const list = document.getElementById("list");
+
+document.getElementById("f").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const what = document.getElementById("what");
+  if (!what.value.trim()) return;
+
+  const li = document.createElement("li");
+  li.innerHTML = "<input type='checkbox'><span></span>";
+  li.querySelector("span").textContent = what.value;
+  li.querySelector("input").onchange = (ev) => li.classList.toggle("done", ev.target.checked);
+  list.appendChild(li);
+
+  what.value = "";
+  what.focus();
+});
+`,
+  },
+  {
+    cat: "Make it do things", title: "Quiz",
+    html: `<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Quiz</title></head>
+<body>
+  <h1>Robotics quiz</h1>
+  <div id="q"></div>
+  <p id="score"></p>
+</body>
+</html>
+`,
+    css: `body { font-family: system-ui, sans-serif; max-width: 480px; margin: 40px auto; color: #13213C; }
+.q { border: 1px solid #E3E8F0; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.q b { display: block; margin-bottom: 10px; }
+.q button { display: block; width: 100%; text-align: left; padding: 10px 12px; margin: 5px 0;
+  border: 1px solid #E3E8F0; background: #fff; border-radius: 9px; font-size: 15px; cursor: pointer; }
+.q button:hover { border-color: #2E6BE6; }
+.q button.right { background: #DCFCE7; border-color: #16A34A; }
+.q button.wrong { background: #FEE2E2; border-color: #DC2626; }
+#score { font-weight: 700; font-size: 18px; }
+`,
+    js: `const questions = [
+  { q: "What does an ultrasonic sensor measure?", a: ["Distance", "Temperature", "Light"], right: 0 },
+  { q: "Which pin number is the built-in LED on an Uno?", a: ["9", "13", "A0"], right: 1 },
+  { q: "What does a resistor do?", a: ["Stores charge", "Limits current", "Makes light"], right: 1 },
+];
+
+let score = 0;
+const box = document.getElementById("q");
+
+questions.forEach((item, i) => {
+  const d = document.createElement("div");
+  d.className = "q";
+  d.innerHTML = "<b>" + (i + 1) + ". " + item.q + "</b>";
+  item.a.forEach((text, j) => {
+    const b = document.createElement("button");
+    b.textContent = text;
+    b.onclick = () => {
+      if (d.dataset.done) return;
+      d.dataset.done = "1";
+      b.className = j === item.right ? "right" : "wrong";
+      if (j === item.right) score = score + 1;
+      document.getElementById("score").textContent = "Score: " + score + " / " + questions.length;
+    };
+    d.appendChild(b);
+  });
+  box.appendChild(d);
+});
+`,
+  },
+
+  {
+    cat: "Layout", title: "Cards that reflow",
+    html: `<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Our kit</title></head>
+<body>
+  <h1>Our kit</h1>
+  <div class="grid">
+    <article><h2>Arduino Uno</h2><p>The board that runs your code.</p></article>
+    <article><h2>Breadboard</h2><p>Where you build without soldering.</p></article>
+    <article><h2>Servo</h2><p>A motor that holds an angle.</p></article>
+    <article><h2>Ultrasonic</h2><p>Measures distance with sound.</p></article>
+  </div>
+</body>
+</html>
+`,
+    css: `body { font-family: system-ui, sans-serif; margin: 28px; color: #13213C; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+article {
+  border: 1px solid #E3E8F0;
+  border-radius: 14px;
+  padding: 16px;
+  transition: transform .15s, box-shadow .15s;
+}
+
+article:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(15, 29, 54, .1);
+}
+
+h2 { margin: 0 0 6px; font-size: 17px; color: #2E6BE6; }
+p { margin: 0; color: #475569; }
+`,
+    js: `// Make the window narrower and watch the cards rearrange themselves.
+console.log("Cards on screen:", document.querySelectorAll("article").length);
+`,
+  },
+];

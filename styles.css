@@ -1018,3 +1018,9 @@ body.booted .boot.gone { display: none; }
 @media print { .kpic { border-color: #CBD5E1; background: #fff; } }
 .kbar { display: flex; align-items: center; gap: 14px; }
 .kbar .gl { white-space: nowrap; }
+
+/* Code Lab language badges for the four languages added after Python and C++ */
+.cc-lg.tu { background: #2E8B57; }
+.cc-lg.p5 { background: #ED225D; }
+.cc-lg.pr { background: #0096D8; }
+.cc-lg.web { background: linear-gradient(135deg, #E34F26 50%, #1572B6 50%); font-size: 13px; }

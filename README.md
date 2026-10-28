@@ -12,6 +12,8 @@ It is plain HTML, CSS and JavaScript. There is no server, no build step and no l
 - **Session sheet** (tap any session or activity): the presentation is at the top, then the day, the age group and the hardware list. You can also move or swap the session to another age group from here.
 - **Timetable** and **Print lists**: the week from Monday to Friday, and kit lists per session, per day or for the whole week.
 - **Search**: press **Ctrl K** (or **/**) anywhere to find any activity, presentation, document or page.
+- **Circuit Lab** (`circuit/`): build Arduino and ESP32 circuits on a canvas, write the sketch and run it in the browser. Ready-made circuits for every lesson, a schematic view, a multimeter and a logic scope. Installable as its own app and works offline; only compiling needs the internet.
+- **Code Lab** (`codelab/`): six languages in the browser. Python (Pyodide), C++ (g++ online), Python turtle graphics (Skulpt), p5.js, Processing and web pages (HTML, CSS and JavaScript with a live preview). Every one except Python and C++ runs with no internet.
 
 Use the arrows in the top bar to change the planning week.
 
@@ -43,5 +45,7 @@ Your plan is saved **in the browser you use** (local storage), not on GitHub. Us
 | `library.js` | List of presentations and documents (generated) |
 | `library/slides`, `library/docs`, `library/thumbs` | Presentation PDFs, documents, cover images |
 | `tools/build_library.py` | Syncs `library/` from the Robotics Curriculum folder |
+| `circuit/` | Circuit Lab: the circuit editor and simulator |
+| `codelab/` | Code Lab: the six-language editor |
 
 Curriculum and platform by Qasim Mushtaq, MS Robotics and AI.

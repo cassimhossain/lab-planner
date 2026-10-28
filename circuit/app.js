@@ -1,12 +1,12 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=18";
-import { BOARDS, loadHex } from "./boards.js?v=18";
-import { layoutCircuit } from "./layout.js?v=18";
-import { SNIPPETS } from "./snippets.js?v=18";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=18";
-import * as T from "./tools.js?v=18";
-import { initHome, showHome, hideHome, isHome } from "./home.js?v=18";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=18";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=19";
+import { BOARDS, loadHex } from "./boards.js?v=19";
+import { layoutCircuit } from "./layout.js?v=19";
+import { SNIPPETS } from "./snippets.js?v=19";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=19";
+import * as T from "./tools.js?v=19";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=19";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=19";
 
 /* The simulator, the Arduino library bundler and the schematic drawer are
    roughly a third of the code and none of it is needed to open the page, so
@@ -18,7 +18,7 @@ let BUILTIN_LIBS = [], EXTRA_LIBS = [], enginePromise = null;
 function loadEngine() {
   if (enginePromise) return enginePromise;
   enginePromise = Promise.all([
-    import("./sim.js?v=18"), import("./libs.js?v=18"), import("./schematic.js?v=18"),
+    import("./sim.js?v=19"), import("./libs.js?v=19"), import("./schematic.js?v=19"),
   ]).then(([s, l, c]) => {
     Netlist = s.Netlist; Sim = s.Sim; Sim.muted = muted;
     prepareSketch = l.prepareSketch; BUILTIN_LIBS = l.BUILTIN_LIBS; EXTRA_LIBS = l.EXTRA_LIBS;
@@ -37,10 +37,10 @@ function loadCodeMirror() {
   if (cmPromise) return cmPromise;
   cmPromise = new Promise((res, rej) => {
     const css = document.createElement("link");
-    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=18";
+    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=19";
     document.head.appendChild(css);
     const sc = document.createElement("script");
-    sc.src = "../vendor/codemirror/codemirror.min.js?v=18";
+    sc.src = "../vendor/codemirror/codemirror.min.js?v=19";
     sc.onload = () => res(window.CodeMirror); sc.onerror = () => rej(new Error("CodeMirror failed to load"));
     document.head.appendChild(sc);
   });
@@ -52,6 +52,8 @@ function ensureEditor() {
   editorPromise = loadCodeMirror().then(CodeMirror => {
     editor = CodeMirror($("#editor"), { value: project.code || "", mode: "text/x-c++src", lineNumbers: true, matchBrackets: true, autoCloseBrackets: true, indentUnit: 2, tabSize: 2, theme: "cl", extraKeys: { "Ctrl-Enter": () => (running ? stopSim() : runSim()), "Cmd-Enter": () => (running ? stopSim() : runSim()), "Ctrl-S": () => saveAs(), "Cmd-S": () => saveAs() } });
     installAutocomplete(CodeMirror, editor);
+    /* CodeMirror's hidden input is what a screen reader lands on */
+    try { editor.getInputField().setAttribute("aria-label", "Arduino code for this circuit"); } catch (e) { }
     editor.on("change", () => { clearTimeout(boot._t); boot._t = setTimeout(() => { project.code = editor.getValue(); save(); renderPhone(); }, 400); });
     /* the project may have changed while the script was in flight */
     if (editor.getValue() !== (project.code || "")) editor.setValue(project.code || "");
@@ -181,7 +183,45 @@ function rebuildAll(keepView) {
   if (!keepView) setTimeout(fit, 120);
 }
 function updateBoardChip() { const b = boardType(); $("#boardchip").innerHTML = b ? `${ic("chip")}${esc(BOARDS[b].label)}` : `${ic("bolt")}No board`; $("#boardchip").className = "boardchip " + (b || "none"); }
-function updateEmpty() { $("#empty").innerHTML = project.parts.length ? "" : `<div><b>Empty canvas</b><p>Drag parts from the left, or open a ready-made circuit.</p><button class="btn primary" data-act="library">${ic("book")}Open the Library</button></div>`; }
+function updateEmpty() {
+  const n = project.parts.length;
+  $("#empty").innerHTML = n ? "" : `<div class="emptybox">
+    <b>Nothing on the canvas yet</b>
+    <p>Three steps to a working circuit.</p>
+    <ol class="emptysteps">
+      <li><span>1</span><div><b>Add a part</b><small>Drag one in from the rail, or tap it.</small></div></li>
+      <li><span>2</span><div><b>Wire it up</b><small>Drag from one pin to another. They snap.</small></div></li>
+      <li><span>3</span><div><b>Press Start simulation</b><small>Your code compiles and the board runs.</small></div></li>
+    </ol>
+    <div class="emptybtns">
+      <button class="btn primary" data-act="library">${ic("book")}Open a ready-made circuit</button>
+      <button class="btn" data-act="parts">${ic("chip")}Show the parts</button>
+    </div></div>`;
+}
+
+/* ---------- the first visit ----------
+   A student who has never opened Circuit Lab gets one strip across the top of
+   the canvas naming the three things they can do. It appears once, it is
+   dismissible, and it never comes back. */
+const SEEN = "circuitlab.seen.v1";
+function firstRun() {
+  let seen = false; try { seen = !!localStorage.getItem(SEEN); } catch (e) { seen = true; }
+  if (seen) return;
+  const st = $("#stage"); if (!st || $(".coach")) return;
+  const box = document.createElement("div");
+  box.className = "coach"; box.setAttribute("role", "note");
+  box.innerHTML = `<b>${ic("bolt")}New here?</b>
+    <span><kbd>Drag</kbd> a part in from the rail</span>
+    <span><kbd>Drag</kbd> pin to pin to wire it</span>
+    <span><kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs it</span>
+    <button class="btn" data-act="keys">All shortcuts</button>
+    <button class="ix" data-coach-close aria-label="Hide this"><svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+  st.appendChild(box);
+  requestAnimationFrame(() => box.classList.add("on"));
+  const bye = () => { box.classList.remove("on"); setTimeout(() => box.remove(), 220); try { localStorage.setItem(SEEN, "1"); } catch (e) { } };
+  box.querySelector("[data-coach-close]").addEventListener("click", bye);
+  setTimeout(bye, 30000);
+}
 
 /* ---------- wires ---------- */
 function autoColor(from, to) {
@@ -515,6 +555,8 @@ function drawThumb(t) {
   const d = PARTS[t.dataset.thumb]; if (!d) return;
   const el = document.createElement(d.tag);
   applyAttrs(el, d.attrs); t.appendChild(el);
+  /* artwork, not a control: keeps the part's own input out of the tab order */
+  t.setAttribute("inert", ""); t.setAttribute("aria-hidden", "true");
   el.style.opacity = 0;
   (el.updateComplete || Promise.resolve()).then(() => requestAnimationFrame(() => fitThumb(t, el, 0)));
 }
@@ -551,6 +593,7 @@ function deleteSel() {
     T.multi.clear();
   } else project.wires.splice(sel.id, 1);
   sel = null; save(); drawWires(); showInspector(); updateBoardChip(); updateEmpty();
+  toast(`Deleted. <button class="tbtn" data-act="undo">Undo</button>`, "", 5000);
 }
 function rotateSel() {
   if (running || !sel || sel.kind !== "part") return; snapshot();
@@ -601,7 +644,7 @@ function showInspector() {
     if (x.type === "range") return `<label class="f rng"><span>${esc(x.label)} <b>${esc(val)}${esc(x.unit || "")}</b></span><input type="range" data-prop="${x.k}" min="${x.min}" max="${x.max}" step="${x.step || 1}" value="${val}"></label>`;
     if (x.type === "toggle") return `<label class="f tog"><input type="checkbox" data-prop="${x.k}" ${val ? "checked" : ""}><i></i><span>${esc(x.text || x.label)}</span></label>`;
     if (x.type === "button") return `<button class="btn wide" data-pbtn="${x.k}">${esc(x.text)}</button>`;
-    if (x.type === "text") return `<label class="f"><span>${esc(x.label)}</span><textarea class="ptext" data-prop="${x.k}" rows="3" ${dis}>${esc(val)}</textarea></label>`;
+    if (x.type === "text") return `<label class="f"><span>${esc(x.label)}</span><textarea class="ptext" aria-label="${esc(x.label)}" data-prop="${x.k}" rows="3" ${dis}>${esc(val)}</textarea></label>`;
     if (x.type === "color") return `<label class="f"><span>${esc(x.label)}</span><span class="colors">${["#E63946", "#F08C00", "#F5D33D", "#2E9E5B", "#1F6FD1", "#7B3FC4", "#FFFFFF", "#2B2D42"].map(c => `<button class="sw ${String(val).toUpperCase() === c ? "on" : ""}" data-pcolor="${c}" style="--c:${c}"></button>`).join("")}</span></label>`;
     return "";
   }).join("");
@@ -711,6 +754,7 @@ async function runSim() {
     sim.onSample = T.sampleScope;
     Sim.muted = muted;
     running = true; document.body.classList.add("running");
+    setRunState(true);
     btn.innerHTML = `${ic("stop")}<span>Stop simulation</span>`; btn.classList.add("stop"); btn.disabled = false;
     lastT = performance.now(); raf = requestAnimationFrame(loop);
     showInspector(); drawPins(); renderPhone();
@@ -740,6 +784,7 @@ function stopSim() {
   if (!running) return;
   running = false; cancelAnimationFrame(raf); sim && sim.stop(); sim = null;
   document.body.classList.remove("running");
+  setRunState(false);
   const btn = $("#runbtn"); btn.innerHTML = `${ic("play")}<span>Start simulation</span>`; btn.classList.remove("stop");
   project.parts.forEach(p => {
     const el = rt[p.id] && rt[p.id].el; if (!el) return;
@@ -939,8 +984,35 @@ function saveAs() {
   if (store.set(LIST, all)) toast(`${ic("check")}Saved as <b>${esc(project.name)}</b>`, "ok"); else toast("Could not save (browser storage is full)");
   save();
 }
-function openModal(html, cls = "") { $("#modal").innerHTML = `<div class="mbox ${cls}">${html}</div>`; document.body.classList.add("mopen"); }
-function closeModal() { document.body.classList.remove("mopen"); $("#modal").innerHTML = ""; }
+/* A dialog has to take the focus, keep it while it is open and hand it back
+   when it closes, otherwise a keyboard or screen-reader user is left behind
+   on the page underneath. */
+let modalReturn = null;
+function openModal(html, cls = "") {
+  const m = $("#modal");
+  modalReturn = document.activeElement;
+  m.innerHTML = `<div class="mbox ${cls}">${html}</div>`;
+  document.body.classList.add("mopen");
+  const h = m.querySelector("h2");
+  m.setAttribute("aria-label", h ? h.textContent.trim() : "Dialog");
+  const first = m.querySelector("input, select, textarea, button:not(.mx)") || m.querySelector(".mx");
+  if (first) requestAnimationFrame(() => first.focus());
+}
+function closeModal() {
+  document.body.classList.remove("mopen"); $("#modal").innerHTML = "";
+  if (modalReturn && document.contains(modalReturn)) { try { modalReturn.focus(); } catch (e) { } }
+  modalReturn = null;
+}
+/* Tab stays inside the dialog while it is open */
+document.addEventListener("keydown", e => {
+  if (e.key !== "Tab" || !document.body.classList.contains("mopen")) return;
+  const f = [...$("#modal").querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])')]
+    .filter(el => el.offsetParent !== null);
+  if (!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
 let libTab = "lessons", libGroup = "All", libQ = "";
 function showLibrary(t) {
   if (t) libTab = t;
@@ -991,7 +1063,7 @@ function downloadIno() {
   a.download = (project.name || "sketch").replace(/[^\w-]+/g, "_") + ".ino"; document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 300);
 }
 function tab(t) {
-  $$("[data-tab]").forEach(b => { if (b.closest(".tabs")) b.classList.toggle("on", b.dataset.tab === t); });
+  $$("[data-tab]").forEach(b => { if (!b.closest(".tabs")) return; const on = b.dataset.tab === t; b.classList.toggle("on", on); b.setAttribute("aria-selected", on ? "true" : "false"); b.tabIndex = on ? 0 : -1; });
   $$(".tpane").forEach(p => p.classList.toggle("on", p.id === "t-" + t));
   if (t === "code") ensureEditor().then(e => e.refresh()); if (t === "serial") { $("[data-tab=serial]").classList.remove("ping"); plot.draw(); } if (t === "phone") $("#phonetab").classList.remove("ping");
 }
@@ -1136,8 +1208,47 @@ function syncViewButtons() {
   const dark = currentTheme() === "dark";
   const tb = document.getElementById("themebtn");
   if (tb) tb.title = dark ? "Light mode" : "Dark mode";
+  if (tb) tb.setAttribute("aria-pressed", dark ? "true" : "false");
   const fb = document.getElementById("fsbtn");
-  if (fb) fb.title = isFullscreen() ? "Leave full screen" : "Full screen (good for the projector)";
+  if (fb) { const f = isFullscreen(); fb.title = f ? "Leave full screen" : "Full screen (good for the projector)"; fb.setAttribute("aria-pressed", f ? "true" : "false"); }
+}
+
+/* ---------- the overflow menu and the parts drawer ----------
+   Both are the real elements, shown and hidden by a class, so nothing is
+   duplicated and every handler on them still applies. */
+function toggleMore(force) {
+  const box = $("#topsec"), btn = $("#morebtn"); if (!box || !btn) return;
+  const open = force != null ? force : !box.classList.contains("open");
+  box.classList.toggle("open", open);
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+  if (open) { const f = box.querySelector("button, a"); if (f) f.focus(); }
+}
+function toggleParts(force) {
+  const open = force != null ? force : !document.body.classList.contains("partsopen");
+  document.body.classList.toggle("partsopen", open);
+  const fab = $("#partsfab"), scrim = $("#compscrim");
+  if (fab) fab.setAttribute("aria-expanded", open ? "true" : "false");
+  if (scrim) scrim.hidden = !open;
+  if (open) { ensurePalette(); const q = $("#psearch"); if (q) requestAnimationFrame(() => q.focus()); }
+  else if (fab) fab.focus();
+}
+
+/* ---------- the shortcuts, somewhere a student will actually look ----------
+   They were only ever listed at the bottom of the Help tab. */
+const SHORTCUTS = [
+  ["Build", [["Drag from the rail", "add a part"], ["Drag pin to pin", "draw a wire"], ["Click empty space mid-wire", "add a bend"],
+             ["R", "rotate"], ["Del", "delete"], ["Esc", "cancel or deselect"]]],
+  ["Edit", [["Ctrl Z", "undo"], ["Ctrl Y", "redo"], ["Ctrl C", "copy"], ["Ctrl V", "paste"], ["Ctrl D", "duplicate"],
+            ["Ctrl A", "select all"], ["Shift click", "add to the selection"], ["Arrow keys", "nudge the selection"]]],
+  ["View", [["Wheel or pinch", "zoom"], ["+ / -", "zoom in and out"], ["0", "fit everything"], ["F", "zoom to the selected part"],
+            ["Drag empty space", "move around"], ["Double click a part", "zoom to it"]]],
+  ["Run", [["Ctrl Enter", "start or stop"], ["Space", "pause while running"], ["M", "multimeter"], ["Ctrl S", "save"], ["?", "this list"]]],
+];
+function showShortcuts() {
+  toggleMore(false);
+  openModal(`<div class="mh"><h2>${ic("code")}Keyboard and mouse</h2><button class="mx" data-close aria-label="Close">${ic("x")}</button></div>
+    <div class="mbody"><div class="keysgrid">${SHORTCUTS.map(([g, rows]) => `<section><h4>${esc(g)}</h4><dl>${rows.map(([k, w]) =>
+      `<div><dt>${k.split(" ").map(x => `<kbd>${esc(x)}</kbd>`).join(" ")}</dt><dd>${esc(w)}</dd></div>`).join("")}</dl></section>`).join("")}</div></div>`);
 }
 document.addEventListener("fullscreenchange", () => syncViewButtons());
 
@@ -1154,6 +1265,7 @@ function boot() {
   rebuildAll(); applyView();
 
   const stage = $("#stage");
+  stage.tabIndex = 0;
   $("#fields").addEventListener("pointerdown", e => { fieldPointer(e); });
   stage.addEventListener("pointerdown", e => { if (fdrag) return; onDown(e); });
   window.addEventListener("pointermove", e => { if (fieldMove(e)) return; onMove(e); });
@@ -1226,6 +1338,10 @@ function boot() {
         snapshot(); project.wires[sel.id].pts = []; save(); drawWires(); return showInspector();
       }
       case "home": { location.hash = "home"; if (isHome()) return; return showHome(); }
+      case "more": return toggleMore();
+      case "parts": return toggleParts();
+      case "keys": return showShortcuts();
+      case "undo": return undo();
       case "schem": return showSchematic();
       case "schclose": { const v = $("#schview"); if (v) v.classList.remove("on"); return; }
       case "schsvg": return downloadSchematic();
@@ -1281,7 +1397,10 @@ function boot() {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") { e.preventDefault(); T.multi.clear(); project.parts.forEach(q => T.multi.add(q.id)); sel = project.parts.length ? { kind: "part", id: project.parts[0].id } : null; project.parts.forEach(placePart); showInspector(); return; }
     if (e.key === " " && running) { e.preventDefault(); T.state.paused = !T.state.paused; T.syncRunUI(); return; }
     if (e.key.toLowerCase() === "m" && running) { T.state.probe = !T.state.probe; T.syncToolbarUI(); drawPins(); if (!T.state.probe) T.hideReadout(); return; }
-    if (e.key === "Escape") { if (document.body.classList.contains("mopen")) closeModal(); else if (wiring) cancelWire(); else { sel = null; T.multi.clear(); project.parts.forEach(placePart); showInspector(); drawWires(); } }
+    if (e.key === "?" || (e.key === "/" && e.shiftKey)) { e.preventDefault(); return showShortcuts(); }
+    if (e.key === "Escape") { if (document.body.classList.contains("mopen")) closeModal();
+      else if (document.body.classList.contains("partsopen")) toggleParts(false);
+      else if ($("#topsec") && $("#topsec").classList.contains("open")) toggleMore(false); else if (wiring) cancelWire(); else { sel = null; T.multi.clear(); project.parts.forEach(placePart); showInspector(); drawWires(); } }
     if ((e.key === "Delete" || e.key === "Backspace") && sel) { e.preventDefault(); deleteSel(); }
     if (e.key.toLowerCase() === "r" && sel) rotateSel();
     if (e.key === "0") fitAnimated();
@@ -1299,8 +1418,26 @@ function boot() {
   });
   // resizable code panel
   const gut = $("#gutter"); let gx = null;
+  /* role="separator" with a tab stop has to report its value, and the arrow
+     keys have to move it, or the role is a lie */
+  const sideW = () => parseInt(getComputedStyle(document.documentElement).getPropertyValue("--sidew")) || 440;
+  const setSideW = w => {
+    w = Math.max(320, Math.min(window.innerWidth - 560, w));
+    document.documentElement.style.setProperty("--sidew", w + "px");
+    gut.setAttribute("aria-valuenow", String(Math.round(w)));
+    if (editor) editor.refresh(); positionInspector();
+  };
+  gut.setAttribute("aria-valuemin", "320");
+  gut.setAttribute("aria-valuemax", String(Math.max(560, window.innerWidth - 560)));
+  gut.setAttribute("aria-valuenow", String(sideW()));
+  gut.addEventListener("keydown", e => {
+    const step = e.shiftKey ? 48 : 16;
+    if (e.key === "ArrowLeft") { e.preventDefault(); setSideW(sideW() + step); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); setSideW(sideW() - step); }
+    else if (e.key === "Home") { e.preventDefault(); setSideW(440); }
+  });
   gut.addEventListener("pointerdown", e => { gx = e.clientX; gut.setPointerCapture(e.pointerId); });
-  gut.addEventListener("pointermove", e => { if (gx === null) return; const w = Math.max(320, Math.min(window.innerWidth - 560, window.innerWidth - e.clientX)); document.documentElement.style.setProperty("--sidew", w + "px"); if (editor) editor.refresh(); positionInspector(); });
+  gut.addEventListener("pointermove", e => { if (gx === null) return; setSideW(window.innerWidth - e.clientX); });
   gut.addEventListener("pointerup", () => { gx = null; fit(); });
   // links: #lesson=LE-07, #ex=blink, #new=esp32
   let firstRoute = true;
@@ -1322,12 +1459,32 @@ function boot() {
     if (pb) { let last = ""; try { last = localStorage.getItem("labplanner.lastRoute") || ""; } catch (e) { }
       pb.href = "../index.html" + (last && /^[A-Za-z0-9_=,.-]+$/.test(last) ? "#" + last : ""); }
   }
+  document.addEventListener("pointerdown", e => {
+    const box = $("#topsec");
+    if (box && box.classList.contains("open") && !e.target.closest("#topsec, #morebtn")) toggleMore(false);
+    if (document.body.classList.contains("partsopen") && e.target.closest("#compscrim")) toggleParts(false);
+  }, true);
+  /* opening a circuit from the drawer should put the canvas back on screen */
+  $("#plist").addEventListener("click", () => { if (window.matchMedia("(max-width: 1400px)").matches) toggleParts(false); });
   fromHash(); window.addEventListener("hashchange", fromHash);
   /* the first screen is up; everything the student has not asked for yet comes
      in behind it, so pressing Start or opening the code tab never waits */
   const warm = () => { ensureEditor().catch(() => {}); loadEngine().catch(() => {}); setTimeout(ensurePalette, 1500); };
+  if (!isHome()) setTimeout(firstRun, 900);
   if (window.requestIdleCallback) requestIdleCallback(warm, { timeout: 1200 }); else setTimeout(warm, 600);
   window.CL = { get project() { return project; }, get sim() { return sim; }, get editor() { return editor; }, rt, PARTS, DEFAULT_PINS, defaultPin, pinsWorld, pinDir, routePts, runSim, stopSim, setProject, openLesson, LESSONS, STARTERS, buildFromSpec, fit, phoneGo, partCode, zoomToPart, tools: T, setSelPublic: v => { sel = v; project.parts.forEach(placePart); showInspector(); }, get running() { return running; } };
+}
+/* Running was signalled by a green canvas outline and a green dot: colour
+   alone, and nothing a screen reader could hear. */
+function setRunState(on) {
+  const st = $("#stage");
+  if (st) st.setAttribute("aria-label", on ? "Circuit canvas, simulation running" : "Circuit canvas");
+  let live = $("#runlive");
+  if (!live) { live = document.createElement("p"); live.id = "runlive"; live.className = "vh"; live.setAttribute("role", "status"); live.setAttribute("aria-live", "polite"); document.body.appendChild(live); }
+  live.textContent = on ? "Simulation running." : "Simulation stopped.";
+  const chip = $("#runflag");
+  if (on && !chip && st) { const c = document.createElement("span"); c.id = "runflag"; c.className = "runflag"; c.innerHTML = `<i></i>Running`; st.appendChild(c); }
+  if (!on && chip) chip.remove();
 }
 function sendSerial() { const i = $("#serialin"); if (!sim || !i.value) return; sim.serialIn(i.value + "\n"); const o = $("#serialout"); o.textContent += "› " + i.value + "\n"; i.value = ""; }
 function btSend(text) {

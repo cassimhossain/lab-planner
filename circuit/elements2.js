@@ -1,6 +1,6 @@
 /* Circuit Lab - second set of hand-drawn parts (SVG).
    Everything here is drawn for the simulator; pins sit on the 0.1 inch (9.6 px) grid like the rest. */
-import { P, KIT, defineEls } from "./elements.js?v=18";
+import { P, KIT, defineEls } from "./elements.js?v=19";
 const { CL, txt, pcb, smd, chip, leftHeader, bottomHeader, termBlock, ledDot, mount, moduleBase, modGuts, F, MONO } = KIT;
 
 const DEFS = {};

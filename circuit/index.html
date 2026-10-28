@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Circuit Lab · Robotics &amp; AI Club</title>
 <meta name="description" content="Build Arduino and ESP32 circuits, write code and run them in the browser. Ready-made circuits for every lesson.">
-<link rel="icon" type="image/svg+xml" href="chip.svg?v=18">
+<link rel="icon" type="image/svg+xml" href="chip.svg?v=19">
 <link rel="alternate icon" href="icon-192.png">
 <!-- installed-app plumbing: the manifest makes this page installable on its own,
      with its own icon and window, and the service worker keeps it working when
      the connection drops. Compiling still needs the internet. -->
-<link rel="manifest" href="manifest.webmanifest?v=18">
+<link rel="manifest" href="manifest.webmanifest?v=19">
 <meta name="theme-color" content="#1B3A6B">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -23,7 +23,7 @@
      and swaps when they arrive -->
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="circuit.css?v=18" fetchpriority="high">
+<link rel="stylesheet" href="circuit.css?v=19" fetchpriority="high">
 
 <style>
 /* installed as an app: there is no portal around it, so the back arrow would
@@ -92,20 +92,28 @@
   <a class="brand" href="../index.html#sims" title="Back to the portal"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg><img src="../logo.svg" alt=""><span><b>Circuit Lab</b><small>Robotics &amp; AI Club</small></span></a>
   <a class="tbtn portal-btn" id="portalbtn" href="../index.html" title="Back to the lesson portal"><svg class="ic" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg><span>Portal</span></a>
   <button class="tbtn home-btn" data-act="home" title="All circuits (Home)"><svg class="ic" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg><span>Home</span></button>
-  <div class="pname-wrap"><input id="pname" class="pname" aria-label="Circuit name" value="My circuit"><span id="boardchip" class="boardchip"></span></div>
-  <nav class="tb">
+  <div class="pname-wrap"><input id="pname" class="pname" aria-label="Circuit name" value="My circuit"><span id="boardchip" class="boardchip" role="status"></span></div>
+  <div class="grow"></div>
+  <span id="clock" class="clock" role="status" aria-label="Simulation time"></span>
+  <!-- Everything that is not Start lives in here. On a wide screen this box is
+       display:contents, so the buttons sit in the bar exactly as before. On a
+       narrow one it becomes the menu behind the "More" button, which is how
+       the Start button stopped being pushed off the end of the bar. -->
+  <div class="topsec" id="topsec">
+  <nav class="tb" aria-label="Circuit actions">
     <button class="tbtn" data-act="library" title="Lesson circuits, examples and your saved circuits"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7"/></svg><span>Library</span></button>
     <button class="tbtn" data-act="new" title="Start a new circuit"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>New</span></button>
     <button class="tbtn" data-act="save" title="Save in this browser (Ctrl+S)"><svg class="ic" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg><span>Save</span></button>
     <button class="tbtn icon" data-act="download" title="Download as a file"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
     <button class="tbtn icon" data-act="upload" title="Open a circuit file"><svg class="ic" viewBox="0 0 24 24"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></svg></button>
   </nav>
-  <div class="grow"></div>
-  <span id="clock" class="clock"></span>
-  <button class="tbtn icon" data-act="mute" title="Sound on/off"><svg class="ic" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg></button>
-  <button class="tbtn icon" id="themebtn" data-act="theme" title="Dark mode"><svg class="ic" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
-  <button class="tbtn icon" id="fsbtn" data-act="fullscreen" title="Full screen (good for the projector)"><svg class="ic" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
-  <button id="runbtn" class="run" data-act="run" title="Start / stop (Ctrl+Enter)"><svg class="ic" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg><span>Start simulation</span></button>
+  <button class="tbtn icon" data-act="mute" title="Sound on/off" aria-label="Sound on or off"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg><span class="menuonly">Sound</span></button>
+  <button class="tbtn icon" id="themebtn" data-act="theme" title="Dark mode" aria-label="Switch between light and dark" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><span class="menuonly">Dark mode</span></button>
+  <button class="tbtn icon" id="fsbtn" data-act="fullscreen" title="Full screen (good for the projector)" aria-label="Full screen" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="menuonly">Full screen</span></button>
+  <button class="tbtn icon" data-act="keys" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg><span class="menuonly">Keyboard shortcuts</span></button>
+  </div>
+  <button class="tbtn icon morebtn" id="morebtn" data-act="more" aria-label="More tools" aria-expanded="false" aria-controls="topsec" aria-haspopup="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
+  <button id="runbtn" class="run" data-act="run" title="Start / stop (Ctrl+Enter)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg><span>Start simulation</span></button>
 </header>
 
 <!-- the front door: what you were building, a way to start something new, and
@@ -113,16 +121,23 @@
 <section id="home" class="home" aria-label="Circuit Lab home"></section>
 
 <main class="main">
-  <aside class="comps" aria-label="Components">
+  <!-- Below 1080px the rail slides over the canvas instead of sitting beside
+       it. It used to be display:none there, which left a tablet with no way
+       to add a part at all. -->
+  <button class="partsfab" id="partsfab" data-act="parts" aria-expanded="false" aria-controls="comps"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Parts</span></button>
+  <div class="compscrim" id="compscrim" hidden></div>
+  <aside class="comps" id="comps" aria-label="Components">
     <div class="comps-h">
-      <h3>Components</h3>
+      <h3 id="compsh">Components</h3>
+      <button class="ix compsclose" data-act="parts" aria-label="Close the parts list"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <label class="search"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="psearch" placeholder="Search parts"></label>
       <div id="pcats" class="chips"></div>
     </div>
     <div id="plist" class="tiles"></div>
   </aside>
 
-  <section id="stage" class="stage">
+  <h1 class="vh">Circuit Lab editor</h1>
+  <section id="stage" class="stage" aria-label="Circuit canvas">
     <div id="world" class="world"><div id="parts"></div><svg id="wires" class="wires"></svg><svg id="fields" class="fields"></svg><svg id="pins" class="pinsl"></svg></div>
     <div class="ctools" role="toolbar">
       <button data-act="rotate" title="Rotate (R)"><svg class="ic" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
@@ -133,7 +148,7 @@
       <i></i>
       <span id="wcolors" class="wcolors"></span>
     </div>
-    <div class="zoombar">
+    <div class="zoombar" role="toolbar" aria-label="Zoom">
       <button data-act="zout" title="Zoom out"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
       <span id="zoomv">100%</span>
       <button data-act="zin" title="Zoom in"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -142,7 +157,7 @@
     <div id="lessoncard" class="lessoncard"></div>
     <div id="inspector" class="insp"></div>
     <div id="tip" class="tip"></div>
-    <div id="warns" class="warns"></div>
+    <div id="warns" class="warns" role="status" aria-live="polite"></div>
     <div id="hint" class="hint"></div>
     <div id="empty" class="empty"></div>
     <div id="clbusy" class="clbusy" aria-hidden="true"><div class="chipwrap"><svg class="chip" viewBox="0 0 1024 1024" aria-hidden="true">
@@ -196,17 +211,17 @@
     </svg></div></div>
   </section>
 
-  <div id="gutter" class="gutter" title="Drag to resize"></div>
+  <div id="gutter" class="gutter" role="separator" aria-orientation="vertical" tabindex="0" aria-label="Resize the code panel: use the left and right arrow keys" title="Drag to resize"></div>
 
   <aside class="side">
     <div class="tabs" role="tablist">
-      <button class="on" data-tab="code"><svg class="ic" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg>Code</button>
-      <button data-tab="serial"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 9l3 3-3 3M12 15h5"/></svg>Serial</button>
-      <button data-tab="phone" id="phonetab"><svg class="ic" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Phone</button>
-      <button data-tab="lesson" id="lessontab" hidden><svg class="ic" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7"/></svg>Lesson</button>
-      <button data-tab="help"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg>Help</button>
+      <button class="on" data-tab="code" role="tab" id="tab-code" aria-controls="t-code" aria-selected="true"><svg class="ic" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg>Code</button>
+      <button data-tab="serial" role="tab" id="tab-serial" aria-controls="t-serial" aria-selected="false"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 9l3 3-3 3M12 15h5"/></svg>Serial</button>
+      <button data-tab="phone" id="phonetab" role="tab" id="tab-phone" aria-controls="t-phone" aria-selected="false"><svg class="ic" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Phone</button>
+      <button data-tab="lesson" id="lessontab" hidden role="tab" id="tab-lesson" aria-controls="t-lesson" aria-selected="false"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7"/></svg>Lesson</button>
+      <button data-tab="help" role="tab" id="tab-help" aria-controls="t-help" aria-selected="false"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg>Help</button>
     </div>
-    <div id="t-code" class="tpane on">
+    <div id="t-code" class="tpane on" role="tabpanel" tabindex="0" aria-labelledby="tab-code">
       <div class="codebar">
         <button class="cbtn primary" data-act="snippets"><svg class="ic" viewBox="0 0 24 24"><path d="M5 4h10a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4z"/><path d="M5 16a4 4 0 0 1 4-4h10"/></svg>Code library</button>
         <button class="cbtn" data-act="partcode" id="partcodebtn" hidden><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Code for this part</span></button>
@@ -215,17 +230,17 @@
         <button class="cbtn icon" data-act="ino" title="Download .ino for the Arduino IDE"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
       </div>
       <div id="editor" class="editor"></div>
-      <pre id="buildout" class="buildout">Press <b>Start simulation</b> to compile and run your code.</pre>
+      <pre id="buildout" class="buildout" role="status" aria-live="polite">Press <b>Start simulation</b> to compile and run your code.</pre>
     </div>
-    <div id="t-serial" class="tpane">
+    <div id="t-serial" class="tpane" role="tabpanel" tabindex="0" aria-labelledby="tab-serial">
       <div class="serbar"><span class="muted">Serial.print output</span><div class="grow"></div><button class="cbtn" data-act="graph" id="graphbtn"><svg class="ic" viewBox="0 0 24 24"><path d="M3 20h18M5 16l4-6 4 3 6-8"/></svg>Graph</button><button class="cbtn" data-act="clearserial">Clear</button></div>
       <canvas id="plot" class="plot" width="600" height="180" hidden></canvas>
-      <pre id="serialout" class="serialout"></pre>
+      <pre id="serialout" class="serialout" tabindex="0" role="log" aria-label="Serial output"></pre>
       <div class="serin"><input id="serialin" placeholder="Send a message to the board (Enter)"><button class="cbtn" data-act="sendserial">Send</button></div>
     </div>
-    <div id="t-phone" class="tpane phone"></div>
-    <div id="t-lesson" class="tpane lesson"></div>
-    <div id="t-help" class="tpane help">
+    <div id="t-phone" class="tpane phone" role="tabpanel" tabindex="0" aria-labelledby="tab-phone"></div>
+    <div id="t-lesson" class="tpane lesson" role="tabpanel" tabindex="0" aria-labelledby="tab-lesson"></div>
+    <div id="t-help" class="tpane help" role="tabpanel" tabindex="0" aria-labelledby="tab-help">
       <h3>Build</h3>
       <ol><li>Drag parts from <b>Components</b> onto the canvas, or open a ready-made circuit from the <b>Library</b>.</li>
         <li>Make a wire: drag from one pin to another, or click a pin and then another. Wires snap to the nearest pin. Click empty space on the way to add bends. <kbd>Esc</kbd> cancels.</li>
@@ -252,8 +267,8 @@
   </aside>
 </main>
 
-<div id="modal" class="modal"></div>
-<div id="toast" class="toast"></div>
+<div id="modal" class="modal" role="dialog" aria-modal="true" aria-label="Dialog"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="stagebox" class="stagebox" aria-hidden="true"></div>
 <input type="file" id="fileup" accept=".json,application/json" hidden>
 
@@ -263,39 +278,39 @@
      CodeMirror is pulled in by app.js once the first screen is up. -->
 <!-- The modules import each other four deep, so the browser would otherwise
      discover them one round trip at a time. Named here, they all start at once. -->
-<link rel="modulepreload" href="app.js?v=18">
-<link rel="modulepreload" href="parts.js?v=18">
-<link rel="modulepreload" href="elements.js?v=18">
-<link rel="modulepreload" href="elements2.js?v=18">
-<link rel="modulepreload" href="elements3.js?v=18">
-<link rel="modulepreload" href="elements4.js?v=18">
-<link rel="modulepreload" href="elements5.js?v=18">
-<link rel="modulepreload" href="parts2.js?v=18">
-<link rel="modulepreload" href="parts3.js?v=18">
-<link rel="modulepreload" href="parts4.js?v=18">
-<link rel="modulepreload" href="parts5.js?v=18">
-<link rel="modulepreload" href="parts6.js?v=18">
-<link rel="modulepreload" href="parts7.js?v=18">
-<link rel="modulepreload" href="parts8.js?v=18">
-<link rel="modulepreload" href="boards.js?v=18">
-<link rel="modulepreload" href="layout.js?v=18">
-<link rel="modulepreload" href="snippets.js?v=18">
-<link rel="modulepreload" href="lessons.js?v=18">
-<link rel="modulepreload" href="lessons-le.js?v=18">
-<link rel="modulepreload" href="lessons-jm.js?v=18">
-<link rel="modulepreload" href="lessons-yi.js?v=18">
-<link rel="modulepreload" href="lessons-tl.js?v=18">
-<link rel="modulepreload" href="tools.js?v=18">
-<link rel="modulepreload" href="home.js?v=18">
-<link rel="modulepreload" href="assist.js?v=18">
+<link rel="modulepreload" href="app.js?v=19">
+<link rel="modulepreload" href="parts.js?v=19">
+<link rel="modulepreload" href="elements.js?v=19">
+<link rel="modulepreload" href="elements2.js?v=19">
+<link rel="modulepreload" href="elements3.js?v=19">
+<link rel="modulepreload" href="elements4.js?v=19">
+<link rel="modulepreload" href="elements5.js?v=19">
+<link rel="modulepreload" href="parts2.js?v=19">
+<link rel="modulepreload" href="parts3.js?v=19">
+<link rel="modulepreload" href="parts4.js?v=19">
+<link rel="modulepreload" href="parts5.js?v=19">
+<link rel="modulepreload" href="parts6.js?v=19">
+<link rel="modulepreload" href="parts7.js?v=19">
+<link rel="modulepreload" href="parts8.js?v=19">
+<link rel="modulepreload" href="boards.js?v=19">
+<link rel="modulepreload" href="layout.js?v=19">
+<link rel="modulepreload" href="snippets.js?v=19">
+<link rel="modulepreload" href="lessons.js?v=19">
+<link rel="modulepreload" href="lessons-le.js?v=19">
+<link rel="modulepreload" href="lessons-jm.js?v=19">
+<link rel="modulepreload" href="lessons-yi.js?v=19">
+<link rel="modulepreload" href="lessons-tl.js?v=19">
+<link rel="modulepreload" href="tools.js?v=19">
+<link rel="modulepreload" href="home.js?v=19">
+<link rel="modulepreload" href="assist.js?v=19">
 <link rel="modulepreload" href="../vendor/avr8js.mjs">
-<script async src="../vendor/wokwi-elements.js?v=18"></script>
-<script type="module" src="app.js?v=18"></script>
+<script async src="../vendor/wokwi-elements.js?v=19"></script>
+<script type="module" src="app.js?v=19"></script>
 <script>
   /* Registered after load so it never competes with the editor starting up.
      The worker caches this app only; the portal is left alone. */
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=18").catch(() => {}));
+    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=19").catch(() => {}));
   }
 </script>
 </body>

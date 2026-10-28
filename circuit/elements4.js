@@ -1,5 +1,5 @@
 /* Circuit Lab - I2C / SPI / serial breakout boards (round 3). */
-import { P, KIT, defineEls } from "./elements.js?v=18";
+import { P, KIT, defineEls } from "./elements.js?v=19";
 const { CL, txt, pcb, smd, chip, leftHeader, bottomHeader, termBlock, ledDot, mount, moduleBase, modGuts, F, MONO } = KIT;
 const DEFS = {};
 

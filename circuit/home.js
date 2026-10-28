@@ -192,6 +192,9 @@ async function build(box) {
     made.push({ p, el, w });
   });
   if (!made.length) { box.classList.add("flat"); return; }
+  /* the miniature is a picture: its parts must not become tab stops inside
+     the card button */
+  box.setAttribute("inert", ""); box.setAttribute("aria-hidden", "true");
   box.appendChild(stage);
   await Promise.all(made.map(m => m.el.updateComplete || Promise.resolve()));
   await new Promise(r => requestAnimationFrame(r));

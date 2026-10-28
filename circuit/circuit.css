@@ -633,3 +633,10 @@ body.athome .home-btn { display: none; }
   .hcard, .hnew, .hcont { transition: none; }
   .hcard:hover, .hnew:hover, .hcont:hover { transform: none; }
 }
+
+
+/* the way back to the lesson portal: always there, always labelled */
+.portal-btn { display: inline-flex; text-decoration: none; color: inherit; white-space: nowrap; }
+.home-btn { white-space: nowrap; }
+.portal-btn .ic { width: 17px; height: 17px; }
+body.athome .portal-btn { display: inline-flex; }

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Circuit Lab · Robotics &amp; AI Club</title>
 <meta name="description" content="Build Arduino and ESP32 circuits, write code and run them in the browser. Ready-made circuits for every lesson.">
-<link rel="icon" type="image/svg+xml" href="chip.svg?v=16">
+<link rel="icon" type="image/svg+xml" href="chip.svg?v=17">
 <link rel="alternate icon" href="icon-192.png">
 <!-- installed-app plumbing: the manifest makes this page installable on its own,
      with its own icon and window, and the service worker keeps it working when
      the connection drops. Compiling still needs the internet. -->
-<link rel="manifest" href="manifest.webmanifest?v=16">
+<link rel="manifest" href="manifest.webmanifest?v=17">
 <meta name="theme-color" content="#1B3A6B">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,12 +20,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../vendor/codemirror/codemirror.css?v=16">
-<link rel="stylesheet" href="circuit.css?v=16">
+<link rel="stylesheet" href="../vendor/codemirror/codemirror.css?v=17">
+<link rel="stylesheet" href="circuit.css?v=17">
 <style>
 /* installed as an app: there is no portal around it, so the back arrow would
    fling the student out of the window it is running in */
 @media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+  /* installed as an app: the brand is only the name, and the labelled
+     "Lesson portal" button is the way back */
   .brand > svg.ic { display: none; }
   .brand { pointer-events: none; }
 }
@@ -85,6 +87,7 @@
     </svg></div></div>
 <header class="top">
   <a class="brand" href="../index.html#sims" title="Back to the portal"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg><img src="../logo.svg" alt=""><span><b>Circuit Lab</b><small>Robotics &amp; AI Club</small></span></a>
+  <a class="tbtn portal-btn" id="portalbtn" href="../index.html" title="Back to the lesson portal"><svg class="ic" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg><span>Portal</span></a>
   <button class="tbtn home-btn" data-act="home" title="All circuits (Home)"><svg class="ic" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg><span>Home</span></button>
   <div class="pname-wrap"><input id="pname" class="pname" aria-label="Circuit name" value="My circuit"><span id="boardchip" class="boardchip"></span></div>
   <nav class="tb">
@@ -251,14 +254,14 @@
 <div id="stagebox" class="stagebox" aria-hidden="true"></div>
 <input type="file" id="fileup" accept=".json,application/json" hidden>
 
-<script src="../vendor/wokwi-elements.js?v=16"></script>
-<script src="../vendor/codemirror/codemirror.min.js?v=16"></script>
-<script type="module" src="app.js?v=16"></script>
+<script src="../vendor/wokwi-elements.js?v=17"></script>
+<script src="../vendor/codemirror/codemirror.min.js?v=17"></script>
+<script type="module" src="app.js?v=17"></script>
 <script>
   /* Registered after load so it never competes with the editor starting up.
      The worker caches this app only; the portal is left alone. */
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=16").catch(() => {}));
+    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=17").catch(() => {}));
   }
 </script>
 </body>

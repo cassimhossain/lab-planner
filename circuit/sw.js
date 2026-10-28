@@ -12,9 +12,9 @@
    index.html and in VERSION below, and the old cache is thrown away whole on
    the next visit, so a student never runs half an old version. */
 
-const VERSION = "v16";
+const VERSION = "v17";
 const CACHE = "circuitlab-" + VERSION;
-const V = "?" + VERSION.replace("v", "v=");          // "?v=16", the same string the page uses
+const V = "?" + VERSION.replace("v", "v=");          // "?v=17", the same string the page uses
 
 const MODULES = ["app", "assist", "boards", "home", "elements", "elements2", "elements3", "elements4", "elements5",
   "layout", "lessons", "lessons-jm", "lessons-le", "lessons-tl", "lessons-yi",

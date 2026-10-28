@@ -144,7 +144,8 @@
 
   /* ---------- routing / sidebar ---------- */
   const ROUTES = ["home", "curriculum", "hardware", "LE", "JM", "YI", "TL", "week", "sims", "print", "kits", "settings"];
-  const route = () => { const r = location.hash.slice(1); return ROUTES.includes(r) ? r : "home"; };
+  const route = () => { const r = location.hash.slice(1); return /^kit=/.test(r) ? "kitsheet" : ROUTES.includes(r) ? r : "home"; };
+  const kitSheetCode = () => decodeURIComponent((location.hash.match(/^#kit=(.+)$/) || [, ""])[1]);
   function renderMenu() {
     const r = route(), nw = planned();
     const item = (k, label, icon, extra = "") => `<a href="#${k}" class="mi ${r === k ? "on" : ""}">${icon}<span>${label}</span>${extra}</a>`;
@@ -167,7 +168,7 @@
       `<div class="mlabel">Setup</div>` +
       item("settings", "Settings & backup", ic("gear"));
     const a = addDays(S.weekStart, 0), b = addDays(S.weekStart, 4);
-    $("#wkLabel").textContent = `${fmt(a, { day: "numeric", month: "short" })} to ${fmt(b, { day: "numeric", month: "short" })}`;
+    if ($("#wkLabel")) $("#wkLabel").textContent = `${fmt(a, { day: "numeric", month: "short" })} to ${fmt(b, { day: "numeric", month: "short" })}`;
   }
   /* A tab switch is synchronous, so a loading overlay could never paint during it.
      What the eye reads as "it responded" is a short transition on the new page. */
@@ -178,8 +179,11 @@
   function render() {
     renderMenu();
     const r = route(), app = $("#app");
-    app.innerHTML = r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "sims" ? vSims() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
+    app.innerHTML = r === "kitsheet" ? vKitSheet(kitSheetCode()) : r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "sims" ? vSims() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
     document.body.dataset.route = r;
+    /* Circuit Lab reads this to bring the student back where they were */
+    try { localStorage.setItem("labplanner.lastRoute", location.hash.slice(1) || "home"); } catch (e) { }
+    if (r === "kitsheet") drawKitPics();
   }
   /* index.html#open=CODE (from Circuit Lab) opens that lesson's details */
   function openFromHash() {
@@ -190,8 +194,10 @@
   }
   window.addEventListener("hashchange", () => { closeNav(); if (openFromHash()) return; render(); pageSwap(); window.scrollTo(0, 0); });
   const shiftWeek = n => { S.weekStart = iso(addDays(S.weekStart, 7 * n)); save(); render(); toast(`Week of ${fmt(addDays(S.weekStart, 0), { day: "numeric", month: "long" })}`); };
-  $("#wkPrev").onclick = () => shiftWeek(-1);
-  $("#wkNext").onclick = () => shiftWeek(1);
+  /* the week navigator was removed from the top bar: this portal is a lesson
+     library, not a timetable manager. The Timetable page still works on its own. */
+  if ($("#wkPrev")) $("#wkPrev").onclick = () => shiftWeek(-1);
+  if ($("#wkNext")) $("#wkNext").onclick = () => shiftWeek(1);
   const closeNav = () => document.body.classList.remove("navopen");
   $("#burger").onclick = () => document.body.classList.toggle("navopen");
 
@@ -323,7 +329,7 @@
         <div class="wl-txt"><span class="kicker">${fmt(now, { weekday: "long", day: "numeric", month: "long" })}</span>
           <h1>${hi}, ${esc((S.name || "").split(" ")[0] || "teacher")}</h1>
           <p>${LIB.decks.length} lessons across 4 age groups · ${pctAll}% of the curriculum taught · ${nw.length ? plural(nw.length, "session") + " this week" : "nothing planned this week yet"}</p></div>
-        <div class="wl-btns"><a class="btn primary big" href="#curriculum">${ic("book")}Open lesson library</a><button class="btn big" data-sched="today">${ic("plus")}Add to timetable</button></div>
+        <div class="wl-btns"><a class="btn primary big" href="#curriculum">${ic("book")}Open lesson library</a><a class="btn big" href="circuit/">${ic("chip")}Open Circuit Lab</a></div>
         ${DOODLE}
       </section>
       ${sec("book", "Curriculum", "Four learning pathways. Pick up where each group left off.", `<a class="sec-link" href="#curriculum">Lesson library ${ic("arrow")}</a>`, `<div class="pgrid">${pathCards}</div>`, "t-cur")}
@@ -461,6 +467,7 @@
       <div class="m-foot">
         <div class="m-status">${statusChip(a.code)}${s.status === "Done" && s.date ? `<small>on ${fmt(new Date(s.date + "T00:00:00"), { day: "numeric", month: "short" })}</small>` : ""}</div>
         <div class="m-acts">
+          <a class="btn kitbtn" href="#kit=${encodeURIComponent(a.code)}" data-close>${ic("print")}Print hardware list</a>
           ${s.status === "Done" ? `<button class="btn" data-mstatus="Not started">Undo done</button>` : `<button class="btn" data-mstatus="Done">${ic("check")}Mark as done</button>`}
           <button class="btn primary" data-close>Save</button></div>
       </div></div>`;
@@ -604,6 +611,119 @@
           return `<tr><td class="c">${i + 1}</td><td>${esc(c.cat)}</td><td>${esc(n)}</td><td class="c">${esc(c.type)}</td>${dv.map(v => `<td class="c">${v || ""}</td>`).join("")}<td class="c">${nd || ""}</td><td class="tot">${iss}</td><td class="box"></td><td class="box"></td></tr>`; }).join("") + `</tbody></table>`;
     }
     return h + `</div>`;
+  }
+
+  /* ---------- ONE ACTIVITY'S HARDWARE LIST ----------
+     A print-ready sheet for a single activity, so a teacher or a lab engineer
+     can collect the parts without planning a week first. Each row carries the
+     part's own picture, the same artwork Circuit Lab draws on the canvas, so
+     somebody who does not know the components can still find them. */
+  let artLoading = null;
+  function loadPartArt() {
+    /* Two libraries draw the parts: Wokwi Elements for the boards and common
+       components, and Circuit Lab's own elements for everything we added.
+       Both are fetched only when a hardware list is opened, never on a normal
+       page, because together they are half a megabyte. */
+    if (artLoading) return artLoading;
+    const script = (src, mod) => new Promise(res => {
+      const s = document.createElement("script");
+      if (mod) s.type = "module";
+      s.src = src; s.onload = () => res(true); s.onerror = () => res(false);
+      document.head.appendChild(s);
+    });
+    artLoading = Promise.all([
+      customElements.get("wokwi-led") ? true : script("vendor/wokwi-elements.js?v=16", false),
+      customElements.get("cl-resistor") ? true : Promise.all([2, 3, 4, 5].map(n => script(`circuit/elements${n}.js?v=16`, true)))
+        .then(() => script("circuit/elements.js?v=16", true)),
+    ]).then(r => {
+      /* the modules register their elements as they evaluate; give the last of
+         them a moment to finish before anything is measured */
+      return new Promise(res => setTimeout(() => res(r[0] !== false), 120));
+    });
+    return artLoading;
+  }
+  /* craft and consumable items have no electronic artwork: they get a simple drawing */
+  const FALLBACK = [
+    [/jumper wire|wire/i, '<path d="M6 30c6-14 16 14 22 0s12-10 16-2" stroke="#E8384F" stroke-width="3" fill="none"/><circle cx="6" cy="30" r="3" fill="#2B3A52"/><circle cx="44" cy="28" r="3" fill="#2B3A52"/>'],
+    [/laptop|computer/i, '<rect x="9" y="12" width="32" height="21" rx="2" stroke="#2B3A52" stroke-width="2.6" fill="#DCE9FB"/><path d="M5 37h40" stroke="#2B3A52" stroke-width="2.6"/>'],
+    [/multimeter/i, '<rect x="12" y="8" width="26" height="32" rx="3" stroke="#2B3A52" stroke-width="2.6" fill="#FDE68A"/><rect x="16" y="12" width="18" height="9" rx="2" fill="#2B3A52"/><circle cx="25" cy="31" r="5" stroke="#2B3A52" stroke-width="2.4" fill="none"/>'],
+    [/3d printer/i, '<rect x="8" y="10" width="34" height="30" rx="3" stroke="#2B3A52" stroke-width="2.6" fill="none"/><path d="M14 20h22M22 20v8h6v-8" stroke="#2B3A52" stroke-width="2.4"/>'],
+    [/glue|marker|pen/i, '<rect x="20" y="8" width="10" height="26" rx="2" stroke="#2B3A52" stroke-width="2.6" fill="#C7D2FE"/><path d="M22 34l3 7 3-7" stroke="#2B3A52" stroke-width="2.4" fill="none"/>'],
+    [/paper|card|sheet|cardboard/i, '<rect x="12" y="8" width="26" height="32" rx="2" stroke="#2B3A52" stroke-width="2.6" fill="#fff"/><path d="M17 16h16M17 22h16M17 28h10" stroke="#9AA3AF" stroke-width="2.2"/>'],
+    [/tape|foil/i, '<circle cx="25" cy="24" r="14" stroke="#2B3A52" stroke-width="2.6" fill="#FDE68A"/><circle cx="25" cy="24" r="5" stroke="#2B3A52" stroke-width="2.4" fill="#fff"/>'],
+    [/scissor|cutter|knife/i, '<path d="M14 10l20 26M34 10L14 36" stroke="#2B3A52" stroke-width="2.6"/><circle cx="12" cy="39" r="4" stroke="#2B3A52" stroke-width="2.4" fill="none"/><circle cx="38" cy="39" r="4" stroke="#2B3A52" stroke-width="2.4" fill="none"/>'],
+    [/lemon|fruit|banana|playdough|candle|cork|coin|nail/i, '<circle cx="25" cy="24" r="13" stroke="#2B3A52" stroke-width="2.6" fill="#FEF3C7"/><path d="M25 11v26" stroke="#CA8A04" stroke-width="2.2"/>'],
+    [/phone|smartphone/i, '<rect x="17" y="7" width="16" height="34" rx="3" stroke="#2B3A52" stroke-width="2.6" fill="#DCE9FB"/><path d="M23 37h4" stroke="#2B3A52" stroke-width="2.4"/>'],
+    [/battery|power|cell/i, '<rect x="9" y="17" width="30" height="15" rx="3" stroke="#2B3A52" stroke-width="2.6" fill="#DCFCE7"/><rect x="39" y="21" width="4" height="7" rx="1" fill="#2B3A52"/>'],
+  ];
+  const fallbackArt = n => {
+    const f = FALLBACK.find(x => x[0].test(n));
+    return `<svg viewBox="0 0 50 48" class="kpsvg">${f ? f[1] : '<rect x="11" y="12" width="28" height="24" rx="3" stroke="#B9C3D2" stroke-width="2.6" fill="#F3F6FB"/><path d="M11 20h28" stroke="#B9C3D2" stroke-width="2.4"/>'}</svg>`;
+  };
+  /* fill every picture cell once the artwork library is in */
+  function drawKitPics() {
+    const cells = [...document.querySelectorAll(".kpic[data-kit]")];
+    if (!cells.length) return;
+    const KP = window.KITPARTS || {};
+    const need = cells.filter(c => KP[c.dataset.kit]);
+    cells.forEach(c => { if (!KP[c.dataset.kit]) c.innerHTML = fallbackArt(c.dataset.kit); });
+    if (!need.length) return;
+    loadPartArt().then(ok => {
+      need.forEach(c => {
+        const p = KP[c.dataset.kit];
+        if (!ok || !customElements.get(p.tag)) { c.innerHTML = fallbackArt(c.dataset.kit); return; }
+        const el = document.createElement(p.tag);
+        Object.entries(p.attrs || {}).forEach(([k, v]) => { if (v != null && v !== false) el.setAttribute(k, v); });
+        c.innerHTML = ""; c.appendChild(el);
+        const fit = n => {
+          const r = el.getBoundingClientRect(), box = c.getBoundingClientRect();
+          if ((!r.width || !r.height) && n < 40) return setTimeout(() => fit(n + 1), 60);
+          if (!r.width || !r.height) return;
+          const s = Math.min((box.width - 4) / r.width, (box.height - 4) / r.height, 1.1);
+          el.style.transform = `translate(${(box.width - r.width * s) / 2}px,${(box.height - r.height * s) / 2}px) scale(${s})`;
+          el.style.opacity = 1;
+        };
+        el.style.opacity = 0;
+        (el.updateComplete || Promise.resolve()).then(() => requestAnimationFrame(() => fit(0)));
+      });
+    });
+  }
+  function vKitSheet(code) {
+    const a = BYCODE[code];
+    if (!a) return head("Hardware list", "") + empty("That activity was not found.", `<a class="btn primary" href="#curriculum">Back to the lessons</a>`);
+    const g = GROUPS[a.group], gr = groupsOf(a.code);
+    const kit = kitOf(a.code).filter(k => k.n);
+    const rows = kit.slice().sort((p, q) => catIdx(catOf(p.n).cat) - catIdx(catOf(q.n).cat) || p.n.localeCompare(q.n));
+    const body = rows.map((k, i) => {
+      const c = catOf(k.n);
+      return `<tr><td class="c">${i + 1}</td>
+        <td class="kpcell"><span class="kpic" data-kit="${esc(k.n)}"></span></td>
+        <td><b>${esc(k.n)}</b>${c.spec ? `<small>${esc(c.spec)}</small>` : ""}</td>
+        <td>${esc(c.cat)}</td>
+        <td class="c">${esc(k.q)}</td>
+        <td class="c">${k.b === "class" ? "Per class" : "Per group"}</td>
+        <td class="c">${esc(c.type)}</td>
+        <td>${esc(k.note || "")}</td>
+        <td class="tot">${lineTotal(k, a.code)}</td>
+        <td class="box"></td></tr>`;
+    }).join("");
+    const reuse = rows.filter(k => catOf(k.n).type !== "Consumable").length;
+    return `<div class="noprint">${head("Hardware list · " + lab(a), esc(a.title) + " · " + esc(g.name),
+        `<a class="btn" href="#${a.group}">${ic("arrow")}Back to ${esc(g.name)}</a><button class="btn primary big" data-act="print">${ic("print")}Print / Save PDF</button>`)}
+      <div class="pbar kbar"><span class="gl">Groups (pairs) in the class</span>
+        <div class="stepper"><button data-kstep="-1">${ic("minus")}</button><b>${gr}</b><button data-kstep="1">${ic("plus")}</button></div>
+        <span class="muted">The totals follow this number.</span></div></div>
+      <div id="printArea"><div class="paper">
+        <div class="shead"><div><h2>Hardware list</h2>
+          <div class="s">${esc(a.title)} · ${esc(lab(a))} · ${esc(g.name)}${a.unit ? " · " + esc(a.unit) : ""}</div>
+          <div><b>Groups:</b> ${gr} &nbsp;·&nbsp; <b>Requested by:</b> ${esc(S.name)} &nbsp;·&nbsp; <b>Campus:</b> ${esc(S.campus)}</div></div>
+          <div class="who"><div>Issued by (lab):<span></span></div><div>Signature / date:<span></span></div></div></div>
+        <table class="kt kpt"><thead><tr><th class="c">#</th><th class="c">Part</th><th>Component</th><th>Category</th>
+          <th class="c">Qty</th><th class="c">Basis</th><th class="c">Type</th><th>Notes</th><th class="c">Total</th><th class="c">Issued</th></tr></thead>
+          <tbody>${body || `<tr><td colspan="10">No parts listed for this activity.</td></tr>`}</tbody></table>
+        <p class="note">${rows.length} line${rows.length === 1 ? "" : "s"} · ${reuse} reusable · ${rows.length - reuse} consumable.
+          Totals assume ${gr} group${gr === 1 ? "" : "s"}. Per-class items are counted once.</p>
+      </div></div>`;
   }
 
   /* ---------- KITS ---------- */
@@ -910,6 +1030,7 @@
     if ("close" in d) { closeModal(); return; }
     if (d.mday) { const s = sess(modalCode); s.day = d.mday; setStatus(modalCode, "Next week"); save(); renderModal(); toast(`${esc(lab(getA(modalCode)))} planned for <b>${DAYFULL[d.mday]}</b>`); return; }
     if ("unplan" in d) { setStatus(modalCode, "Not started"); save(); renderModal(); return; }
+    if (d.kstep) { const c = kitSheetCode(), s = sess(c); s.groups = Math.max(1, Math.min(40, groupsOf(c) + +d.kstep)); save(); render(); return; }
     if (d.step) { const s = sess(modalCode); s.groups = Math.max(1, Math.min(40, groupsOf(modalCode) + +d.step)); save(); renderModal(); return; }
     if (d.mstatus) { setStatus(modalCode, d.mstatus); save(); renderModal(); return; }
     if (d.moveto) { const a = getA(modalCode), wasP = isPlanned(a.code), n = moveTo(modalCode, d.moveto); save(); modalCode = n; UI.swapOpen = false; renderModal(); render();

@@ -999,3 +999,22 @@ h3.unit { background: var(--l, #E8EEF8); color: var(--c, var(--navy)); border-ra
 .boot .roboglow, .boot .roboglow::before, .boot .roboglow::after { width: 152px; height: 152px; margin: -76px 0 0 -76px; }
 body.booted .boot { opacity: 0; pointer-events: none; }
 body.booted .boot.gone { display: none; }
+
+/* ---------- one activity's hardware list ----------
+   The picture column is the point of this sheet: somebody who has never seen
+   an MPU6050 can still find one in the drawer. */
+.kitbtn { border-color: #C7D2FE !important; color: #4338CA !important; font-weight: 800; }
+.kitbtn:hover { background: #EEF2FF !important; }
+.kpt th:nth-child(2), .kpt td.kpcell { width: 86px; }
+.kpcell { padding: 4px !important; }
+.kpic { position: relative; display: block; width: 78px; height: 52px; overflow: hidden;
+  background: linear-gradient(180deg, #FFFFFF, #F3F6FB); border: 1px solid #E6EBF3; border-radius: 7px; }
+.kpic > * { position: absolute; left: 0; top: 0; transform-origin: 0 0; display: block; transition: opacity .2s; }
+.kpic .kpsvg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 1; transform: none; }
+.kpt td b { font-weight: 800; }
+.kpt td small { display: block; color: #7A8699; font-size: 11.5px; }
+.pbar .gl { font-weight: 700; font-size: 13px; color: #42526E; }
+.pbar .muted { color: #8A94A6; font-size: 13px; }
+@media print { .kpic { border-color: #CBD5E1; background: #fff; } }
+.kbar { display: flex; align-items: center; gap: 14px; }
+.kbar .gl { white-space: nowrap; }

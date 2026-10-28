@@ -1,6 +1,6 @@
 /* Circuit Lab - round 3 artwork: bridge rectifier, inductor and a lever limit switch.
    Pins stay on the 0.1 inch (9.6 px) grid like every other part. */
-import { P, KIT, defineEls } from "./elements.js?v=16";
+import { P, KIT, defineEls } from "./elements.js?v=17";
 const { CL, txt } = KIT;
 const DEFS = {};
 

@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=31">
+<link rel="stylesheet" href="styles.css?v=32">
 </head>
 <body>
 <!-- First load is a real wait: fonts, the curriculum data and the slide index.
@@ -79,12 +79,7 @@
     <header class="topbar">
       <button class="burger" id="burger" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <button class="cmdk" id="cmdk" aria-label="Search"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span>Search activities, slides, documents</span><kbd>Ctrl K</kbd></button>
-      <div class="weekbox">
-        <button class="wkbtn" id="wkPrev" aria-label="Previous week"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
-        <div class="wkmid"><small>Planning week</small><b id="wkLabel"></b></div>
-        <button class="wkbtn" id="wkNext" aria-label="Next week"><svg class="ic" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
-      </div>
-      <button class="btn primary tb-plan" data-sched="today"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Add to timetable</span></button>
+      <a class="btn primary tb-plan" href="circuit/"><svg class="ic" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg><span>Circuit Lab</span></a>
     </header>
     <main id="app"></main>
   </div>
@@ -95,10 +90,11 @@
 <div class="viewer" id="viewer" role="dialog" aria-modal="true"></div>
 <div id="toast" role="status"></div>
 
-<script src="data.js?v=31"></script>
-<script src="library.js?v=31"></script>
-<script src="videos.js?v=31"></script>
-<script src="sims.js?v=31"></script>
-<script src="app.js?v=31"></script>
+<script src="data.js?v=32"></script>
+<script src="library.js?v=32"></script>
+<script src="videos.js?v=32"></script>
+<script src="sims.js?v=32"></script>
+<script src="kitparts.js?v=32"></script>
+<script src="app.js?v=32"></script>
 </body>
 </html>

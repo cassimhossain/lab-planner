@@ -1,15 +1,15 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=16";
-import { Netlist, Sim } from "./sim.js?v=16";
-import { BOARDS, loadHex } from "./boards.js?v=16";
-import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=16";
-import { layoutCircuit } from "./layout.js?v=16";
-import { SNIPPETS } from "./snippets.js?v=16";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=16";
-import * as T from "./tools.js?v=16";
-import { buildSchematic } from "./schematic.js?v=16";
-import { initHome, showHome, hideHome, isHome } from "./home.js?v=16";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=16";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=17";
+import { Netlist, Sim } from "./sim.js?v=17";
+import { BOARDS, loadHex } from "./boards.js?v=17";
+import { prepareSketch, BUILTIN_LIBS, EXTRA_LIBS } from "./libs.js?v=17";
+import { layoutCircuit } from "./layout.js?v=17";
+import { SNIPPETS } from "./snippets.js?v=17";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=17";
+import * as T from "./tools.js?v=17";
+import { buildSchematic } from "./schematic.js?v=17";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=17";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=17";
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -1241,6 +1241,13 @@ function boot() {
     if ((m = h.match(/^new=(uno|esp32|nano|mega|none)$/))) return setProject(blank(m[1] === "none" ? null : m[1]), "New circuit");
     if ((m = h.match(/^c=(.+)$/))) { T.openLink(m[1]).then(p => { if (p) { setProject(p, "Opened a shared circuit"); setHash("c=" + m[1]); } else toast("That shared link could not be read"); }); return; }
   };
+  /* The portal and Circuit Lab are one site, so the way back returns to the
+     page the student was last on rather than the front door. */
+  {
+    const pb = document.getElementById("portalbtn");
+    if (pb) { let last = ""; try { last = localStorage.getItem("labplanner.lastRoute") || ""; } catch (e) { }
+      pb.href = "../index.html" + (last && /^[A-Za-z0-9_=,.-]+$/.test(last) ? "#" + last : ""); }
+  }
   initHome({
     ic, PARTS, BOARDS, LESSONS, STARTERS, GROUPS, buildFromSpec, listProjects,
     chip: () => `<svg viewBox="0 0 1024 1024" aria-hidden="true"><path d="M938.666667 384v-85.333333H725.333333V85.333333h-85.333333v213.333334h-85.333333V85.333333h-85.333334v213.333334h-85.333333V85.333333h-85.333333v213.333334H85.333333v85.333333h213.333334v85.333333H85.333333v85.333334h213.333334v85.333333H85.333333v85.333333h213.333334v213.333334h85.333333V725.333333h85.333333v213.333334h85.333334V725.333333h85.333333v213.333334h85.333333V725.333333h213.333334v-85.333333H725.333333v-85.333333h213.333334v-85.333334H725.333333v-85.333333h213.333334z" fill="#FF9800"/><path d="M170.666667 256v512c0 46.933333 38.4 85.333333 85.333333 85.333333h512c46.933333 0 85.333333-38.4 85.333333-85.333333V256c0-46.933333-38.4-85.333333-85.333333-85.333333H256c-46.933333 0-85.333333 38.4-85.333333 85.333333z" fill="#4CAF50"/><path d="M661.333333 661.333333H362.666667c-23.466667 0-42.666667-19.2-42.666667-42.666666V405.333333c0-23.466667 19.2-42.666667 42.666667-42.666666h298.666666c23.466667 0 42.666667 19.2 42.666667 42.666666v213.333334c0 23.466667-19.2 42.666667-42.666667 42.666666z" fill="#37474F"/></svg>`,

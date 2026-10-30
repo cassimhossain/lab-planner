@@ -5,13 +5,13 @@ It is plain HTML, CSS and JavaScript. There is no server, no build step and no l
 
 ## Pages
 
-- **Home**: dashboard for the planning week. It shows the next session with a Present button, the week board, students and parts totals, the pack list, things that need attention (sessions without a day, sessions without slides, backups) and progress for each age group.
+- **Home**: a **Student / Teacher** switch at the top. Students pick their group once and see the next lesson, the one they left half way, and their progress. Teachers see today's session with the parts to pack, then the dashboard for the planning week. It shows the next session with a Present button, the week board, students and parts totals, the pack list, things that need attention (sessions without a day, sessions without slides, backups) and progress for each age group.
 - **Curriculum**: coloured tabs for Foundation, Little Explorers, Junior Makers, Young Innovators and Tech Leaders, plus **Plans & documents**. Tap a presentation to open it full screen. Move with the arrow keys or space, by tapping the sides, or by swiping on a phone. Press F for full screen.
 - **Hardware**: the same coloured tabs plus **This week**. Each activity is a card with its parts and totals.
-- **Age group pages**: activity cards by phase. Tap one to plan it.
-- **Session sheet** (tap any session or activity): the presentation is at the top, then the day, the age group and the hardware list. You can also move or swap the session to another age group from here.
+- **Age group pages**: activity cards by phase, or the whole track as a **Roadmap**. Filter by topic, level (Starter, Core, Advanced) or a part from the kit. Filters stay in the address, so a filtered page can be shared.
+- **Lesson sheet** (tap any activity): slides and video at the top, then the goal, what you need (with **Copy list**), the matching simulator, and any steps, challenge and questions. Students tick **I've finished this lesson**. Teachers plan the session in the **Plan this session** panel: day, age group, move or swap, groups, time and notes.
 - **Timetable** and **Print lists**: the week from Monday to Friday, and kit lists per session, per day or for the whole week.
-- **Search**: press **Ctrl K** (or **/**) anywhere to find any activity, presentation, document or page.
+- **Search**: press **Ctrl K** (or **/**) anywhere. It finds activities by code, title, topic, unit, description or any part in the kit (try "servo"), plus presentations, documents, parts and pages, and remembers recent searches.
 - **Circuit Lab** (`circuit/`): build Arduino and ESP32 circuits on a canvas, write the sketch and run it in the browser. Ready-made circuits for every lesson, a schematic view, a multimeter and a logic scope. Installable as its own app and works offline; only compiling needs the internet.
 - **Code Lab** (`codelab/`): six languages in the browser. Python (Pyodide), C++ (g++ online), Python turtle graphics (Skulpt), p5.js, Processing and web pages (HTML, CSS and JavaScript with a live preview). Every one except Python and C++ runs with no internet.
 
@@ -30,9 +30,29 @@ Use the arrows in the top bar to change the planning week.
 `build_library.py` copies new or changed PDFs into `library/`, makes the cover images and rebuilds `library.js`.
 Cover images need poppler (`brew install poppler`).
 
+## Adding steps, a challenge or questions to a lesson
+
+The lesson sheet shows three extra sections when an activity in `data.js` has these optional fields. Leave them out and the sections don't appear.
+
+```json
+{
+  "code": "LE-07",
+  "title": "Plant Water Alarm",
+  "steps": ["Push the sensor into the soil.", "Wire it to A0 and the buzzer to pin 8.", "Upload the sketch and water the plant."],
+  "challenge": "Make the LED blink faster as the soil gets drier.",
+  "check": [
+    { "q": "Why does dry soil give a different reading?", "a": "Water conducts electricity, so wet soil lets more current through." }
+  ]
+}
+```
+
+`goal` is optional too: when it is missing, the goal is the activity's `about` line.
+
 ## Where your data is saved
 
-Your plan is saved **in the browser you use** (local storage), not on GitHub. Use **Settings → Download backup** every Friday. The home page reminds you when a backup is older than a week.
+Your plan is saved **in the browser you use** (local storage, key `rac-lab-planner-v1`), not on GitHub. Use **Settings → Download backup** every Friday. The home page reminds you when a backup is older than a week.
+
+A student's progress (finished lessons, their group, the slide they stopped on, recent searches) and the Student / Teacher choice are kept separately under `rac-progress-v1`, on that device only. The light / dark choice is `rac-theme-v1`. Neither is part of the plan backup.
 
 **Note:** the repository is public, so anyone with the link can open everything in `library/`, including the INTERNAL plans and the requisitions.
 

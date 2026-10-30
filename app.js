@@ -58,6 +58,14 @@
     bolt: '<path d="M13 2L5 14h6l-1 8 8-12h-6z"/>',
     cube: '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
     wifi0: '<path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1"/>',
+    map: '<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
+    grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+    bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
+    copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
+    flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+    list: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+    help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/>',
+    target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8"/>',
     // domain icons
     "Foundation": '<rect x="6" y="8" width="12" height="10" rx="3"/><circle cx="10" cy="13" r="1.3"/><circle cx="14" cy="13" r="1.3"/><path d="M12 8V4.5"/><circle cx="12" cy="3.5" r="1"/><path d="M6 13H3.5M18 13h2.5"/>',
     "Electronics & Circuits": '<path d="M3 12h4l2-5 3 10 2-5h7"/><circle cx="3" cy="12" r="1"/><circle cx="21" cy="12" r="1"/>',
@@ -100,6 +108,28 @@
   const allParts = () => Object.assign({}, D.catalog, S.catalog);
   const isPlanned = c => peek(c).status === "Next week";
   const isDone = c => peek(c).status === "Done";
+
+  /* ---------- student progress (rac-progress-v1) ----------
+     Kept apart from the planner on purpose: the planner key above is the
+     teacher's timetable and its backups, and nothing here reads or writes it.
+     This key holds what happens on this device - the student/teacher view,
+     the student's track, lessons they have finished, the lesson they last
+     opened, the slide each deck was left on, recent searches, and which
+     first-visit tips were closed. */
+  const PKEY = "rac-progress-v1";
+  const PR = (() => { const b = { v: 1, role: "", track: "", done: {}, last: "", slide: {}, recent: [], hints: {} };
+    try { const x = JSON.parse(localStorage.getItem(PKEY) || "null"); if (x && x.v === 1) return Object.assign(b, x); } catch (e) { } return b; })();
+  function savePr() { try { localStorage.setItem(PKEY, JSON.stringify(PR)); } catch (e) { } }
+  /* nobody has chosen yet: a browser with planned sessions belongs to a teacher */
+  const isStudent = () => (PR.role || (Object.keys(S.sessions).length ? "teacher" : "student")) === "student";
+  const finished = c => !!PR.done[baseOf(c)];
+  const doneFor = c => (isStudent() ? finished(c) : isDone(c));
+  /* level and length are read from data the curriculum already has: the phase
+     says how far along an activity is, the slide count how long the lesson runs */
+  const LEVEL = { Foundation: "Starter", "Phase 1": "Core", "Phase 2": "Advanced" };
+  const levelOf = a => LEVEL[phaseOf(a)] || "Core";
+  const lengthOf = a => { const d = deckOf(a.code); return !d ? "" : d.pages < 16 ? "Short" : d.pages <= 30 ? "Medium" : "Long"; };
+  const lvlChips = a => `<span class="lvl lvl-${levelOf(a).toLowerCase()}">${levelOf(a)}</span>${lengthOf(a) ? `<span class="len">${lengthOf(a)} lesson</span>` : ""}`;
 
   /* ---------- helpers ---------- */
   const $ = s => document.querySelector(s);
@@ -145,7 +175,13 @@
 
   /* ---------- routing / sidebar ---------- */
   const ROUTES = ["home", "curriculum", "hardware", "LE", "JM", "YI", "TL", "week", "sims", "print", "kits", "settings"];
-  const route = () => { const r = location.hash.slice(1); return /^kit=/.test(r) ? "kitsheet" : ROUTES.includes(r) ? r : "home"; };
+  /* a page can carry filters after a "?", e.g. #JM?topic=AI%20%26%20Data&view=map */
+  const route = () => { const r = location.hash.slice(1).split("?")[0]; return /^kit=/.test(r) ? "kitsheet" : ROUTES.includes(r) ? r : r && !/^open=/.test(r) ? "notfound" : "home"; };
+  const qp = () => new URLSearchParams(location.hash.split("?")[1] || "");
+  function setQp(k, v) {
+    const p = qp(); if (v) p.set(k, v); else p.delete(k);
+    const str = p.toString(); history.replaceState(null, "", "#" + route() + (str ? "?" + str : "")); render();
+  }
   const kitSheetCode = () => decodeURIComponent((location.hash.match(/^#kit=(.+)$/) || [, ""])[1]);
   function renderMenu() {
     const r = route(), nw = planned();
@@ -156,16 +192,14 @@
       `<div class="mlabel">Curriculum</div>` +
       item("curriculum", "Lesson library", ic("book"), `<em class="soft">${LIB.decks.length}</em>`) +
       D.groups.map(g => item(g.code, g.name, `<i class="gdot" style="background:${g.color}"></i>`, badge(nw.filter(a => a.group === g.code).length))).join("") +
-      `<div class="mlabel">Teaching</div>` +
-      item("week", "Timetable", ic("week"), badge(nw.length)) +
+      (isStudent() ? "" : `<div class="mlabel">Teaching</div>` + item("week", "Timetable", ic("week"), badge(nw.length))) +
       `<div class="mlabel">Virtual labs</div>` +
       item("sims", "Simulators", ic("flask"), `<em class="soft">${SIM.list.length}</em>`) +
       `<a href="circuit/" class="mi">${ic("chip")}<span>Circuit Lab</span></a>` +
       `<a href="codelab/" class="mi">${ic("code")}<span>Code Lab</span><em class="soft new">New</em></a>` +
       `<div class="mlabel">Lab &amp; kit</div>` +
       item("hardware", "Hardware", ic("parts")) +
-      item("print", "Print kit lists", ic("print")) +
-      item("kits", "Edit kits & parts", ic("box")) +
+      (isStudent() ? "" : item("print", "Print kit lists", ic("print")) + item("kits", "Edit kits & parts", ic("box"))) +
       `<div class="mlabel">Setup</div>` +
       item("settings", "Settings & backup", ic("gear"));
     const a = addDays(S.weekStart, 0), b = addDays(S.weekStart, 4);
@@ -180,8 +214,9 @@
   function render() {
     renderMenu();
     const r = route(), app = $("#app");
-    app.innerHTML = r === "kitsheet" ? vKitSheet(kitSheetCode()) : r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "sims" ? vSims() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
+    app.innerHTML = r === "notfound" ? vNotFound() : r === "kitsheet" ? vKitSheet(kitSheetCode()) : r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "sims" ? vSims() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
     document.body.dataset.route = r;
+    if (r !== "notfound" && r !== "kitsheet") app.insertAdjacentHTML("afterbegin", hintCard(r));
     /* Circuit Lab reads this to bring the student back where they were */
     try { localStorage.setItem("labplanner.lastRoute", location.hash.slice(1) || "home"); } catch (e) { }
     if (r === "kitsheet") drawKitPics();
@@ -193,7 +228,8 @@
     history.replaceState(null, "", location.pathname + location.search + "#" + (a ? a.group : "home"));
     render(); if (a) openModal(a.code); return true;
   }
-  window.addEventListener("hashchange", () => { closeNav(); if (openFromHash()) return; render(); pageSwap(); window.scrollTo(0, 0); });
+  /* a new address is a new page: nothing from the last one stays on top of it */
+  window.addEventListener("hashchange", () => { closeNav(); if (CMD.open) closePalette(); if (modalCode) { modalCode = null; document.body.classList.remove("modal-open"); } if (openFromHash()) return; render(); pageSwap(); window.scrollTo(0, 0); });
   const shiftWeek = n => { S.weekStart = iso(addDays(S.weekStart, 7 * n)); save(); render(); toast(`Week of ${fmt(addDays(S.weekStart, 0), { day: "numeric", month: "long" })}`); };
   /* the week navigator was removed from the top bar: this portal is a lesson
      library, not a timetable manager. The Timetable page still works on its own. */
@@ -215,11 +251,13 @@
     const g = GROUPS[a.group], s = peek(a.code);
     const dk = deckOf(a.code);
     const ban = dk && dk.banner ? `<span class="abanner"><img loading="lazy" src="${esc(dk.banner)}" alt=""></span>` : `<span class="abanner none"><span class="aicon">${ic(a.domain)}</span></span>`;
-    return `<button class="acard has-ban ${isPlanned(a.code) ? "is-planned" : ""} ${isDone(a.code) ? "is-done" : ""}" data-open="${esc(a.code)}" style="--c:${g.color};--l:${g.light}">
+    const stu = isStudent(), foot = stu ? (finished(a.code) ? `<span class="chip green">${ic("check")}Finished</span>` : `<span class="chip ghost">Not started</span>`) : statusChip(a.code);
+    return `<button class="acard has-ban ${!stu && isPlanned(a.code) ? "is-planned" : ""} ${doneFor(a.code) ? "is-done" : ""}" data-open="${esc(a.code)}" style="--c:${g.color};--l:${g.light}">
       ${ban}<span class="acard-top"><span class="adomain">${esc(a.domain)}</span>${fromTag(a)}<span class="acode">${deckOf(a.code) ? `<i class="sbadge" title="Has slides">${ic("play")}</i>` : ""}${esc(lab(a))}</span></span>
       <span class="atitle">${esc(a.title)}</span>
       <span class="adom">${[a.cls ? "Class " + a.cls : "", dk ? dk.pages + " slides" : "", vidOf(a.code) ? "video" : ""].filter(Boolean).join(" · ") || "No slides yet"}</span>
-      <span class="afoot">${statusChip(a.code)}<span class="aplan">${isPlanned(a.code) || isDone(a.code) ? "Open" : "Plan"} ${ic("arrow")}</span></span>
+      <span class="achips">${lvlChips(a)}</span>
+      <span class="afoot">${foot}<span class="aplan">${stu || isPlanned(a.code) || isDone(a.code) ? "Open" : "Plan"} ${ic("arrow")}</span></span>
     </button>`;
   }
   const head = (title, sub, right = "") => `<div class="phead"><div><h1>${title}</h1>${sub ? `<p>${sub}</p>` : ""}</div><div class="phead-r">${right}</div></div>`;
@@ -239,7 +277,50 @@
       ${pct > 0 ? "" : "<!--"}<circle cx="32" cy="32" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * pct / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 32 32)"/>${pct > 0 ? "" : "-->"}
       <text x="32" y="37" text-anchor="middle" font-size="15" font-weight="800" fill="currentColor">${pct}%</text></svg>`;
   }
+  /* the Student / Teacher switch on the home page */
+  const roleSwitch = () => { const st = isStudent();
+    return `<div class="rolesw" role="group" aria-label="Show the home page for"><button class="${st ? "on" : ""}" data-role="student" aria-pressed="${st}">Student</button><button class="${st ? "" : "on"}" data-role="teacher" aria-pressed="${!st}">Teacher</button></div>`; };
+
+  /* ---------- STUDENT HOME ----------
+     What a student needs at a glance: the next lesson, the one they left half
+     way, and how far along their track they are. Nothing here touches the
+     teacher's plan. */
+  function lessonCard(a, label) {
+    const g = GROUPS[a.group], dk = deckOf(a.code), sp = dk ? PR.slide[dk.code] || 0 : 0, vv = vidOf(a.code);
+    return `<div class="lcard" style="--c:${g.color};--l:${g.light}">
+      <button class="lcard-art" data-open="${esc(a.code)}" aria-label="Open ${esc(a.title)}">${dk && dk.banner ? `<img src="${esc(dk.banner)}" alt="">` : `<span class="aicon big">${ic(a.domain)}</span>`}</button>
+      <div class="lcard-b"><span class="lcard-k">${label}</span><span class="acode">${esc(lab(a))} · ${esc(a.unit)}</span><h3>${esc(a.title)}</h3>${a.about ? `<p>${esc(a.about)}</p>` : ""}
+        <div class="achips">${lvlChips(a)}</div>
+        <div class="un-btns"><button class="btn primary" data-open="${esc(a.code)}">${ic("arrow")}Open lesson</button>${dk ? `<button class="btn" data-view="${esc(dk.code)}">${ic("play")}${sp > 1 ? "Slides from " + sp : "Slides"}</button>` : ""}${vv ? `<button class="btn" data-video="${esc(lab(a))}">${ic("play")}Video</button>` : ""}</div></div></div>`;
+  }
+  function vStudentHome() {
+    const now = new Date(), day = fmt(now, { weekday: "long", day: "numeric", month: "long" });
+    if (!PR.track || !GROUPS[PR.track]) {
+      return `<section class="welcome portal"><div class="wl-txt"><span class="kicker">${day}</span><h1>Welcome to the club!</h1>
+          <p>Which group are you in? Pick it once and this page keeps your place.</p></div><div class="wl-btns">${roleSwitch()}</div>${DOODLE}</section>
+        <div class="trackpick">${D.groups.map(g => `<button class="tpick" data-track="${g.code}" style="--c:${g.color};--l:${g.light}"><span class="pbadge">${g.code}</span><span class="pt"><b>${esc(g.name)}</b><small>Ages ${esc(g.ages)} · ${ACTS.filter(a => a.group === g.code).length} lessons</small></span>${ic("arrow")}</button>`).join("")}</div>`;
+    }
+    const g = GROUPS[PR.track], list = ACTS.filter(a => a.group === g.code), n = list.filter(a => finished(a.code)).length, pct = Math.round(100 * n / list.length);
+    const next = list.find(a => !finished(a.code)), la = PR.last ? getA(PR.last) : null;
+    const cont = la && !finished(la.code) && (!next || lab(la) !== lab(next)) ? la : null;
+    const phases = PHASES.map(ph => { const xs = list.filter(a => phaseOf(a) === ph); if (!xs.length) return ""; const d = xs.filter(a => finished(a.code)).length;
+      return `<div class="pbarrow"><span>${ph}<small>${LEVEL[ph]}</small></span><span class="bar"><i style="width:${100 * d / xs.length}%"></i></span><b>${d}/${xs.length}</b></div>`; }).join("");
+    const sec = (icon, title, sub, link, body, tone = "") => `<section class="sec ${tone}"><div class="sec-h"><span class="sec-ic">${ic(icon)}</span><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ""}</div>${link || ""}</div>${body}</section>`;
+    return `<section class="welcome portal"><div class="wl-txt"><span class="kicker">${day}</span><h1>Hi, ${esc(g.name)}!</h1>
+        <p>${n ? `${plural(n, "lesson")} finished, ${list.length - n} to go.` : "Your first lesson is ready when you are."}</p></div>
+        <div class="wl-btns">${roleSwitch()}<button class="btn" data-track="">Change group</button></div>${DOODLE}</section>
+      <div class="sgrid" style="--c:${g.color};--l:${g.light}">
+        <div class="sgrid-main">${cont ? lessonCard(cont, "Continue where you left off") : ""}${next ? lessonCard(next, cont ? "Then, next up" : "Next up") : `<div class="panel pdone">${ic("trophy")}You have finished every ${esc(g.name)} lesson. Amazing work!</div>`}</div>
+        <div class="panel sprog"><div class="panel-h"><h2>Your progress</h2><a href="#${g.code}?view=map">Roadmap ${ic("arrow")}</a></div>
+          <div class="sprog-top">${ring(pct, g.color, 84)}<div><b>${n} of ${list.length}</b><small>lessons finished</small></div></div>${phases}
+          <p class="muted small">Saved on this device only. Tick “I've finished this lesson” inside a lesson to count it.</p></div>
+      </div>
+      ${sec("map", "Your path", "The next lessons in order. Finished ones get a tick.", `<a class="sec-link" href="#${g.code}?view=map">See the whole path ${ic("arrow")}</a>`, pathStrip(list), "t-cur")}
+      ${sec("flask", "Practise on screen", "Build circuits and write code before you touch the real parts.", `<a class="sec-link" href="#sims">All simulators ${ic("arrow")}</a>`, simTiles(), "t-sim")}`;
+  }
+
   function vHome() {
+    if (isStudent()) return vStudentHome();
     const nw = planned(), pairs = nw.reduce((t, a) => t + groupsOf(a.code), 0), today = todayDay();
     const now = new Date(), hr = now.getHours(), hi = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
     const core = D.groups.flatMap(g => coreOf(g.code)), doneAll = core.filter(a => isDone(a.code)).length, pctAll = Math.round(100 * doneAll / core.length);
@@ -268,6 +349,15 @@
         </div></div>`;
     } else {
       upnext = `<div class="panel upnext empty-panel"><div class="panel-h"><h2>Up next</h2></div>${empty(`Nothing planned for the week of ${ws} yet.`, `<button class="btn primary" data-palette="plan">${ic("plus")}Plan a session</button>`)}</div>`;
+    }
+
+    /* the hardware that session's day needs, so a teacher can pack from here */
+    let dayPack = "";
+    if (next) {
+      const dd = peek(next.code).day, its = dd ? nw.filter(a => peek(a.code).day === dd) : [next], rows = weekIssue(its).sort((x, y) => catIdx(x.cat) - catIdx(y.cat) || x.n.localeCompare(y.n));
+      dayPack = `<div class="panel daypack"><div class="panel-h"><h2>Hardware for ${dd ? DAYFULL[dd] : "this session"}</h2>${dd ? `<a href="#print" data-printday="${dd}">Print ${ic("arrow")}</a>` : ""}</div>
+        ${rows.length ? `<div class="pack">${rows.slice(0, 9).map(r => `<div><span>${esc(r.n)}<small>${esc(r.cat)}</small></span><b>${r.q}</b></div>`).join("")}</div>${rows.length > 9 ? `<a class="more" href="#print" data-printday="${dd}">+ ${rows.length - 9} more parts</a>` : ""}` : `<p class="muted pad">No parts listed for this session.</p>`}
+        <button class="linkbtn navy" data-copyday="${dd || ""}" data-copycode="${esc(next.code)}">${ic("copy")}Copy list</button></div>`;
     }
 
     const board = `<div class="panel"><div class="panel-h"><h2>This week</h2><span class="muted">${ws}</span></div><div class="board">${DAYS.map(d => {
@@ -330,9 +420,10 @@
         <div class="wl-txt"><span class="kicker">${fmt(now, { weekday: "long", day: "numeric", month: "long" })}</span>
           <h1>${hi}, ${esc((S.name || "").split(" ")[0] || "teacher")}</h1>
           <p>${LIB.decks.length} lessons across 4 age groups · ${pctAll}% of the curriculum taught · ${nw.length ? plural(nw.length, "session") + " this week" : "nothing planned this week yet"}</p></div>
-        <div class="wl-btns"><a class="btn primary big" href="#curriculum">${ic("book")}Open lesson library</a><a class="btn big" href="circuit/">${ic("chip")}Open Circuit Lab</a></div>
+        <div class="wl-btns">${roleSwitch()}<a class="btn primary big" href="#curriculum">${ic("book")}Open lesson library</a><a class="btn big" href="circuit/">${ic("chip")}Open Circuit Lab</a></div>
         ${DOODLE}
       </section>
+      <div class="todayrow">${upnext}${dayPack}</div>
       ${sec("book", "Curriculum", "Four learning pathways. Pick up where each group left off.", `<a class="sec-link" href="#curriculum">Lesson library ${ic("arrow")}</a>`, `<div class="pgrid">${pathCards}</div>`, "t-cur")}
       ${sec("week", "This week", `Week of ${ws}${nw.length ? " · " + plural(nw.length, "session") + ", " + pairs * 2 + " students" : ""}`, `<a class="sec-link" href="#week">Timetable ${ic("arrow")}</a>`, attStrip + board.replace('<div class="panel"><div class="panel-h"><h2>This week</h2><span class="muted">' + ws + '</span></div>', '<div class="panel flat">'), "t-week")}
       ${sec("flask", "Virtual labs", "Try circuits and 3D designs on screen before building them for real.", `<a class="sec-link" href="#sims">All simulators ${ic("arrow")}</a>`, simTiles(), "t-sim")}
@@ -342,68 +433,110 @@
   /* ---------- COMMAND PALETTE (Ctrl K) ---------- */
   const PAGES = [["home", "Home", "home"], ["curriculum", "Curriculum", "book"], ["hardware", "Hardware", "parts"], ["week", "Timetable", "week"], ["sims", "Simulators", "flask"], ["print", "Print lists", "print"], ["kits", "Edit kits & parts", "box"], ["settings", "Settings & backup", "gear"]];
   const CMD = { open: false, mode: "all", q: "", i: 0, res: [] };
-  function openPalette(mode) { CMD.open = true; CMD.mode = mode || "all"; CMD.q = ""; CMD.i = 0;
-    $("#palette").innerHTML = `<div class="pal-box"><div class="pal-in">${ic("search")}<input id="palQ" autocomplete="off" placeholder="${CMD.mode === "plan" ? "Which activity? Type a code or name, e.g. JM-06 or robot" : "Search activities, presentations, documents, pages"}"><kbd>Esc</kbd></div><div class="pal-res" id="palRes"></div>
+  function openPalette(mode, q0) { CMD.open = true; CMD.mode = mode || "all"; CMD.q = q0 || ""; CMD.i = 0;
+    $("#palette").innerHTML = `<div class="pal-box"><div class="pal-in">${ic("search")}<input id="palQ" autocomplete="off" aria-label="Search" placeholder="${CMD.mode === "plan" ? "Which activity? Type a code or name, e.g. JM-06 or robot" : "Search activities, presentations, documents, pages"}"><kbd>Esc</kbd></div><div class="pal-res" id="palRes"></div>
       <div class="pal-foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>Enter</kbd> open</span><span><kbd>Ctrl K</kbd> search anywhere</span></div></div>`;
-    document.body.classList.add("pal-open"); palResults(); setTimeout(() => $("#palQ").focus(), 10); }
+    /* focus at once, not after a delay: letters typed straight after Ctrl K
+       used to land on the page behind and go missing */
+    document.body.classList.add("pal-open"); const qi = $("#palQ"); qi.value = CMD.q; qi.focus(); palResults(); }
   function closePalette() { CMD.open = false; document.body.classList.remove("pal-open"); $("#palette").innerHTML = ""; }
   function palResults() {
     const q = CMD.q.trim().toLowerCase(), toks = q.split(/\s+/).filter(Boolean), hit = h => toks.every(t => h.includes(t));
     const R = [], sec = (title, arr, n) => { if (arr.length) R.push({ head: title }); arr.slice(0, n).forEach(x => R.push(x)); };
-    const act = a => ({ icon: a.domain, title: `${lab(a)} · ${a.title}`, sub: `${GROUPS[a.group].name}${a.from ? " (borrowed)" : ""} · ${statusText(a.code)}`, color: GROUPS[a.group].color, light: GROUPS[a.group].light, run: () => openModal(a.code), badge: deckOf(a.code) ? "Slides" : "" });
+    const act = a => ({ icon: a.domain, title: `${lab(a)} · ${a.title}`, sub: `${GROUPS[a.group].name}${a.from ? " (borrowed)" : ""} · ${isStudent() ? (finished(a.code) ? "Finished" : levelOf(a) + " · " + a.unit) : statusText(a.code)}`, color: GROUPS[a.group].color, light: GROUPS[a.group].light, run: () => openModal(a.code), badge: deckOf(a.code) ? "Slides" : "" });
     const deck = d => ({ thumb: d.thumb, title: `${d.code} · ${deckTitle(d)}`, sub: `${LG[d.group].name} · ${d.pages} slides`, color: LG[d.group].color, light: LG[d.group].light, run: () => openDeck(d.code), badge: "Present" });
     const doc = (d, n) => ({ icon: d.type === "pdf" ? "file" : "sheet", title: d.title, sub: d.about, color: "#C98A12", light: "#FFF4DC", run: () => { if (d.type === "pdf") openViewer(d.file, d.title, "doc", "#F5B83D", d.about); else { const l = document.createElement("a"); l.href = d.file; l.download = ""; document.body.appendChild(l); l.click(); l.remove(); } }, badge: d.type === "pdf" ? "PDF" : "Excel" });
     const page = ([k, t, i]) => ({ icon: i, title: t, sub: "Go to page", color: "var(--tr-f)", light: "var(--tr-f-tint)", run: () => { location.hash = "#" + k; } });
+    const again = r => ({ icon: "search", title: r, sub: "Search again", color: "var(--tr-f)", light: "var(--tr-f-tint)", run: () => openPalette(CMD.mode, r) });
+    /* a part: open Hardware on the age group that uses it most, searching for it */
+    const part = n => { const used = ACTS.filter(a => kitOf(a.code).some(k => k.n === n)), by = {};
+      used.forEach(a => { by[a.group] = (by[a.group] || 0) + 1; }); const gc = Object.keys(by).sort((x, y) => by[y] - by[x])[0] || "LE";
+      return { icon: "parts", title: n, sub: `${catOf(n).cat} · used in ${plural(used.length, "lesson")}`, color: "var(--ok-ink)", light: "var(--ok-bg)", badge: "Part",
+        run: () => { UI.hwG = gc; UI.hwPh[gc] = UI.hwPh[gc] || "Foundation"; UI.hwQ = n; if (route() === "hardware") render(); else location.hash = "#hardware"; } }; };
     if (!toks.length) {
-      if (CMD.mode !== "plan") sec("Jump to", PAGES.map(page).concat(D.groups.map(g => ({ icon: "users", title: g.name, sub: "Ages " + g.ages, color: g.color, light: g.light, run: () => { location.hash = "#" + g.code; } }))), 11);
-      sec("Planned this week", planned().map(act), 6);
-      sec("Next to teach", D.groups.flatMap(g => nextUp(g.code, 2)).map(act), 8);
+      if (CMD.mode !== "plan" && PR.recent.length) sec("Recent searches", PR.recent.map(again), 5);
+      if (CMD.mode !== "plan") sec("Jump to", PAGES.filter(x => !isStudent() || !["week", "print", "kits"].includes(x[0])).map(page).concat(D.groups.map(g => ({ icon: "users", title: g.name, sub: "Ages " + g.ages, color: g.color, light: g.light, run: () => { location.hash = "#" + g.code; } }))), 11);
+      if (isStudent() && CMD.mode !== "plan") sec("Next for you", (PR.track ? ACTS.filter(a => a.group === PR.track && !finished(a.code)) : []).map(act), 4);
+      else { sec("Planned this week", planned().map(act), 6); sec("Next to teach", D.groups.flatMap(g => nextUp(g.code, 2)).map(act), 8); }
     } else {
-      const acts = ALL().filter(a => hit((a.code + " " + a.title + " " + a.domain + " " + GROUPS[a.group].name).toLowerCase()))
-        .sort((x, y) => (y.code.toLowerCase().startsWith(q) - x.code.toLowerCase().startsWith(q)));
+      /* code first, then title, then everything else the activity mentions */
+      const score = a => (a.code.toLowerCase().startsWith(q) ? 4 : 0) + (toks.every(t => a.title.toLowerCase().includes(t)) ? 2 : 0);
+      const acts = ALL().filter(a => hit(hayOf(a) + " " + GROUPS[a.group].name.toLowerCase())).sort((x, y) => score(y) - score(x));
       sec("Activities", acts.map(act), CMD.mode === "plan" ? 14 : 7);
       if (CMD.mode !== "plan") {
         sec("Presentations", LIB.decks.filter(d => hit((d.code + " " + deckTitle(d) + " " + LG[d.group].name).toLowerCase())).map(deck), 6);
         sec("Documents", LIB.docs.map((d, n) => [d, n]).filter(([d]) => hit((d.title + " " + d.about).toLowerCase())).map(([d, n]) => doc(d, n)), 5);
+        sec("Parts", Object.keys(allParts()).filter(n => hit(n.toLowerCase())).sort().map(part), 5);
         sec("Pages", PAGES.filter(p => hit(p[1].toLowerCase())).map(page), 4);
       }
     }
     CMD.res = R.filter(x => !x.head); CMD.i = Math.min(CMD.i, Math.max(0, CMD.res.length - 1));
     let k = -1;
-    $("#palRes").innerHTML = R.length ? R.map(x => x.head ? `<div class="pal-h">${x.head}</div>` : (k++, `<button class="pal-i ${k === CMD.i ? "on" : ""}" data-pal="${k}" style="--c:${x.color};--l:${x.light}">
+    $("#palRes").innerHTML = R.length ? R.map(x => x.head ? `<div class="pal-h">${x.head}</div>` : (k++, `<button class="pal-i ${k === CMD.i ? "on" : ""}" role="option" aria-selected="${k === CMD.i}" data-pal="${k}" style="--c:${x.color};--l:${x.light}">
         ${x.thumb ? `<img src="${esc(x.thumb)}" alt="">` : `<span class="pal-ic">${ic(x.icon)}</span>`}<span class="pal-t"><b>${esc(x.title)}</b><small>${esc(x.sub)}</small></span>${x.badge ? `<em>${x.badge}</em>` : ""}${ic("arrow", "pal-go")}</button>`)).join("")
       : `<div class="pal-empty">${DOODLE}<p>Nothing found for “${esc(CMD.q)}”.</p></div>`;
   }
   const statusText = c => { const s = peek(c); return s.status === "Next week" ? (s.day ? "Planned " + DAYFULL[s.day] : "Planned") : s.status === "Not started" ? "Not planned" : s.status; };
-  function palMove(n) { if (!CMD.res.length) return; CMD.i = (CMD.i + n + CMD.res.length) % CMD.res.length; document.querySelectorAll(".pal-i").forEach((b, i) => b.classList.toggle("on", i === CMD.i)); const on = document.querySelector(".pal-i.on"); if (on) on.scrollIntoView({ block: "nearest" }); }
-  function palRun(i) { const x = CMD.res[i]; if (!x) return; closePalette(); x.run(); }
+  function palMove(n) { if (!CMD.res.length) return; CMD.i = (CMD.i + n + CMD.res.length) % CMD.res.length; document.querySelectorAll(".pal-i").forEach((b, i) => { b.classList.toggle("on", i === CMD.i); b.setAttribute("aria-selected", i === CMD.i); }); const on = document.querySelector(".pal-i.on"); if (on) on.scrollIntoView({ block: "nearest" }); }
+  function palRun(i) {
+    const x = CMD.res[i]; if (!x) return; const q = CMD.q.trim();
+    if (q && CMD.mode !== "plan") { PR.recent = [q].concat(PR.recent.filter(r => r.toLowerCase() !== q.toLowerCase())).slice(0, 6); savePr(); }
+    closePalette(); x.run(); }
   $("#cmdk").onclick = () => openPalette("all");
 
   /* ---------- AGE GROUP ---------- */
   const UI = { phase: {}, q: {}, hwPh: {}, hwG: "", hwQ: "", libG: "F", libQ: "", pMode: "session", pDay: "ALL", pBreak: true, kitCode: ACTS[0].code, kitGroup: "LE", kitQ: "", catOpen: false, catQ: "" };
+  /* what a search box matches: the words on the card, the "about" line, the
+     unit and every part in the kit, so "servo" finds the lessons that use one */
+  const hayOf = a => (a.code + " " + a.title + " " + a.domain + " " + a.unit + " " + (a.about || "") + " " + kitOf(a.code).map(k => k.n).join(" ")).toLowerCase();
+  /* the next few lessons as a row of stops, for the student home */
+  function pathStrip(list) {
+    const i = Math.max(0, list.findIndex(a => !finished(a.code))), from = Math.max(0, i - 1), xs = list.slice(from, from + 6);
+    return `<ol class="rmstrip">${xs.map(a => `<li class="${finished(a.code) ? "done" : ""} ${a === list[i] && !finished(a.code) ? "next" : ""}"><button data-open="${esc(a.code)}" style="--c:${GROUPS[a.group].color}"><span class="rm-dot">${finished(a.code) ? ic("check") : ""}</span><span class="acode">${esc(lab(a))}</span><span class="rm-t">${esc(a.title)}</span></button></li>`).join("")}</ol>`;
+  }
+  /* the whole track as a path: phase, then unit, then each lesson in order */
+  function roadmap(gc, list) {
+    const all = ACTS.filter(a => a.group === gc), nextA = all.find(a => !doneFor(a.code));
+    return `<div class="roadmap" style="--c:${GROUPS[gc].color};--l:${GROUPS[gc].light}">${PHASES.map(ph => { const xs = list.filter(a => phaseOf(a) === ph); if (!xs.length) return "";
+      const units = [...new Set(xs.map(a => a.unit))], d = xs.filter(a => doneFor(a.code)).length;
+      return `<section class="rm-phase"><h3 class="rm-ph"><span>${ph}</span><small>${LEVEL[ph]} · ${d} of ${xs.length} done</small></h3>
+        <div class="rm-units">${units.map(u => `<div class="rm-unit"><b>${esc(u)}</b><ol class="rm-steps">${xs.filter(a => a.unit === u).map(a =>
+          `<li class="${doneFor(a.code) ? "done" : ""} ${a === nextA ? "next" : ""}"><button data-open="${esc(a.code)}"><span class="rm-dot">${doneFor(a.code) ? ic("check") : ""}</span><span class="acode">${esc(lab(a))}</span><span class="rm-t">${esc(a.title)}</span>${a === nextA ? `<em>Next</em>` : ""}</button></li>`).join("")}</ol></div>`).join("")}</div></section>`; }).join("")}</div>`;
+  }
   function vGroup(gc) {
-    const g = GROUPS[gc], all = ACTS.filter(a => a.group === gc), core = coreOf(gc), borrowed = extras().filter(a => a.group === gc);
-    const dn = core.filter(a => isDone(a.code)).length, nw = all.concat(borrowed).filter(a => isPlanned(a.code)).length;
-    if (!UI.phase[gc]) UI.phase[gc] = PHASES.find(p => all.some(a => phaseOf(a) === p && peek(a.code).status === "Not started")) || "Phase 1";
-    const ph = UI.phase[gc], q = (UI.q[gc] || "").toLowerCase();
-    const list = all.filter(a => q ? (a.code + " " + a.title + " " + a.domain).toLowerCase().includes(q) : phaseOf(a) === ph);
+    const g = GROUPS[gc], all = ACTS.filter(a => a.group === gc), core = coreOf(gc), borrowed = extras().filter(a => a.group === gc), stu = isStudent();
+    const dn = stu ? all.filter(a => finished(a.code)).length : core.filter(a => isDone(a.code)).length, nw = all.concat(borrowed).filter(a => isPlanned(a.code)).length;
+    if (!UI.phase[gc]) UI.phase[gc] = PHASES.find(p => all.some(a => phaseOf(a) === p && !doneFor(a.code))) || "Phase 1";
+    const ph = UI.phase[gc], q = (UI.q[gc] || "").toLowerCase(), toks = q.split(/\s+/).filter(Boolean);
+    const p = qp(), map = p.get("view") === "map", fT = p.get("topic") || "", fP = p.get("part") || "", fL = p.get("level") || "", filt = !!(fT || fP || fL);
+    const match = a => (!fT || a.domain === fT) && (!fL || levelOf(a) === fL) && (!fP || kitOf(a.code).some(k => k.n === fP)) && toks.every(t => hayOf(a).includes(t));
+    const list = all.filter(a => (q || filt || map) ? match(a) : phaseOf(a) === ph);
     let body = "", lastU = "";
-    list.forEach(a => { const u = phaseOf(a) + " · " + a.unit; if (u !== lastU) { if (lastU) body += `</div>`; body += `<h3 class="unit" style="--c:${g.color};--l:${g.light}">${esc(a.unit)}</h3><div class="agrid">`; lastU = u; } body += actCard(a); });
-    if (lastU) body += `</div>`;
+    if (map) body = list.length ? roadmap(gc, list) : "";
+    else {
+      list.forEach(a => { const u = phaseOf(a) + " · " + a.unit; if (u !== lastU) { if (lastU) body += `</div>`; body += `<h3 class="unit" style="--c:${g.color};--l:${g.light}">${esc(a.unit)}</h3><div class="agrid">`; lastU = u; } body += actCard(a); });
+      if (lastU) body += `</div>`;
+    }
+    const opts = (k, label, vals, cur) => `<label class="fsel"><span>${label}</span><select data-filter="${k}"><option value="">Any</option>${vals.map(v => `<option ${v === cur ? "selected" : ""}>${esc(v)}</option>`).join("")}</select></label>`;
+    const topics = [...new Set(all.map(a => a.domain))].sort(), parts = [...new Set(all.flatMap(a => kitOf(a.code).map(k => k.n).filter(Boolean)))].sort();
     return `<section class="gban" style="--c:${g.color};--l:${g.light}">
         <div class="gban-l"><span class="gban-badge">${gc}</span><div><h1>${esc(g.name)}</h1><p>Ages ${esc(g.ages)} · ${all.length} activities</p></div></div>
-        <div class="gban-s"><div><b>${dn}</b><span>of ${core.length} done</span></div><div><b>${nw}</b><span>planned</span></div></div>
+        <div class="gban-s"><div><b>${dn}</b><span>of ${stu ? all.length : core.length} ${stu ? "finished" : "done"}</span></div>${stu ? "" : `<div><b>${nw}</b><span>planned</span></div>`}</div>
         ${DOODLE}</section>
-      <div class="gtools"><div class="tabs">${PHASES.map(p => `<button class="${!q && ph === p ? "on" : ""}" data-phase="${p}" data-g="${gc}">${p}<em>${all.filter(a => phaseOf(a) === p).length}</em></button>`).join("")}</div>
-        <label class="search">${ic("search")}<input type="search" data-gq="${gc}" placeholder="Search ${esc(g.name)}" value="${esc(UI.q[gc] || "")}"></label>
-        <button class="btn borrowbtn" data-pick="${gc}">${ic("plus")}Add from another group</button></div>
-      ${borrowed.length ? `<h3 class="unit" style="--c:${g.color};--l:${g.light}">From other age groups <small>shared kits, planned for ${esc(g.name)}</small></h3><div class="agrid">${borrowed.map(actCard).join("")}</div>` : ""}
-      ${body || empty("Nothing matches your search.")}`;
+      <div class="gtools">${map || filt ? `<span class="muted">${plural(list.length, "lesson")}${filt ? " match the filters" : " in the path"}</span>` : `<div class="tabs">${PHASES.map(x => `<button class="${!q && ph === x ? "on" : ""}" data-phase="${x}" data-g="${gc}">${x}<em>${all.filter(a => phaseOf(a) === x).length}</em></button>`).join("")}</div>`}
+        <label class="search">${ic("search")}<input type="search" data-gq="${gc}" placeholder="Search ${esc(g.name)}: title, topic or part" aria-label="Search ${esc(g.name)}" value="${esc(UI.q[gc] || "")}"></label>
+        ${stu ? "" : `<button class="btn borrowbtn" data-pick="${gc}">${ic("plus")}Add from another group</button>`}</div>
+      <div class="filters" style="--c:${g.color};--l:${g.light}">
+        <div class="viewsw" role="group" aria-label="View"><button class="${map ? "" : "on"}" data-vmode="cards" aria-pressed="${!map}">${ic("grid")}Cards</button><button class="${map ? "on" : ""}" data-vmode="map" aria-pressed="${map}">${ic("map")}Roadmap</button></div>
+        ${opts("topic", "Topic", topics, fT)}${opts("level", "Level", ["Starter", "Core", "Advanced"], fL)}${opts("part", "Hardware", parts, fP)}
+        ${filt ? `<button class="linkbtn navy" data-clearf>${ic("x")}Clear filters</button>` : ""}</div>
+      ${borrowed.length && !map && !filt ? `<h3 class="unit" style="--c:${g.color};--l:${g.light}">From other age groups <small>shared kits, planned for ${esc(g.name)}</small></h3><div class="agrid">${borrowed.map(actCard).join("")}</div>` : ""}
+      ${body || empty(filt ? "No lessons match these filters." : "Nothing matches your search.", filt ? `<button class="btn" data-clearf>Clear filters</button>` : "")}`;
   }
 
   /* ---------- SESSION MODAL ---------- */
   let modalCode = null;
-  function openModal(code) { modalCode = code; UI.swapOpen = false; renderModal(); document.body.classList.add("modal-open"); }
+  function openModal(code) { modalCode = code; UI.swapOpen = false; if (getA(code)) { PR.last = code; savePr(); } renderModal(); document.body.classList.add("modal-open"); }
   function closeModal() { modalCode = null; document.body.classList.remove("modal-open"); render(); }
   function renderPicker(gc) {
     const g = GROUPS[gc], others = D.groups.filter(x => x.code !== gc);
@@ -432,46 +565,61 @@
   function renderModal() {
     if (String(modalCode).startsWith("pick:")) return renderPicker(modalCode.slice(5));
     if (String(modalCode).startsWith("sched:")) return renderSched();
-    const a = getA(modalCode), g = GROUPS[a.group], s = peek(a.code), kit = kitOf(a.code).filter(k => k.n), gr = groupsOf(a.code), dk = deckOf(a.code);
+    const a = getA(modalCode), g = GROUPS[a.group], s = peek(a.code), kit = kitOf(a.code).filter(k => k.n), gr = groupsOf(a.code), dk = deckOf(a.code), stu = isStudent();
+    const sp = dk ? PR.slide[dk.code] || 0 : 0;
     const hero = dk
-      ? `<button class="mdeck" data-view="${esc(dk.code)}" aria-label="Open presentation"><img src="${esc(dk.thumb)}" alt=""><span class="dplay">${ic("play")}</span><span class="mdeck-cta">${ic("play")}Open presentation · ${dk.pages} slides</span></button>`
+      ? `<button class="mdeck" data-view="${esc(dk.code)}" aria-label="Open presentation"><img src="${esc(dk.thumb)}" alt=""><span class="dplay">${ic("play")}</span><span class="mdeck-cta">${ic("play")}${sp > 1 ? `Carry on from slide ${sp} of ${dk.pages}` : `Open presentation · ${dk.pages} slides`}</span></button>`
       : `<div class="mdeck none"><span class="aicon big">${ic(a.domain)}</span><span>No presentation for this activity yet</span></div>`;
     const vv = vidOf(a.code);
     const vrow = vv ? `<button class="mvid" data-video="${esc(lab(a))}"><span class="mvid-ic">${ic("play")}</span><span><b>Watch the video</b><small>${esc(vv.title)} · ${esc(vv.channel)} · about ${vv.mins} min</small></span>${ic("arrow")}</button>` : "";
     const sims = SIM.forLesson(lab(a), a.title, a.domain);
-    const srow = sims.length ? `<div class="msims"><span class="msims-l">${ic("flask")}Try it in a simulator</span>${sims.map(x => `<a class="msim" href="${esc(x.href)}" style="--sc:${x.sim.color}" title="${esc(x.why)}">${ic(simIcon(x.sim))}<span><b>${esc(x.sim.name)}</b><small>${esc(x.why)}</small></span></a>`).join("")}</div>` : "";
+    const srow = sims.length ? `<div class="msims"><span class="msims-l">${ic("flask")}Try it on screen</span>${sims.map(x => `<a class="msim" href="${esc(x.href)}" style="--sc:${x.sim.color}" title="${esc(x.why)}">${ic(simIcon(x.sim))}<span><b>${esc(x.sim.name)}</b><small>${esc(x.why)}</small></span></a>`).join("")}</div>` : "";
     const dayTxt = isPlanned(a.code) ? (s.day ? `${DAYFULL[s.day]} ${dayDate(s.day)}` : "Planned, no day yet") : isDone(a.code) ? "Done" : "Not planned yet";
-    $("#modal").innerHTML = `<div class="sheet-m wide" style="--c:${g.color};--l:${g.light}">
-      <div class="m-hero">${hero}${vrow}<button class="m-x float" data-close aria-label="Close">${ic("x")}</button></div>
-      <div class="m-title">
-        <span class="acode">${esc(lab(a))} · ${esc(a.domain)}${a.cls ? " · Class " + a.cls : ""}</span>
-        <h2>${esc(a.title)}</h2>
-        <div class="facts"><span class="fact ${isPlanned(a.code) ? "on" : ""}">${ic("cal")}${esc(dayTxt)}${s.time ? " · " + esc(s.time) : ""}</span>
-          <span class="fact grp"><i class="gdot" style="background:${g.color}"></i>${esc(g.name)}${a.from ? ` (from ${esc(GROUPS[a.from].name)})` : ""}</span>
-          <span class="fact">${ic("users")}${gr} groups · ${gr * 2} students</span></div>
-      </div>
-      <div class="m-body">
-        ${srow}
+    /* Steps, Challenge and Check yourself appear only for activities that have
+       them: the optional "steps", "challenge" and "check" fields (see README). */
+    const steps = Array.isArray(a.steps) && a.steps.length ? `<div class="m-sec lsec"><label><span>${ic("list")}Steps</span></label><ol class="lsteps">${a.steps.map(x => `<li>${esc(x)}</li>`).join("")}</ol></div>` : "";
+    const chall = a.challenge ? `<div class="m-sec lsec lchall"><label><span>${ic("flag")}Challenge</span></label><p>${esc(a.challenge)}</p></div>` : "";
+    const check = Array.isArray(a.check) && a.check.length ? `<div class="m-sec lsec"><label><span>${ic("help")}Check yourself</span></label>${a.check.map(c => `<details class="qa"><summary>${esc(c.q || c)}</summary>${c.a ? `<p>${esc(c.a)}</p>` : ""}</details>`).join("")}</div>` : "";
+    const need = stu
+      ? kit.map(k => `<div><span>${esc(k.n)}<small>${esc(catOf(k.n).cat)}</small></span><b>${k.b === "class" ? "shared" : "× " + esc(k.q)}</b></div>`).join("")
+      : kit.map(k => `<div><span>${esc(k.n)}<small>${esc(catOf(k.n).cat)}${k.b === "class" ? " · per class" : ""}</small></span><b>${lineTotal(k, a.code)}</b></div>`).join("");
+    /* the teacher's planning controls, exactly as before, folded under one heading */
+    const plan = stu ? "" : `<details class="mplan" open><summary>${ic("cal")}<span>Plan this session</span><small>day, group, time and notes</small></summary><div class="mplan-b">
         <div class="m-sec"><label>Day</label>
           <div class="daypick">${DAYS.map(d => `<button class="${isPlanned(a.code) && s.day === d ? "on" : ""}" data-mday="${d}"><b>${d}</b><span>${dayDate(d)}</span></button>`).join("")}</div>
           ${isPlanned(a.code) ? `<button class="linkbtn" data-unplan>${ic("x")}Remove from this week</button>` : ""}</div>
         ${groupSection(a)}
-        <div class="m-sec"><label>Hardware for ${gr} groups <a href="#kits" data-editkit="${esc(lab(a))}">Edit kit</a></label>
-          <div class="mkit">${kit.map(k => `<div><span>${esc(k.n)}<small>${esc(catOf(k.n).cat)}${k.b === "class" ? " · per class" : ""}</small></span><b>${lineTotal(k, a.code)}</b></div>`).join("") || `<p class="muted">No parts listed.</p>`}</div></div>
         <div class="m-row">
-          <div class="m-sec"><label>Groups (pairs)</label><div class="stepper"><button data-step="-1">${ic("minus")}</button><b>${gr}</b><button data-step="1">${ic("plus")}</button></div></div>
-          <div class="m-sec"><label>Time <i>optional</i></label><input data-mf="time" value="${esc(s.time)}" placeholder="e.g. 2:30 pm"></div>
-          <div class="m-sec"><label>Section <i>optional</i></label><input data-mf="section" value="${esc(s.section)}" placeholder="e.g. Grade 4 B"></div>
+          <div class="m-sec"><label>Groups (pairs)</label><div class="stepper"><button data-step="-1" aria-label="Fewer groups">${ic("minus")}</button><b>${gr}</b><button data-step="1" aria-label="More groups">${ic("plus")}</button></div></div>
+          <div class="m-sec"><label>Time <i>optional</i></label><input data-mf="time" value="${esc(s.time)}" placeholder="e.g. 2:30 pm" aria-label="Time"></div>
+          <div class="m-sec"><label>Section <i>optional</i></label><input data-mf="section" value="${esc(s.section)}" placeholder="e.g. Grade 4 B" aria-label="Section"></div>
         </div>
-        <div class="m-sec"><label>Notes <i>optional</i></label><input data-mf="notes" value="${esc(s.notes)}" placeholder="Anything to remember"></div>
-      </div>
-      <div class="m-foot">
-        <div class="m-status">${statusChip(a.code)}${s.status === "Done" && s.date ? `<small>on ${fmt(new Date(s.date + "T00:00:00"), { day: "numeric", month: "short" })}</small>` : ""}</div>
+        <div class="m-sec"><label>Notes <i>optional</i></label><input data-mf="notes" value="${esc(s.notes)}" placeholder="Anything to remember" aria-label="Notes"></div></div></details>`;
+    const foot = stu
+      ? `<div class="m-status">${finished(a.code) ? `<span class="chip green">${ic("check")}Finished ${fmt(new Date(PR.done[baseOf(a.code)] + "T00:00:00"), { day: "numeric", month: "short" })}</span>` : `<small class="muted">Your progress is saved on this device</small>`}</div>
+        <div class="m-acts"><a class="btn kitbtn" href="#kit=${encodeURIComponent(a.code)}" data-close>${ic("print")}Hardware list</a>
+          ${finished(a.code) ? `<button class="btn" data-finish>Not finished yet</button>` : `<button class="btn primary" data-finish>${ic("check")}I've finished this lesson</button>`}</div>`
+      : `<div class="m-status">${statusChip(a.code)}${s.status === "Done" && s.date ? `<small>on ${fmt(new Date(s.date + "T00:00:00"), { day: "numeric", month: "short" })}</small>` : ""}</div>
         <div class="m-acts">
           <a class="btn kitbtn" href="#kit=${encodeURIComponent(a.code)}" data-close>${ic("print")}Print hardware list</a>
           ${s.status === "Done" ? `<button class="btn" data-mstatus="Not started">Undo done</button>` : `<button class="btn" data-mstatus="Done">${ic("check")}Mark as done</button>`}
-          <button class="btn primary" data-close>Save</button></div>
-      </div></div>`;
+          <button class="btn primary" data-close>Save</button></div>`;
+    $("#modal").innerHTML = `<div class="sheet-m wide" style="--c:${g.color};--l:${g.light}" role="document" aria-label="${esc(lab(a))} ${esc(a.title)}">
+      <div class="m-hero">${hero}${vrow}<button class="m-x float" data-close aria-label="Close">${ic("x")}</button></div>
+      <div class="m-title">
+        <span class="acode">${esc(lab(a))} · ${esc(a.domain)}${a.cls ? " · Class " + a.cls : ""}</span>
+        <h2>${esc(a.title)}</h2>
+        <div class="facts"><span class="lvl lvl-${levelOf(a).toLowerCase()}">${levelOf(a)}</span>${lengthOf(a) ? `<span class="fact">${lengthOf(a)} lesson</span>` : ""}
+          <span class="fact grp"><i class="gdot" style="background:${g.color}"></i>${esc(g.name)}${a.from ? ` (from ${esc(GROUPS[a.from].name)})` : ""}</span>
+          ${stu ? (finished(a.code) ? `<span class="fact ok">${ic("check")}Finished</span>` : "") : `<span class="fact ${isPlanned(a.code) ? "on" : ""}">${ic("cal")}${esc(dayTxt)}${s.time ? " · " + esc(s.time) : ""}</span><span class="fact">${ic("users")}${gr} groups · ${gr * 2} students</span>`}</div>
+      </div>
+      <div class="m-body">
+        ${a.goal || a.about ? `<div class="m-sec lsec lgoal"><label><span>${ic("target")}Goal</span></label><p>${esc(a.goal || a.about)}</p></div>` : ""}
+        <div class="m-sec lsec"><label><span>${ic("parts")}What you need <i>${stu ? "per group of 2" : `for ${gr} groups`}</i></span><span class="lacts"><button class="linkbtn navy" data-copycode="${esc(a.code)}">${ic("copy")}Copy list</button>${stu ? "" : `<a href="#kits" data-editkit="${esc(lab(a))}">Edit kit</a>`}</span></label>
+          <div class="mkit">${need || `<p class="muted">No parts listed.</p>`}</div></div>
+        ${srow}${steps}${chall}${check}${plan}
+      </div>
+      <div class="m-foot">${foot}</div></div>`;
   }
 
 
@@ -539,7 +687,7 @@
     const nw = planned(), noday = nw.filter(a => !peek(a.code).day), R = S.routine || [];
     const cols = DAYS.map(d => {
       const items = nw.filter(a => peek(a.code).day === d), slots = R.filter(r => r.day === d && !items.some(a => a.group === r.group));
-      return `<div class="wcol"><div class="wcol-h"><div><b>${DAYFULL[d]}</b><span>${dayDate(d)}</span></div>${items.length ? `<span class="wcount">${plural(items.length, "session")}</span>` : ""}</div>
+      return `<div class="wcol ${items.length || slots.length ? "" : "empty"}"><div class="wcol-h"><div><b>${DAYFULL[d]}</b><span>${dayDate(d)}</span></div>${items.length ? `<span class="wcount">${plural(items.length, "session")}</span>` : ""}</div>
         <div class="wlist">${items.map(a => `<button class="wcard" data-open="${esc(a.code)}" style="--c:${GROUPS[a.group].color};--l:${GROUPS[a.group].light}"><span class="acode">${esc(lab(a))}</span>${fromTag(a)}<b>${esc(a.title)}</b><small>${esc(GROUPS[a.group].name)} · ${groupsOf(a.code)} groups${peek(a.code).time ? " · " + esc(peek(a.code).time) : ""}${peek(a.code).section ? " · " + esc(peek(a.code).section) : ""}</small></button>`).join("")}
           ${slots.map(r => `<button class="wslot" data-sched="${d}" data-schgrp="${r.group}" style="--c:${GROUPS[r.group].color};--l:${GROUPS[r.group].light}"><b>${esc(GROUPS[r.group].name)}</b><small>Routine slot${r.time ? " · " + esc(r.time) : ""}. Tap to pick the lesson</small></button>`).join("")}
           <button class="wadd" data-sched="${d}">${ic("plus")}Add session</button></div>
@@ -710,11 +858,11 @@
     }).join("");
     const reuse = rows.filter(k => catOf(k.n).type !== "Consumable").length;
     return `<div class="noprint">${head("Hardware list · " + lab(a), esc(a.title) + " · " + esc(g.name),
-        `<a class="btn" href="#${a.group}">${ic("arrow")}Back to ${esc(g.name)}</a><button class="btn primary big" data-act="print">${ic("print")}Print / Save PDF</button>`)}
+        `<a class="btn" href="#${a.group}">${ic("arrow")}Back to ${esc(g.name)}</a><button class="btn" data-copycode="${esc(a.code)}">${ic("copy")}Copy list</button><button class="btn primary big" data-act="print">${ic("print")}Print / Save PDF</button>`)}
       <div class="pbar kbar"><span class="gl">Groups (pairs) in the class</span>
         <div class="stepper"><button data-kstep="-1">${ic("minus")}</button><b>${gr}</b><button data-kstep="1">${ic("plus")}</button></div>
         <span class="muted">The totals follow this number.</span></div></div>
-      <div id="printArea"><div class="paper">
+      <div id="printArea"><div class="paper kitpaper">
         <div class="shead"><div><h2>Hardware list</h2>
           <div class="s">${esc(a.title)} · ${esc(lab(a))} · ${esc(g.name)}${a.unit ? " · " + esc(a.unit) : ""}</div>
           <div><b>Groups:</b> ${gr} &nbsp;·&nbsp; <b>Requested by:</b> ${esc(S.name)} &nbsp;·&nbsp; <b>Campus:</b> ${esc(S.campus)}</div></div>
@@ -803,7 +951,7 @@
       <div class="hwhead"><div><span class="acode">${deckOf(a.code) ? `<i class="sbadge">${ic("play")}</i>` : ""}${esc(lab(a))}</span>${fromTag(a)}<b>${esc(a.title)}</b></div>${statusChip(a.code)}</div>
       <div class="hwsub">${UI.hwG === "WEEK" ? `${esc(g.name)} · ` : ""}${gr} groups · ${plural(kit.length, "part")}</div>
       <div class="hwlist">${kit.map(k => `<div><span>${esc(k.n)}<small>${esc(catOf(k.n).cat)}${k.b === "class" ? " · per class" : ""}</small></span><b>${lineTotal(k, a.code)}</b></div>`).join("") || `<p class="muted">No parts listed.</p>`}</div>
-      <div class="hwfoot"><button class="btn" data-open="${esc(a.code)}">${isPlanned(a.code) || isDone(a.code) ? "Open" : "Plan"}</button><a class="btn ghost" href="#kits" data-editkit="${esc(lab(a))}">Edit kit</a></div></div>`;
+      <div class="hwfoot"><button class="btn" data-open="${esc(a.code)}">${isStudent() || isPlanned(a.code) || isDone(a.code) ? "Open" : "Plan"}</button>${isStudent() ? "" : `<a class="btn ghost" href="#kits" data-editkit="${esc(lab(a))}">Edit kit</a>`}<button class="btn ghost hwcopy" data-copycode="${esc(a.code)}" aria-label="Copy ${esc(lab(a))} parts list" title="Copy list">${ic("copy")}</button></div></div>`;
   }
   /* ---------- VIRTUAL LABS ---------- */
   const SIM = window.SIMS || { list: [], circuits: [], byKey: {}, forLesson: () => [] };
@@ -855,13 +1003,13 @@
       const all = ACTS.filter(a => a.group === sel).concat(extras().filter(a => a.group === sel));
       const ph = UI.hwPh[sel] || (UI.hwPh[sel] = "Foundation");
       sub = `<div class="tabs">${PHASES.map(p => `<button class="${!q && ph === p ? "on" : ""}" data-hwph="${p}">${p}<em>${all.filter(a => phaseOf(a) === p).length}</em></button>`).join("")}</div>`;
-      list = all.filter(a => q ? (a.code + " " + a.title + " " + a.domain).toLowerCase().includes(q) : phaseOf(a) === ph);
+      list = all.filter(a => q ? hayOf(a).includes(q) : phaseOf(a) === ph);
     }
-    if (q && sel === "WEEK") list = list.filter(a => (a.code + " " + a.title).toLowerCase().includes(q));
+    if (q && sel === "WEEK") list = list.filter(a => hayOf(a).includes(q));
     return head("Hardware", `Parts each activity needs. Totals use each session's number of groups (default ${S.defaultGroups}).`,
         `<a class="btn primary" href="#print">${ic("print")}Print lists</a>`) +
       gtabs(tabs, sel, "data-hwg") +
-      `<div class="gtools">${sub || "<span></span>"}<label class="search">${ic("search")}<input type="search" id="hwQ" placeholder="Search activities" value="${esc(UI.hwQ || "")}"></label></div>` +
+      `<div class="gtools">${sub || "<span></span>"}<label class="search">${ic("search")}<input type="search" id="hwQ" placeholder="Search activities or parts" aria-label="Search activities or parts" value="${esc(UI.hwQ || "")}"></label></div>` +
       (list.length ? `<div class="hwgrid">${list.map(hwCard).join("")}</div>` : empty(sel === "WEEK" ? "Nothing planned this week yet." : "Nothing matches your search.", sel === "WEEK" ? `<a class="btn primary" href="#home">Start planning</a>` : ""));
   }
 
@@ -923,29 +1071,44 @@
       sc.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js"; res(window.pdfjsLib); };
       sc.onerror = () => { pdfReady = null; rej(new Error("pdf.js")); }; document.head.appendChild(sc); }));
   }
-  const V = { doc: null, page: 1, n: 0, mode: "slides", file: "", tok: 0, open: false };
-  async function openViewer(file, title, mode, color, sub, vcode) {
-    Object.assign(V, { doc: null, page: 1, n: 0, mode, file, open: true });
+  const V = { doc: null, page: 1, n: 0, mode: "slides", file: "", tok: 0, open: false, deck: "", args: null };
+  /* a placeholder the shape of what is coming, so the stage never sits empty */
+  const skel = mode => `<div class="vskel ${mode === "slides" ? "slide" : "page"}" aria-label="Loading"><span></span></div>`;
+  function vFail(title, msg, file) {
+    const st = $("#vStage"); if (!st) return;
+    st.innerHTML = `<div class="vfail" role="alert">${ic("wifi0")}<b>${esc(title)}</b><p>${esc(msg)}</p><div class="vbtns"><button class="vb" data-vretry>${ic("loop")}<span>Try again</span></button>${file ? `<a class="vb" href="${esc(file)}" target="_blank" rel="noopener">${ic("ext")}<span>Open the file directly</span></a>` : ""}</div></div>`;
+  }
+  async function openViewer(file, title, mode, color, sub, vcode, start) {
+    Object.assign(V, { doc: null, page: start > 1 ? start : 1, n: 0, mode, file, open: true, deck: mode === "slides" ? vcode || "" : "", args: [file, title, mode, color, sub, vcode, start] });
     const el = $("#viewer"); el.style.setProperty("--c", color || "#F5B83D");
     el.innerHTML = `<div class="vbar"><div class="vt"><b>${esc(title)}</b><span>${esc(sub || "")}<span id="vCount"></span></span></div>
       <div class="vbtns">${mode === "slides" ? `<button class="vb" data-vgo="-1" aria-label="Previous">${ic("left")}</button><button class="vb" data-vgo="1" aria-label="Next">${ic("right")}</button>` : ""}
         ${vcode && vidOf(vcode) ? `<button class="vb wide vred" data-video="${esc(vcode)}">${ic("play")}<span>Video</span></button>` : ""}
+        ${mode === "slides" ? `<button class="vb" data-vhelp aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">${ic("help")}</button>` : ""}
         <button class="vb wide" data-vfs>${ic("expand")}<span>Full screen</span></button>
         <a class="vb" href="${esc(file)}" download aria-label="Download" title="Download">${ic("down")}</a>
         <a class="vb" href="${esc(file)}" target="_blank" rel="noopener" aria-label="Open in new tab" title="Open in new tab">${ic("ext")}</a>
         <button class="vb close" data-vclose aria-label="Close">${ic("x")}</button></div></div>
-      <div class="vstage ${mode === "slides" ? "slides" : "scroll"}" id="vStage"><div class="vload">${roboBlock()}</div></div>
+      <div class="vstage ${mode === "slides" ? "slides" : "scroll"}" id="vStage">${skel(mode)}</div>
+      <div class="vhelp" id="vHelp" hidden><b>Keys</b><span><kbd>→</kbd> <kbd>Space</kbd> next slide</span><span><kbd>←</kbd> previous slide</span><span><kbd>Home</kbd> <kbd>End</kbd> first and last</span><span><kbd>F</kbd> full screen</span><span><kbd>Esc</kbd> close</span><span>On a phone: swipe, or tap the sides</span></div>
       ${mode === "slides" ? `<button class="vzone l" data-vgo="-1" aria-label="Previous slide"></button><button class="vzone r" data-vgo="1" aria-label="Next slide"></button>` : ""}
       <div class="vprog"><i id="vProg"></i></div>`;
     document.body.classList.add("viewer-open");
+    if (!navigator.onLine && !window.pdfjsLib) return vFail("You're offline", "Slides need the internet the first time they open. Connect and try again.", file);
+    let lib;
+    try { lib = await loadPdfJs(); } catch (err) {
+      /* the PDF reader could not load (a blocked CDN, say): the browser's own viewer still works */
+      if (V.file !== file) return;
+      $("#vStage").innerHTML = `<iframe class="vframe" src="${esc(file)}#view=Fit" title="${esc(title)}"></iframe>`; return;
+    }
     try {
-      const lib = await loadPdfJs(); const doc = await lib.getDocument(file).promise;
+      const doc = await lib.getDocument(file).promise;
       if (V.file !== file || !V.open) return;
-      V.doc = doc; V.n = doc.numPages;
-      if (mode === "slides") renderSlide(); else renderScroll();
+      V.doc = doc; V.n = doc.numPages; if (V.page > V.n) V.page = 1;
+      if (mode === "slides") { renderSlide(); if (V.page > 1) toast(`Back at slide <b>${V.page}</b>. Press Home to start again.`); } else renderScroll();
     } catch (err) {
       if (V.file !== file) return;
-      $("#vStage").innerHTML = `<iframe class="vframe" src="${esc(file)}#view=Fit" title="${esc(title)}"></iframe>`;
+      vFail(navigator.onLine ? "This file didn't load" : "You're offline", navigator.onLine ? "It may have moved, or the connection dropped half way." : "Connect to the internet and try again.", file);
     }
   }
   function vCounter() { const c = $("#vCount"), p = $("#vProg"); if (c) c.textContent = V.mode === "slides" ? ` · Slide ${V.page} of ${V.n}` : ` · ${V.n} pages`; if (p) p.style.width = (V.mode === "slides" ? 100 * V.page / V.n : 100) + "%"; }
@@ -969,12 +1132,12 @@
     c.width = Math.floor(vp.width); c.height = Math.floor(vp.height); box.style.aspectRatio = v1.width + " / " + v1.height;
     await page.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise; box.replaceChildren(c);
   }
-  function goSlide(n) { if (!V.doc || V.mode !== "slides") return; const p = Math.max(1, Math.min(V.n, n)); if (p !== V.page) { V.page = p; renderSlide(); } }
+  function goSlide(n) { if (!V.doc || V.mode !== "slides") return; const p = Math.max(1, Math.min(V.n, n)); if (p !== V.page) { V.page = p; renderSlide(); if (V.deck) { PR.slide[V.deck] = p; savePr(); } } }
   function closeViewer() { V.open = false; V.doc = null; V.tok++; document.body.classList.remove("viewer-open"); $("#viewer").innerHTML = ""; if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
   function toggleFs() { const el = $("#viewer"); if (document.fullscreenElement) document.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(); }
   let rsT; const reflow = () => { clearTimeout(rsT); rsT = setTimeout(() => { if (V.open && V.mode === "slides") renderSlide(); }, 120); };
   window.addEventListener("resize", reflow); document.addEventListener("fullscreenchange", reflow);
-  function openDeck(code) { const d = DECK[code]; if (!d) return; const g = LG[d.group]; openViewer(d.file, `${d.code} · ${deckTitle(d)}`, "slides", g.color, g.name, d.code); }
+  function openDeck(code) { const d = DECK[code]; if (!d) return; const g = LG[d.group]; openViewer(d.file, `${d.code} · ${deckTitle(d)}`, "slides", g.color, g.name, d.code, PR.slide[d.code] || 1); }
   function openVideo(code) {
     const v = vidOf(code); if (!v) return;
     const c = String(code).split("@")[0].split(" ")[0], d = DECK[c], g = d ? LG[d.group] : null;
@@ -985,12 +1148,55 @@
         <button class="vb wide" data-vfs>${ic("expand")}<span>Full screen</span></button>
         <a class="vb" href="https://youtu.be/${esc(v.id)}" target="_blank" rel="noopener" aria-label="Open on YouTube" title="Open on YouTube">${ic("ext")}</a>
         <button class="vb close" data-vclose aria-label="Close">${ic("x")}</button></div></div>
-      <div class="vstage video" id="vStage"><div class="vvideo"><iframe src="https://www.youtube-nocookie.com/embed/${esc(v.id)}?autoplay=1&rel=0&modestbranding=1" title="${esc(v.title)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div></div>`;
+      <div class="vstage video" id="vStage">${!navigator.onLine ? "" : `<div class="vvideo"><iframe src="https://www.youtube-nocookie.com/embed/${esc(v.id)}?autoplay=1&rel=0&modestbranding=1" title="${esc(v.title)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`}</div>`;
     document.body.classList.add("viewer-open");
+    V.args = ["video", code];
+    if (!navigator.onLine) vFail("Videos need the internet", d ? "You can still open the slides, which work once they have been opened online." : "Connect and try again.", "");
   }
   let tx = null;
   document.addEventListener("touchstart", e => { if (V.open && V.mode === "slides") tx = e.touches[0].clientX; }, { passive: true });
   document.addEventListener("touchend", e => { if (tx == null) return; const dx = e.changedTouches[0].clientX - tx; tx = null; if (Math.abs(dx) > 50) goSlide(V.page + (dx < 0 ? 1 : -1)); }, { passive: true });
+
+  /* ---------- COPY A PARTS LIST ----------
+     Plain text, ready to paste into WhatsApp or an email to the lab. */
+  function copyText(text, what) {
+    const done = () => toast(`${what} copied`), fail = () => toast("Couldn't copy here. Select the list and copy it by hand.");
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text).then(done, fail);
+    const t = document.createElement("textarea"); t.value = text; t.style.position = "fixed"; t.style.opacity = "0"; document.body.appendChild(t); t.select();
+    try { document.execCommand("copy") ? done() : fail(); } catch (e) { fail(); } t.remove();
+  }
+  function kitText(code) {
+    const a = getA(code), gr = groupsOf(a.code), stu = isStudent();
+    return `${lab(a)} · ${a.title} (${GROUPS[a.group].name})\n${stu ? "Per group of 2:" : gr + " groups:"}\n` +
+      kitOf(a.code).filter(k => k.n).map(k => `- ${k.n} × ${stu ? (k.b === "class" ? "1 per class" : k.q) : lineTotal(k, a.code)}${k.note ? " (" + k.note + ")" : ""}`).join("\n");
+  }
+  function dayText(day) {
+    const its = planned().filter(a => peek(a.code).day === day), rows = weekIssue(its).sort((x, y) => catIdx(x.cat) - catIdx(y.cat) || x.n.localeCompare(y.n));
+    return `Kit for ${DAYFULL[day]} ${dayDate(day)}: ${its.map(a => lab(a)).join(", ")}\n` + rows.map(r => `- ${r.n} × ${r.q}`).join("\n");
+  }
+
+  /* ---------- FIRST-VISIT TIPS ----------
+     One short card per page, gone for good once closed (rac-progress-v1). */
+  const HINTS = {
+    homeS: "Open a lesson to see its goal, the parts you need and the slides. Tick “I've finished this lesson” and your progress fills up.",
+    homeT: "Today's session and the parts to pack are at the top. Switch to Student to see the page the way a student does.",
+    group: "Switch between Cards and Roadmap, or filter the lessons by topic, level or a part you have on the table.",
+    curriculum: "Tap a presentation to show it full screen. Use the arrow keys or swipe; it remembers the slide you stopped on.",
+    hardware: "Search for a part, like “servo”, to find every lesson that uses it. The copy button puts a list on your clipboard.",
+    week: "Tap “Add session” under a day. Tick “Repeat every week” and next week fills itself in one click.",
+    sims: "Every lesson also shows its matching simulator when you open it.",
+  };
+  function hintCard(r) {
+    const k = GROUPS[r] ? "group" : r, t = HINTS[k === "home" ? (isStudent() ? "homeS" : "homeT") : k];
+    if (!t || PR.hints[k]) return "";
+    return `<div class="hintcard" role="note">${ic("bulb")}<p>${t}</p><button class="hint-x" data-hintx="${k}" aria-label="Close this tip">${ic("x")}</button></div>`;
+  }
+
+  /* ---------- NOT FOUND ---------- */
+  function vNotFound() {
+    return head("Page not found", "") + empty("That page isn't here. It may have moved, or the link has a typo.",
+      `<div class="btnrow nfbtns"><a class="btn primary" href="#home">${ic("home")}Home</a><a class="btn" href="#curriculum">${ic("book")}Lessons</a><a class="btn" href="circuit/">${ic("chip")}Circuit Lab</a><a class="btn" href="codelab/">${ic("code")}Code Lab</a><button class="btn" data-palette="all">${ic("search")}Search</button></div>`);
+  }
 
   /* ---------- SETTINGS ---------- */
   function vSettings() {
@@ -1013,6 +1219,16 @@
     const t = e.target.closest("button, a"); if (!t) { if (e.target.id === "scrim") { closeModal(); closeNav(); } return; }
     const d = t.dataset;
     if (d.pal != null) { palRun(+d.pal); return; }
+    if (d.role) { PR.role = d.role; savePr(); render(); toast(d.role === "student" ? "Student view" : "Teacher view"); return; }
+    if (d.track != null) { PR.track = d.track; savePr(); render(); window.scrollTo(0, 0); return; }
+    if (d.vmode) { setQp("view", d.vmode === "map" ? "map" : ""); return; }
+    if ("clearf" in d) { const v = qp().get("view"); history.replaceState(null, "", "#" + route() + (v ? "?view=" + v : "")); render(); return; }
+    if (d.hintx) { PR.hints[d.hintx] = 1; savePr(); const h = t.closest(".hintcard"); if (h) h.remove(); return; }
+    if (d.copycode) { copyText(d.copyday ? dayText(d.copyday) : kitText(d.copycode), "Parts list"); return; }
+    if ("finish" in d) { const c = baseOf(lab(getA(modalCode))); if (PR.done[c]) delete PR.done[c]; else PR.done[c] = iso(new Date()); savePr(); renderModal(); render();
+      if (PR.done[c]) toast(`Nice work! <b>${esc(c)}</b> is finished`); return; }
+    if ("vretry" in d) { if (V.args && V.args[0] === "video") openVideo(V.args[1]); else if (V.args) openViewer(...V.args); return; }
+    if ("vhelp" in d) { const h = $("#vHelp"); if (h) h.hidden = !h.hidden; return; }
     if (d.palette) { openPalette(d.palette); return; }
     if (d.video) { openVideo(d.video); return; }
     if (d.view) { openDeck(d.view); return; }
@@ -1074,6 +1290,7 @@
   });
   document.addEventListener("change", e => {
     const t = e.target, d = t.dataset;
+    if (d.filter) { setQp(d.filter, t.value); return; }
     if (d.mf) { sess(modalCode)[d.mf] = t.value.trim(); save(); return; }
     if (d.sf) { UI.sch[d.sf] = t.value.trim(); if (d.sf === "time") renderModal(); return; }
     if (t.id === "schKeep") { UI.sch.keep = t.checked; return; }
@@ -1113,6 +1330,7 @@
       if (["ArrowRight", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); goSlide(V.page + 1); }
       else if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); goSlide(V.page - 1); }
       else if (e.key === "Home") goSlide(1); else if (e.key === "End") goSlide(V.n); else if (e.key === "f") toggleFs();
+      else if (e.key === "?") { const h = $("#vHelp"); if (h) h.hidden = !h.hidden; }
       return;
     }
     if (e.key === "Escape" && modalCode) closeModal(); });

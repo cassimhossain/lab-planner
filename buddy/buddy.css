@@ -1,0 +1,75 @@
+/* Study Buddy: the floating button and the chat panel, on all three apps.
+   Colours and type come from tokens.css, so light and dark both work. */
+
+.bd-fab { position: fixed; right: 18px; bottom: 18px; z-index: 85; display: inline-flex; align-items: center; gap: 8px; height: 52px; padding: 0 18px 0 14px;
+  border: 0; border-radius: var(--r-pill, 999px); background: var(--accent, #F5B83D); color: var(--on-accent, #1B2A47); font: 700 15px var(--font-body, system-ui);
+  box-shadow: 0 10px 28px rgba(15, 27, 45, .28); cursor: pointer; transition: transform var(--dur-fast, .12s), box-shadow var(--dur-fast, .12s); }
+.bd-fab:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(15, 27, 45, .34); }
+.bd-fab svg, .bd-av svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+body.bd-open .bd-fab { display: none; }
+/* in the two labs the button is a round icon, kept clear of their own controls */
+body.bd-app-circuit .bd-fab, body.bd-app-codelab .bd-fab { width: 52px; padding: 0; justify-content: center; }
+body.bd-app-circuit .bd-fab span, body.bd-app-codelab .bd-fab span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+body.bd-app-circuit .bd-fab { bottom: 64px; }
+body.bd-app-codelab .bd-fab { bottom: 132px; }
+
+.bd-panel { position: fixed; right: 16px; bottom: 16px; top: 16px; z-index: 96; width: min(410px, calc(100vw - 32px)); display: flex; flex-direction: column;
+  background: var(--surface, #fff); color: var(--ink, #121A2B); border: 1px solid var(--line, #E3E8F0); border-radius: var(--r-xl, 24px); box-shadow: var(--sh-3, 0 30px 80px rgba(0,0,0,.35));
+  font: 15px/1.5 var(--font-body, system-ui); overflow: hidden; animation: bdIn .18s var(--ease-out, ease-out); }
+.bd-panel[hidden] { display: none; }
+@keyframes bdIn { from { opacity: 0; transform: translateY(10px); } }
+
+.bd-h { display: flex; align-items: center; gap: 10px; padding: 12px 10px 10px 14px; background: var(--chrome-grad, #22345A); color: #fff; }
+.bd-av { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--accent, #F5B83D); color: var(--on-accent, #1B2A47); flex: none; }
+.bd-av.big { width: 56px; height: 56px; border-radius: 16px; } .bd-av.big svg { width: 34px; height: 34px; }
+.bd-tt { flex: 1; min-width: 0; } .bd-tt b { display: block; font: 800 16px var(--font-display, system-ui); } .bd-tt small { display: block; font-size: 12px; color: var(--chrome-ink, #CBD5E8); }
+.bd-ib { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 10px; background: rgba(255, 255, 255, .1); color: #fff; cursor: pointer; }
+.bd-ib:hover { background: rgba(255, 255, 255, .2); }
+.bd-ib svg, .bd-send svg, .bd-copy svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.bd-mode { display: flex; gap: 4px; margin: 10px 12px 0; padding: 4px; border-radius: 12px; background: var(--surface-3, #EEF2F7); }
+.bd-mode button { flex: 1; min-height: 36px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-muted, #5B6578); font: 700 13px var(--font-body, system-ui); cursor: pointer; }
+.bd-mode button.on { background: var(--surface, #fff); color: var(--ink, #121A2B); box-shadow: var(--sh-1, 0 1px 3px rgba(0,0,0,.1)); }
+
+.bd-log { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; }
+.bd-m { max-width: 92%; padding: 10px 13px; border-radius: 16px; overflow-wrap: anywhere; }
+.bd-m p { margin: 0 0 6px; } .bd-m p:last-child { margin-bottom: 0; }
+.bd-m ul { margin: 4px 0 6px; padding-left: 20px; } .bd-m li { margin: 4px 0; }
+.bd-m.u { align-self: flex-end; background: var(--primary, #1B3A6B); color: var(--on-primary, #fff); border-bottom-right-radius: 5px; }
+.bd-m.b { align-self: flex-start; background: var(--surface-2, #F7F9FC); border: 1px solid var(--line-2, #EEF2F7); border-bottom-left-radius: 5px; }
+.bd-m code { font: 13px var(--font-mono, monospace); background: var(--surface-3, #EEF2F7); padding: 1px 5px; border-radius: 5px; }
+.bd-m pre { position: relative; margin: 6px 0; padding: 10px 12px; border-radius: 10px; background: #0F172A; color: #E2E8F0; overflow-x: auto; }
+.bd-m pre code { background: none; padding: 0; color: inherit; white-space: pre; }
+.bd-copy { position: absolute; top: 6px; right: 6px; display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 8px; border: 0; border-radius: 7px; background: rgba(255, 255, 255, .12); color: #E2E8F0; font: 700 11.5px var(--font-body, system-ui); cursor: pointer; }
+.bd-copy svg { width: 14px; height: 14px; }
+.bd-links { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 4px; font-size: 13px; font-weight: 700; }
+.bd-links a { color: var(--link, #0B7285); }
+.bd-safe { padding: 8px 10px; border-radius: 10px; background: var(--warn-bg, #FFF4DC); color: var(--warn-ink, #8F5E00); font-size: 14px; }
+.bd-note, .bd-more { font-size: 12.5px; color: var(--ink-muted, #5B6578); }
+.bd-hello { text-align: center; margin: auto 0; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 10px; }
+.bd-hello p { margin: 0; color: var(--ink-2, #3C4659); }
+.bd-starts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.bd-dots { display: inline-flex; gap: 4px; } .bd-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-faint, #94A0B3); animation: bdDot 1s infinite; }
+.bd-dots i:nth-child(2) { animation-delay: .15s; } .bd-dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes bdDot { 50% { opacity: .25; transform: translateY(-2px); } }
+
+.bd-quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px; }
+.bd-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 12px; border: 1.5px solid var(--line, #E3E8F0); border-radius: var(--r-pill, 999px); background: var(--surface, #fff); color: var(--ink, #121A2B); font: 600 13px var(--font-body, system-ui); text-align: left; cursor: pointer; }
+.bd-chip:hover { border-color: var(--line-strong, #C9D3E3); background: var(--surface-hover, #F1F4FA); }
+.bd-chip.on { background: color-mix(in srgb, var(--accent, #F5B83D) 22%, var(--surface, #fff)); border-color: var(--accent, #F5B83D); }
+.bd-chip.act small { font-size: 11px; color: var(--ink-muted, #5B6578); }
+
+.bd-in { display: flex; align-items: flex-end; gap: 8px; padding: 8px 12px 6px; border-top: 1px solid var(--line-2, #EEF2F7); }
+.bd-in textarea { flex: 1; min-height: 44px; max-height: 120px; resize: none; padding: 11px 12px; border: 1.5px solid var(--line, #E3E8F0); border-radius: 14px; background: var(--surface, #fff); color: var(--ink, #121A2B); font: 15px/1.4 var(--font-body, system-ui); }
+.bd-in textarea:focus { outline: none; border-color: var(--focus, #0FA5AE); box-shadow: var(--focus-ring, 0 0 0 3px rgba(15,165,174,.4)); }
+.bd-send { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 14px; background: var(--accent, #F5B83D); color: var(--on-accent, #1B2A47); cursor: pointer; flex: none; }
+.bd-panel.busy .bd-send { opacity: .5; cursor: wait; }
+.bd-foot { margin: 0; padding: 0 14px 10px; font-size: 11.5px; color: var(--ink-muted, #5B6578); }
+
+@media (max-width: 600px) {
+  .bd-panel { inset: 0; width: auto; border-radius: 0; border: 0; }
+  .bd-fab { right: 14px; bottom: 14px; }
+  body.bd-app-portal .bd-fab { width: 52px; padding: 0; justify-content: center; }
+  body.bd-app-portal .bd-fab span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+}
+@media print { .bd-fab, .bd-panel { display: none !important; } }

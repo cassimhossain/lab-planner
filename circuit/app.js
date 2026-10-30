@@ -1,12 +1,12 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=21";
-import { BOARDS, loadHex } from "./boards.js?v=21";
-import { layoutCircuit } from "./layout.js?v=21";
-import { SNIPPETS } from "./snippets.js?v=21";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=21";
-import * as T from "./tools.js?v=21";
-import { initHome, showHome, hideHome, isHome } from "./home.js?v=21";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=21";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=22";
+import { BOARDS, loadHex } from "./boards.js?v=22";
+import { layoutCircuit } from "./layout.js?v=22";
+import { SNIPPETS } from "./snippets.js?v=22";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=22";
+import * as T from "./tools.js?v=22";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=22";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=22";
 
 /* The simulator, the Arduino library bundler and the schematic drawer are
    roughly a third of the code and none of it is needed to open the page, so
@@ -18,7 +18,7 @@ let BUILTIN_LIBS = [], EXTRA_LIBS = [], enginePromise = null;
 function loadEngine() {
   if (enginePromise) return enginePromise;
   enginePromise = Promise.all([
-    import("./sim.js?v=21"), import("./libs.js?v=21"), import("./schematic.js?v=21"),
+    import("./sim.js?v=22"), import("./libs.js?v=22"), import("./schematic.js?v=22"),
   ]).then(([s, l, c]) => {
     Netlist = s.Netlist; Sim = s.Sim; Sim.muted = muted;
     prepareSketch = l.prepareSketch; BUILTIN_LIBS = l.BUILTIN_LIBS; EXTRA_LIBS = l.EXTRA_LIBS;
@@ -37,10 +37,10 @@ function loadCodeMirror() {
   if (cmPromise) return cmPromise;
   cmPromise = new Promise((res, rej) => {
     const css = document.createElement("link");
-    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=21";
+    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=22";
     document.head.appendChild(css);
     const sc = document.createElement("script");
-    sc.src = "../vendor/codemirror/codemirror.min.js?v=21";
+    sc.src = "../vendor/codemirror/codemirror.min.js?v=22";
     sc.onload = () => res(window.CodeMirror); sc.onerror = () => rej(new Error("CodeMirror failed to load"));
     document.head.appendChild(sc);
   });

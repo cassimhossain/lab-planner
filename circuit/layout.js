@@ -2,9 +2,9 @@
    A lesson describes WHAT is connected (an LED on pin 13, a DHT22 on pin 7, an OLED...);
    this file decides WHERE everything goes and draws tidy wires, Tinkercad style:
    breadboard on top, board below, modules in a column on the right, power on the rails. */
-import { bbLayout, P } from "./elements.js?v=21";
-import { PARTS } from "./parts.js?v=21";
-import { BOARDS } from "./boards.js?v=21";
+import { bbLayout, P } from "./elements.js?v=22";
+import { PARTS } from "./parts.js?v=22";
+import { BOARDS } from "./boards.js?v=22";
 
 const C = { gnd: "#2B2D42", v5: "#E63946", v33: "#F08C00", sda: "#1F6FD1", scl: "#F5B83D" };
 const SIG = ["#2E9E5B", "#1F6FD1", "#7B3FC4", "#E8590C", "#20B8A6", "#D6336C", "#8D6E63", "#5C7CFA", "#F5B83D"];

@@ -12,9 +12,10 @@
    index.html and in VERSION below, and the old cache is thrown away whole on
    the next visit, so a student never runs half an old version. */
 
-const VERSION = "v21";
+const VERSION = "v22";
 const CACHE = "circuitlab-" + VERSION;
-const V = "?" + VERSION.replace("v", "v=");          // "?v=21", the same string the page uses
+const V = "?" + VERSION.replace("v", "v=");
+const BUDDY_V = "37";          // "?v=22", the same string the page uses
 
 const MODULES = ["app", "assist", "boards", "home", "elements", "elements2", "elements3", "elements4", "elements5",
   "layout", "lessons", "lessons-jm", "lessons-le", "lessons-tl", "lessons-yi",
@@ -38,6 +39,10 @@ const SHELL = [
   "../logo.svg",
   "../theme.js" + V, "../tokens.css" + V,
   ...FONTS.map(f => "../fonts/" + f + ".woff2"),
+  /* Study Buddy and the lesson data its built-in answers come from, so it
+     still answers in a room with no internet. Its files carry the portal's
+     version (BUDDY_CONFIG.version), not Circuit Lab's. */
+  ...["buddy/config.js", "buddy/buddy.js", "buddy/buddy.css", "buddy/glossary.js", "data.js", "library.js", "videos.js", "sims.js"].map(f => "../" + f + "?v=" + BUDDY_V),
 ];
 
 self.addEventListener("install", e => {

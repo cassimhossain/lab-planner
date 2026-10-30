@@ -983,6 +983,10 @@ li.done .rm-t { color: var(--ink-muted); }
 .vhelp b { color: #fff; } .vhelp kbd { background: #182740; border-color: #2D4370; color: #fff; }
 .vvideo { background: linear-gradient(100deg, #111 30%, #1d1d1d 50%, #111 70%) 0 0 / 300% 100%; animation: vshimmer 1.4s linear infinite; }
 
+.askbuddy { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border: 1.5px dashed color-mix(in srgb, var(--accent) 60%, transparent); border-radius: 14px; background: color-mix(in srgb, var(--accent) 8%, var(--surface)); color: var(--ink); text-align: left; font: inherit; cursor: pointer; }
+.askbuddy:hover { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
+.askbuddy > .ic:first-child { color: var(--accent-ink); }
+.askbuddy span { flex: 1; } .askbuddy b { display: block; font-size: 15px; } .askbuddy small { color: var(--ink-muted); font-size: 13px; }
 .hwfoot .hwcopy { flex: none; width: var(--tap); padding: 0; }
 table.kt td.box::after { content: ""; display: block; width: 16px; height: 16px; margin: 0 auto; border: 1.5px solid var(--line-strong); border-radius: 4px; }
 

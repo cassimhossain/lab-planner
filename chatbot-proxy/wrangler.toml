@@ -1,0 +1,28 @@
+# Study Buddy proxy: Cloudflare Workers, Free plan. See README.md here.
+name = "study-buddy"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# Workers AI, connected inside Cloudflare: no API key is needed or stored.
+[ai]
+binding = "AI"
+
+[vars]
+# Only these sites may call the Worker (comma-separated, no trailing slash).
+ALLOWED_ORIGIN = "https://cassimhossain.github.io"
+# The teacher-editable prompt, read from the site.
+PROMPT_URL = "https://cassimhossain.github.io/lab-planner/buddy/system-prompt.txt"
+# Questions per browser tab per 10 minutes, and for the whole club per day.
+SESSION_LIMIT = "20"
+DAILY_LIMIT = "300"
+# "1" switches Study Buddy's AI off; the site falls back to its built-in helper.
+BUDDY_OFF = "0"
+
+[[durable_objects.bindings]]
+name = "LIMITER"
+class_name = "Limiter"
+
+# SQLite-backed Durable Objects are the kind available on the Free plan.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Limiter"]

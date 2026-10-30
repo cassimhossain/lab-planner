@@ -48,6 +48,15 @@ The lesson sheet shows three extra sections when an activity in `data.js` has th
 
 `goal` is optional too: when it is missing, the goal is the activity's `about` line.
 
+## Study Buddy (for teachers)
+
+The robot button on every page opens **Study Buddy**, a helper students can ask about circuits, code, robots, AI and any club lesson. By default it answers from our own lessons, parts list and the glossary in `buddy/glossary.js`, in the browser, with nothing sent anywhere.
+
+- **What it says:** edit `buddy/system-prompt.txt` (teaching style, safety rules, topics) and `buddy/glossary.js` (definitions). Push, and the change is live.
+- **AI answers (optional):** deploy the free Cloudflare Worker in `chatbot-proxy/` (see its README), then set `backend: "worker"` and `workerUrl` in `buddy/config.js`. Check Cloudflare's current free limits first. The Worker limits each tab to 20 questions per 10 minutes and the whole club to 300 a day; when either runs out, or the free AI allowance does, Study Buddy quietly uses its built-in answers instead. The free plan can't create a bill.
+- **Privacy:** questions are capped at 600 characters, messages that look like a phone number, email, address or password are blocked before sending, and a student's code is only sent when they press "Explain this error" or "Help with my code". The chat is saved only in that browser (`rac-chat-v1`), with a Clear button.
+- **Turn it off:** `enabled: false` in `buddy/config.js` hides it everywhere. To stop only the AI, set `BUDDY_OFF` to `1` in the Worker, or `backend: "local"`.
+
 ## Where your data is saved
 
 Your plan is saved **in the browser you use** (local storage, key `rac-lab-planner-v1`), not on GitHub. Use **Settings → Download backup** every Friday. The home page reminds you when a backup is older than a week.
@@ -67,5 +76,7 @@ A student's progress (finished lessons, their group, the slide they stopped on, 
 | `tools/build_library.py` | Syncs `library/` from the Robotics Curriculum folder |
 | `circuit/` | Circuit Lab: the circuit editor and simulator |
 | `codelab/` | Code Lab: the six-language editor |
+| `buddy/` | Study Buddy: settings, glossary, teacher prompt, chat panel |
+| `chatbot-proxy/` | Optional free Cloudflare Worker for Study Buddy's AI answers |
 
 Curriculum and platform by Qasim Mushtaq, MS Robotics and AI.

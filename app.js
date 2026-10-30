@@ -615,6 +615,7 @@
       </div>
       <div class="m-body">
         ${a.goal || a.about ? `<div class="m-sec lsec lgoal"><label><span>${ic("target")}Goal</span></label><p>${esc(a.goal || a.about)}</p></div>` : ""}
+        ${window.BUDDY_CONFIG && window.BUDDY_CONFIG.enabled ? `<button class="askbuddy" data-askbuddy>${ic("bulb")}<span><b>Stuck? Ask Study Buddy</b><small>about ${esc(lab(a))}, its parts or the code</small></span>${ic("arrow")}</button>` : ""}
         <div class="m-sec lsec"><label><span>${ic("parts")}What you need <i>${stu ? "per group of 2" : `for ${gr} groups`}</i></span><span class="lacts"><button class="linkbtn navy" data-copycode="${esc(a.code)}">${ic("copy")}Copy list</button>${stu ? "" : `<a href="#kits" data-editkit="${esc(lab(a))}">Edit kit</a>`}</span></label>
           <div class="mkit">${need || `<p class="muted">No parts listed.</p>`}</div></div>
         ${srow}${steps}${chall}${check}${plan}
@@ -1192,6 +1193,11 @@
     return `<div class="hintcard" role="note">${ic("bulb")}<p>${t}</p><button class="hint-x" data-hintx="${k}" aria-label="Close this tip">${ic("x")}</button></div>`;
   }
 
+  /* ---------- STUDY BUDDY ----------
+     buddy/buddy.js asks the page where it was opened from, so a question
+     asked inside a lesson is answered about that lesson. */
+  window.RACBuddy = { context: () => { const a = modalCode && !/^(pick|sched):/.test(modalCode) ? getA(modalCode) : null; return { lesson: a ? a.code : "", route: route() }; } };
+
   /* ---------- NOT FOUND ---------- */
   function vNotFound() {
     return head("Page not found", "") + empty("That page isn't here. It may have moved, or the link has a typo.",
@@ -1228,6 +1234,7 @@
     if ("finish" in d) { const c = baseOf(lab(getA(modalCode))); if (PR.done[c]) delete PR.done[c]; else PR.done[c] = iso(new Date()); savePr(); renderModal(); render();
       if (PR.done[c]) toast(`Nice work! <b>${esc(c)}</b> is finished`); return; }
     if ("vretry" in d) { if (V.args && V.args[0] === "video") openVideo(V.args[1]); else if (V.args) openViewer(...V.args); return; }
+    if ("askbuddy" in d) { if (window.StudyBuddy) window.StudyBuddy.open(); return; }
     if ("vhelp" in d) { const h = $("#vHelp"); if (h) h.hidden = !h.hidden; return; }
     if (d.palette) { openPalette(d.palette); return; }
     if (d.video) { openVideo(d.video); return; }

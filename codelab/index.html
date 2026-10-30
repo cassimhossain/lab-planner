@@ -6,12 +6,22 @@
 <title>Code Lab · Robotics &amp; AI Club</title>
 <meta name="description" content="Write and run Python, C++, Python turtle graphics, p5.js, Processing and web pages in the browser, with error help and ready-made examples.">
 <link rel="icon" type="image/svg+xml" href="../logo.svg">
-<!-- lets Python's input() wait for typing: adds the cross-origin isolation headers GitHub Pages can't set -->
+<!-- lets Python's input() wait for typing: adds the cross-origin isolation headers GitHub Pages can't set.
+     On the very first visit it has to reload the page once; this says so
+     instead of leaving the student watching an unexplained flash. -->
+<script>
+  window.coi = { doReload: function () {
+    var d = document.createElement("div"); d.className = "coicard"; d.setAttribute("role", "status");
+    d.innerHTML = "<b>Setting up Code Lab…</b><span>A one-time step so Python can wait for your typing. Back in a moment.</span>";
+    (document.body || document.documentElement).appendChild(d);
+    setTimeout(function () { location.reload(); }, 800);
+  } };
+</script>
 <script src="coi-serviceworker.js"></script>
-<script src="../theme.js?v=4"></script>
-<link rel="stylesheet" href="../tokens.css?v=4">
-<link rel="stylesheet" href="vendor/codemirror.css?v=4">
-<link rel="stylesheet" href="codelab.css?v=4">
+<script src="../theme.js?v=5"></script>
+<link rel="stylesheet" href="../tokens.css?v=5">
+<link rel="stylesheet" href="vendor/codemirror.css?v=5">
+<link rel="stylesheet" href="codelab.css?v=5">
 </head>
 <body>
 <header class="top">
@@ -27,13 +37,13 @@
   <nav class="tb">
     <button class="tbtn" data-act="examples" title="Ready-made programs"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7M8 11h5"/></svg><span>Examples</span></button>
     <button class="tbtn" data-act="new" title="Start a new program"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>New</span></button>
-    <button class="tbtn icon" data-act="download" title="Download the program"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
-    <button class="tbtn icon" data-act="upload" title="Open a .py or .cpp file"><svg class="ic" viewBox="0 0 24 24"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></svg></button>
+    <button class="tbtn icon" data-act="download" title="Download the program" aria-label="Download the program"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
+    <button class="tbtn icon" data-act="upload" title="Open a .py or .cpp file" aria-label="Open a file"><svg class="ic" viewBox="0 0 24 24"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></svg></button>
   </nav>
   <div class="grow"></div>
   <span id="engine" class="engine"></span>
   <button class="theme-btn" type="button" aria-label="Theme"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="t-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></g><g class="t-moon"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></g><g class="t-auto"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></g></svg></button>
-  <button id="runbtn" class="run" data-act="run" title="Run (Ctrl+Enter)"><svg class="ic" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg><span>Run</span></button>
+  <button id="runbtn" class="run" data-act="run" title="Run (Ctrl+Enter)"><svg class="ic" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg><span>Run</span><kbd>Ctrl ⏎</kbd></button>
 </header>
 
 <main class="main">
@@ -48,8 +58,8 @@
     <div class="edbar">
       <input id="fname" class="fname" aria-label="File name" value="main.py">
       <div class="grow"></div>
-      <button class="cbtn icon" data-act="smaller" title="Smaller text">A-</button>
-      <button class="cbtn icon" data-act="bigger" title="Bigger text">A+</button>
+      <button class="cbtn icon" data-act="smaller" title="Smaller text" aria-label="Smaller text">A-</button>
+      <button class="cbtn icon" data-act="bigger" title="Bigger text" aria-label="Bigger text">A+</button>
       <button class="cbtn" data-act="format" title="Tidy up indentation">Tidy</button>
       <button class="cbtn" data-act="copy" title="Copy the code"><svg class="ic" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Copy</button>
     </div>
@@ -61,8 +71,10 @@
       <b>Output</b><span id="runstate" class="runstate"></span>
       <div class="grow"></div>
       <button class="cbtn" id="autorun" data-act="autorun" title="Re-run as you type (Web, p5 and Processing)" aria-pressed="false" hidden>Live</button>
-      <button class="cbtn icon" id="popout" data-act="popout" title="Open the result in its own tab" hidden><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
+      <button class="cbtn icon" id="popout" data-act="popout" title="Open the result in its own tab" aria-label="Open the result in its own tab" hidden><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
+      <button class="cbtn" data-act="copyout" title="Copy the output">Copy</button>
       <button class="cbtn" data-act="clear" title="Clear the output">Clear</button>
+      <button class="cbtn" data-act="reset" title="Stop and start fresh (keeps your code)">Reset</button>
     </div>
     <!-- Turtle draws into this; p5, Processing and Web run inside the frame.
          Both sit above the output log, which still carries print() and
@@ -90,9 +102,9 @@
 <div id="toast" class="toast"></div>
 <input id="fileup" type="file" accept=".py,.cpp,.cc,.c,.h,.txt,.js,.pde,.html,.htm,.css" hidden>
 
-<script src="vendor/codemirror.min.js?v=4"></script>
+<script src="vendor/codemirror.min.js?v=5"></script>
 <!-- javascript, css, xml and htmlmixed modes for the p5, Processing and Web tabs -->
-<script src="vendor/cm-modes.js?v=4"></script>
-<script type="module" src="app.js?v=4"></script>
+<script src="vendor/cm-modes.js?v=5"></script>
+<script type="module" src="app.js?v=5"></script>
 </body>
 </html>

@@ -4,8 +4,8 @@
    compiler). Picture output: Python turtle (Skulpt, bundled and offline),
    p5.js, Processing and a web page - those three run inside a sandboxed
    frame. The editor, toolbar, examples, saving and font size are shared. */
-import { EXAMPLES } from "./examples.js?v=4";
-import { runTurtle, stopTurtle, turtleHint, turtleReady, runFrame, stopFrame, docUrl, frameHint } from "./visual.js?v=4";
+import { EXAMPLES } from "./examples.js?v=5";
+import { runTurtle, stopTurtle, turtleHint, turtleReady, runFrame, stopFrame, docUrl, frameHint } from "./visual.js?v=5";
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -211,7 +211,7 @@ const fmtMs = ms => ms < 1000 ? ms + " ms" : (ms / 1000).toFixed(1) + " s";
 function askLine() {
   removeAsk();
   const row = document.createElement("span"); row.className = "inrow";
-  row.innerHTML = `<input aria-label="Type your answer and press Enter" autocomplete="off" spellcheck="false">`;
+  row.innerHTML = `<input aria-label="The program is waiting: type your answer and press Enter" autocomplete="off" spellcheck="false"><span class="inhint" aria-hidden="true">type, then ⏎ Enter</span>`;
   term.appendChild(row); term.scrollTop = term.scrollHeight;
   const inp = row.querySelector("input"); inp.focus();
   state("Waiting for your input…", "busy");
@@ -349,7 +349,7 @@ function askTurtle(prompt) {
   return new Promise(res => {
     removeAsk();
     const row = document.createElement("span"); row.className = "inrow";
-    row.innerHTML = `<input aria-label="Type your answer and press Enter" autocomplete="off" spellcheck="false">`;
+    row.innerHTML = `<input aria-label="The program is waiting: type your answer and press Enter" autocomplete="off" spellcheck="false"><span class="inhint" aria-hidden="true">type, then ⏎ Enter</span>`;
     term.appendChild(row); term.scrollTop = term.scrollHeight;
     const inp = row.querySelector("input"); inp.focus();
     state("Waiting for your input…", "busy");
@@ -430,7 +430,8 @@ function setRunning(on) {
   running = on; PY.running = on && S.lang === "python";
   if (on) stageNote("");
   const b = $("#runbtn"); b.classList.toggle("stop", on);
-  b.innerHTML = on ? `<svg class="ic" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span>Stop</span>` : `<svg class="ic" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg><span>Run</span>`;
+  b.innerHTML = on ? `<svg class="ic" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span>Stop</span><kbd>Esc</kbd>` : `<svg class="ic" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg><span>Run</span><kbd>Ctrl ⏎</kbd>`;
+  b.title = on ? "Stop (Esc)" : "Run (Ctrl+Enter)";
 }
 function run() {
   if (running) return stop();
@@ -442,6 +443,8 @@ function run() {
     $("#stdin").focus(); state("Waiting for input", "busy"); return;
   }
   needAsked = false;
+  /* a small header so one run's output is easy to tell from the next */
+  outHTML(`<span class="runhead">▶ ${esc(LANGS[S.lang].name)} · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>`);
   setRunning(true); state("Running…", "busy");
   if (S.lang === "python") runPython(code);
   else if (S.lang === "cpp") runCpp(code);
@@ -521,8 +524,15 @@ function showExamples() {
   const bd = LANGS[S.lang].badge || (S.lang === "python" ? "py" : "cpp");
   const bl = { py: "Py", cpp: "C++", tu: "Tu", p5: "p5", pr: "Pr", web: "&lt;&gt;" }[bd] || bd;
   $("#mbox").innerHTML = `<div class="mh"><span class="lg ${bd}">${bl}</span><h2>${LANGS[S.lang].name} examples</h2><div class="grow"></div><button class="mx" data-act="close" title="Close"><svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <div class="mb">${cats.map(c => `<div class="excat">${esc(c)}</div><div class="exgrid">${list.map((x, i) => x.cat !== c ? "" : `<button class="excard" data-ex="${i}"><b>${esc(x.title)}</b><code>${esc(exPreview(x))}</code>${exUsesInput(x) ? `<em>uses input</em>` : ""}</button>`).join("")}</div>`).join("")}</div>`;
+    <div class="mb"><label class="exsearch"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="exq" placeholder="Search examples" aria-label="Search examples" autocomplete="off"></label>${cats.map(c => `<div class="excat">${esc(c)}</div><div class="exgrid">${list.map((x, i) => x.cat !== c ? "" : `<button class="excard" data-ex="${i}"><b>${esc(x.title)}</b><code>${esc(exPreview(x))}</code>${exUsesInput(x) ? `<em>uses input</em>` : ""}</button>`).join("")}</div>`).join("")}</div>`;
   $("#modal").classList.add("on");
+  /* filter the cards as the student types; a topic with no hits hides too */
+  const q = $("#exq"); q.focus();
+  q.addEventListener("input", () => {
+    const v = q.value.trim().toLowerCase();
+    document.querySelectorAll("#mbox .excard").forEach(b => { const x = list[+b.dataset.ex]; b.hidden = !!v && !(x.title + " " + x.cat + " " + exSource(x)).toLowerCase().includes(v); });
+    document.querySelectorAll("#mbox .exgrid").forEach(g => { const hide = ![...g.children].some(c => !c.hidden); g.hidden = hide; g.previousElementSibling.hidden = hide; });
+  });
 }
 function loadExample(i) {
   const x = EXAMPLES[S.lang][i]; if (!x) return;
@@ -613,6 +623,14 @@ document.addEventListener("click", e => {
     case "download": return download();
     case "upload": return $("#fileup").click();
     case "clear": clearTerm(); clearErr(); emptyTerm(); state(""); return;
+    /* reset: stop whatever is running and start the output fresh */
+    case "reset": if (running) stop(); clearTerm(); clearErr(); emptyTerm(); state(""); if (kindOf(S.lang) !== "term") { stopFrame(frame); stageNote("Press Run to see it here"); } toast("Reset"); return;
+    case "copyout": {
+      const txt = [...term.childNodes].filter(n => !(n.classList && (n.classList.contains("empty") || n.classList.contains("inrow")))).map(n => n.textContent).join("").trim();
+      if (!txt) return toast("Nothing to copy yet");
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => toast("Output copied"), () => toast("Couldn't copy here"));
+      return;
+    }
     case "copy": navigator.clipboard && navigator.clipboard.writeText(editor.getValue()).then(() => toast("Code copied")); return;
     case "bigger": S.fs = Math.min(24, S.fs + 1); applyFont(); save(); return;
     case "smaller": S.fs = Math.max(11, S.fs - 1); applyFont(); save(); return;
@@ -622,7 +640,7 @@ document.addEventListener("click", e => {
 document.addEventListener("keydown", e => {
   if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); run(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); save(); toast("Saved in this browser"); }
-  if (e.key === "Escape") closeModal();
+  if (e.key === "Escape") { if ($("#modal").classList.contains("on")) closeModal(); else if (running) stop(); }
 });
 $("#stdin").addEventListener("input", () => { clearTimeout(save._t); save._t = setTimeout(save, 300); });
 editor.on("change", () => { clearTimeout(save._q); save._q = setTimeout(save, 400); liveTick(); });

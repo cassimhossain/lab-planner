@@ -217,3 +217,40 @@ body.hasstage .stdin { display: none; }
 :root[data-theme="dark"] .cm-s-cl .cm-operator { color: #A9B4C7; }
 :root[data-theme="dark"] .cm-s-cl .cm-atom { color: #FF9B90; }
 :root[data-theme="dark"] #autorun[aria-pressed="true"] { background: #3F74E0; border-color: #3F74E0; }
+
+/* =====================================================================
+   Phase 3 polish: a console that tells output from errors, a clear input
+   prompt, Run / Stop / Reset with their keys, example search, and the
+   one-time setup card.
+   ===================================================================== */
+.run kbd { background: rgba(0, 0, 0, .18); border: 0; color: #fff; font-size: 10.5px; padding: 2px 6px; margin-left: 2px; }
+.run.stop kbd { background: rgba(0, 0, 0, .22); }
+@media (max-width: 860px) { .run kbd { display: none; } }
+
+/* one header per run, then stdout plain and stderr marked */
+.term .runhead { display: block; margin: 0 0 6px; padding-bottom: 4px; border-bottom: 1px dashed #263248; color: #7D8AA0; font-size: calc(var(--fs) - 3px); }
+.term .err { display: block; position: relative; margin: 4px 0; padding: 4px 8px 4px 12px; border-left: 3px solid #F87171; background: rgba(248, 113, 113, .08); border-radius: 0 6px 6px 0; }
+.term .err::before { content: "error"; display: block; font: 700 10px/1.4 var(--font-body); text-transform: uppercase; letter-spacing: .1em; color: #F87171; }
+
+/* the program is waiting for an answer */
+.term .inrow { position: relative; align-items: baseline; gap: 10px; padding: 3px 8px; margin: 2px 0; border-radius: 6px; background: rgba(96, 165, 250, .1); box-shadow: inset 2px 0 0 #60A5FA; }
+.term .inrow input { min-width: 6ch; }
+.term .inrow input:focus { border-bottom-style: solid; }
+.term .inhint { flex: none; font: 600 11px var(--font-body); color: #93C5FD; opacity: .85; white-space: nowrap; }
+
+/* language strip: fade the edge so a scrollable row looks scrollable */
+.langs { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent); padding-right: 22px; }
+
+/* example search */
+.exsearch { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px; margin-bottom: 4px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface-2); color: var(--muted); }
+.exsearch input { flex: 1; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 14px; }
+.exsearch:focus-within { border-color: var(--focus); }
+.excard[hidden], .exgrid[hidden], .excat[hidden] { display: none; }
+
+/* the one-time setup before the isolation reload */
+.coicard { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 100; display: flex; flex-direction: column; gap: 6px; max-width: min(380px, calc(100% - 32px)); padding: 20px 22px; border-radius: 16px; background: var(--surface, #fff); color: var(--ink, #13213C); box-shadow: 0 20px 60px rgba(0, 0, 0, .35); font-family: var(--font-body, system-ui); text-align: center; }
+.coicard b { font-size: 17px; }
+.coicard span { font-size: 14px; color: var(--muted, #5A6880); }
+
+/* touch: bigger toolbar targets */
+@media (pointer: coarse) { .tbtn, .cbtn, .langs button { min-height: 40px; } .tbtn.icon { min-width: 40px; } }

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Circuit Lab · Robotics &amp; AI Club</title>
 <meta name="description" content="Build Arduino and ESP32 circuits, write code and run them in the browser. Ready-made circuits for every lesson.">
-<link rel="icon" type="image/svg+xml" href="chip.svg?v=20">
+<link rel="icon" type="image/svg+xml" href="chip.svg?v=21">
 <link rel="alternate icon" href="icon-192.png">
 <!-- installed-app plumbing: the manifest makes this page installable on its own,
      with its own icon and window, and the service worker keeps it working when
      the connection drops. Compiling still needs the internet. -->
-<link rel="manifest" href="manifest.webmanifest?v=20">
+<link rel="manifest" href="manifest.webmanifest?v=21">
 <meta name="theme-color" content="#1B3A6B">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,9 +19,9 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <!-- theme first, so a dark page never flashes white; the fonts are files on
      this site, so they work offline too -->
-<script src="../theme.js?v=20"></script>
-<link rel="stylesheet" href="../tokens.css?v=20">
-<link rel="stylesheet" href="circuit.css?v=20" fetchpriority="high">
+<script src="../theme.js?v=21"></script>
+<link rel="stylesheet" href="../tokens.css?v=21">
+<link rel="stylesheet" href="circuit.css?v=21" fetchpriority="high">
 
 <style>
 /* installed as an app: there is no portal around it, so the back arrow would
@@ -92,6 +92,7 @@
   <button class="tbtn home-btn" data-act="home" title="All circuits (Home)"><svg class="ic" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg><span>Home</span></button>
   <div class="pname-wrap"><input id="pname" class="pname" aria-label="Circuit name" value="My circuit"><span id="boardchip" class="boardchip" role="status"></span></div>
   <div class="grow"></div>
+  <span id="simstate" class="simstate" data-s="ready" role="status" aria-live="polite"><i aria-hidden="true"></i><b>Ready</b></span>
   <span id="clock" class="clock" role="status" aria-label="Simulation time"></span>
   <!-- Everything that is not Start lives in here. On a wide screen this box is
        display:contents, so the buttons sit in the bar exactly as before. On a
@@ -128,7 +129,7 @@
     <div class="comps-h">
       <h3 id="compsh">Components</h3>
       <button class="ix compsclose" data-act="parts" aria-label="Close the parts list"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-      <label class="search"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="psearch" placeholder="Search parts"></label>
+      <label class="search"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="psearch" placeholder="Search parts" aria-label="Search parts"></label>
       <div id="pcats" class="chips"></div>
     </div>
     <div id="plist" class="tiles"></div>
@@ -137,20 +138,20 @@
   <h1 class="vh">Circuit Lab editor</h1>
   <section id="stage" class="stage" aria-label="Circuit canvas">
     <div id="world" class="world"><div id="parts"></div><svg id="wires" class="wires"></svg><svg id="fields" class="fields"></svg><svg id="pins" class="pinsl"></svg></div>
-    <div class="ctools" role="toolbar">
-      <button data-act="rotate" title="Rotate (R)"><svg class="ic" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
-      <button data-act="delete" title="Delete (Del)"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+    <div class="ctools" role="toolbar" aria-label="Edit">
+      <button data-act="rotate" title="Rotate (R)" aria-label="Rotate"><svg class="ic" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
+      <button data-act="delete" title="Delete (Del)" aria-label="Delete"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
       <i></i>
-      <button data-act="undo" title="Undo (Ctrl+Z)"><svg class="ic" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
-      <button data-act="redo" title="Redo (Ctrl+Y)"><svg class="ic" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+      <button data-act="undo" title="Undo (Ctrl+Z)" aria-label="Undo"><svg class="ic" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+      <button data-act="redo" title="Redo (Ctrl+Y)" aria-label="Redo"><svg class="ic" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
       <i></i>
       <span id="wcolors" class="wcolors"></span>
     </div>
     <div class="zoombar" role="toolbar" aria-label="Zoom">
-      <button data-act="zout" title="Zoom out"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+      <button data-act="zout" title="Zoom out" aria-label="Zoom out"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
       <span id="zoomv">100%</span>
-      <button data-act="zin" title="Zoom in"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
-      <button data-act="fit" title="Fit to screen"><svg class="ic" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button data-act="zin" title="Zoom in" aria-label="Zoom in"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button data-act="fit" title="Fit to screen" aria-label="Fit to screen"><svg class="ic" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     </div>
     <div id="lessoncard" class="lessoncard"></div>
     <div id="inspector" class="insp"></div>
@@ -276,39 +277,39 @@
      CodeMirror is pulled in by app.js once the first screen is up. -->
 <!-- The modules import each other four deep, so the browser would otherwise
      discover them one round trip at a time. Named here, they all start at once. -->
-<link rel="modulepreload" href="app.js?v=20">
-<link rel="modulepreload" href="parts.js?v=20">
-<link rel="modulepreload" href="elements.js?v=20">
-<link rel="modulepreload" href="elements2.js?v=20">
-<link rel="modulepreload" href="elements3.js?v=20">
-<link rel="modulepreload" href="elements4.js?v=20">
-<link rel="modulepreload" href="elements5.js?v=20">
-<link rel="modulepreload" href="parts2.js?v=20">
-<link rel="modulepreload" href="parts3.js?v=20">
-<link rel="modulepreload" href="parts4.js?v=20">
-<link rel="modulepreload" href="parts5.js?v=20">
-<link rel="modulepreload" href="parts6.js?v=20">
-<link rel="modulepreload" href="parts7.js?v=20">
-<link rel="modulepreload" href="parts8.js?v=20">
-<link rel="modulepreload" href="boards.js?v=20">
-<link rel="modulepreload" href="layout.js?v=20">
-<link rel="modulepreload" href="snippets.js?v=20">
-<link rel="modulepreload" href="lessons.js?v=20">
-<link rel="modulepreload" href="lessons-le.js?v=20">
-<link rel="modulepreload" href="lessons-jm.js?v=20">
-<link rel="modulepreload" href="lessons-yi.js?v=20">
-<link rel="modulepreload" href="lessons-tl.js?v=20">
-<link rel="modulepreload" href="tools.js?v=20">
-<link rel="modulepreload" href="home.js?v=20">
-<link rel="modulepreload" href="assist.js?v=20">
+<link rel="modulepreload" href="app.js?v=21">
+<link rel="modulepreload" href="parts.js?v=21">
+<link rel="modulepreload" href="elements.js?v=21">
+<link rel="modulepreload" href="elements2.js?v=21">
+<link rel="modulepreload" href="elements3.js?v=21">
+<link rel="modulepreload" href="elements4.js?v=21">
+<link rel="modulepreload" href="elements5.js?v=21">
+<link rel="modulepreload" href="parts2.js?v=21">
+<link rel="modulepreload" href="parts3.js?v=21">
+<link rel="modulepreload" href="parts4.js?v=21">
+<link rel="modulepreload" href="parts5.js?v=21">
+<link rel="modulepreload" href="parts6.js?v=21">
+<link rel="modulepreload" href="parts7.js?v=21">
+<link rel="modulepreload" href="parts8.js?v=21">
+<link rel="modulepreload" href="boards.js?v=21">
+<link rel="modulepreload" href="layout.js?v=21">
+<link rel="modulepreload" href="snippets.js?v=21">
+<link rel="modulepreload" href="lessons.js?v=21">
+<link rel="modulepreload" href="lessons-le.js?v=21">
+<link rel="modulepreload" href="lessons-jm.js?v=21">
+<link rel="modulepreload" href="lessons-yi.js?v=21">
+<link rel="modulepreload" href="lessons-tl.js?v=21">
+<link rel="modulepreload" href="tools.js?v=21">
+<link rel="modulepreload" href="home.js?v=21">
+<link rel="modulepreload" href="assist.js?v=21">
 <link rel="modulepreload" href="../vendor/avr8js.mjs">
-<script async src="../vendor/wokwi-elements.js?v=20"></script>
-<script type="module" src="app.js?v=20"></script>
+<script async src="../vendor/wokwi-elements.js?v=21"></script>
+<script type="module" src="app.js?v=21"></script>
 <script>
   /* Registered after load so it never competes with the editor starting up.
      The worker caches this app only; the portal is left alone. */
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=20").catch(() => {}));
+    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=21").catch(() => {}));
   }
 </script>
 </body>

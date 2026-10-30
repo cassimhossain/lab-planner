@@ -986,3 +986,59 @@ body.running .run::before { content: ""; }
   .tbtn.icon { padding: 7px; }
   .run { padding: 9px 12px; }
 }
+
+/* ===================== Phase 3 polish =====================
+   Favourite and recent parts, one status for the simulation, a plain
+   "compiler not answering" state, lesson levels, and room for fingers. */
+
+/* the star sits on the tile's corner; the tile itself is unchanged */
+.tilew { position: relative; display: flex; }
+.tilew .tile { width: 100%; }
+.tstar { position: absolute; top: 3px; right: 3px; width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--muted); opacity: 0; transition: opacity .12s, color .12s, background .12s; }
+.tstar .ic { width: 17px; height: 17px; }
+.tilew:hover .tstar, .tstar:focus-visible, .tstar.on { opacity: 1; }
+.tstar:hover { background: var(--line2); color: var(--ink); }
+.tstar.on { color: #E5A11F; }
+.tstar.on .ic { fill: currentColor; }
+@media (hover: none) { .tstar { opacity: .8; } }
+.tquick h4 { display: flex; align-items: center; gap: 6px; }
+.tquick h4 .ic { width: 15px; height: 15px; color: #E5A11F; fill: currentColor; }
+
+/* the simulation's state, always in the same place in the top bar */
+.simstate { display: inline-flex; align-items: center; gap: 7px; min-width: 112px; height: 30px; padding: 0 11px; border-radius: 99px; background: rgba(255, 255, 255, .1); color: #DCE5F5; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.simstate i { width: 9px; height: 9px; border-radius: 50%; background: #94A3B8; flex: none; }
+.simstate[data-s="compiling"] i { background: #FBBF24; animation: ssPulse 1s ease-in-out infinite; }
+.simstate[data-s="running"] i { background: #22C55E; box-shadow: 0 0 0 3px rgba(34, 197, 94, .25); }
+.simstate[data-s="paused"] i { background: transparent; border-radius: 1px; width: 9px; border-left: 3px solid #FBBF24; border-right: 3px solid #FBBF24; }
+.simstate[data-s="error"] { background: rgba(242, 99, 91, .2); color: #FFD3CF; }
+.simstate[data-s="error"] i, .simstate[data-s="offline"] i { background: #F2635B; border-radius: 2px; transform: rotate(45deg); }
+.simstate[data-s="offline"] { background: rgba(251, 191, 36, .16); color: #FFE7A8; }
+@keyframes ssPulse { 50% { opacity: .35; } }
+@media (max-width: 760px) { .simstate { min-width: 0; } .simstate b { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } }
+
+/* the compiler is down: what happened, and two ways forward */
+.svcdown { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-body); }
+.svcdown b { font-size: 14px; }
+.svcdown p { margin: 0; }
+.svcdown small { opacity: .8; }
+.svcbtns { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0; }
+.svcbtns .btn { min-height: 38px; }
+.golink { display: inline-block; margin-top: 4px; border: 0; background: none; padding: 2px 0; color: var(--blue); font-weight: 700; font-size: 12px; text-decoration: underline; cursor: pointer; }
+.buildout.err .golink { color: inherit; }
+
+/* lesson levels on the dashboard */
+.hlevels { margin-top: -6px; }
+.hlevels button { --c: var(--navy); font-size: 12.5px; }
+.hmeta em.hlvl { background: #E2F5EC; color: #157A50; }
+.hmeta em.hlvl.core { background: #E8EFFD; color: #2357C6; }
+.hmeta em.hlvl.advanced { background: #F0EAFC; color: #6D3FCB; }
+:root[data-theme="dark"] .hmeta em.hlvl { background: #12301F; color: #6FD49F; }
+:root[data-theme="dark"] .hmeta em.hlvl.core { background: #182A4D; color: #93B6FF; }
+:root[data-theme="dark"] .hmeta em.hlvl.advanced { background: #2A2047; color: #C4A8F7; }
+
+/* tablets and phones: canvas controls big enough for a finger */
+@media (pointer: coarse) {
+  .ctools button, .zoombar button { min-width: 44px; min-height: 44px; }
+  .tstar { width: 36px; height: 36px; }
+  .chips button, .hchips button { min-height: 40px; }
+}

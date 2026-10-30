@@ -1,12 +1,12 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=20";
-import { BOARDS, loadHex } from "./boards.js?v=20";
-import { layoutCircuit } from "./layout.js?v=20";
-import { SNIPPETS } from "./snippets.js?v=20";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=20";
-import * as T from "./tools.js?v=20";
-import { initHome, showHome, hideHome, isHome } from "./home.js?v=20";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=20";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=21";
+import { BOARDS, loadHex } from "./boards.js?v=21";
+import { layoutCircuit } from "./layout.js?v=21";
+import { SNIPPETS } from "./snippets.js?v=21";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=21";
+import * as T from "./tools.js?v=21";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=21";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=21";
 
 /* The simulator, the Arduino library bundler and the schematic drawer are
    roughly a third of the code and none of it is needed to open the page, so
@@ -18,7 +18,7 @@ let BUILTIN_LIBS = [], EXTRA_LIBS = [], enginePromise = null;
 function loadEngine() {
   if (enginePromise) return enginePromise;
   enginePromise = Promise.all([
-    import("./sim.js?v=20"), import("./libs.js?v=20"), import("./schematic.js?v=20"),
+    import("./sim.js?v=21"), import("./libs.js?v=21"), import("./schematic.js?v=21"),
   ]).then(([s, l, c]) => {
     Netlist = s.Netlist; Sim = s.Sim; Sim.muted = muted;
     prepareSketch = l.prepareSketch; BUILTIN_LIBS = l.BUILTIN_LIBS; EXTRA_LIBS = l.EXTRA_LIBS;
@@ -37,10 +37,10 @@ function loadCodeMirror() {
   if (cmPromise) return cmPromise;
   cmPromise = new Promise((res, rej) => {
     const css = document.createElement("link");
-    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=20";
+    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=21";
     document.head.appendChild(css);
     const sc = document.createElement("script");
-    sc.src = "../vendor/codemirror/codemirror.min.js?v=20";
+    sc.src = "../vendor/codemirror/codemirror.min.js?v=21";
     sc.onload = () => res(window.CodeMirror); sc.onerror = () => rej(new Error("CodeMirror failed to load"));
     document.head.appendChild(sc);
   });
@@ -523,14 +523,28 @@ function fitThumb(t, el, n) {
 /* called when the workspace becomes visible again, so anything measured while
    it was hidden is put right */
 function refitThumbs() { wireThumbs(); $$("[data-thumb]").forEach(t => { const el = t.firstElementChild; if (el) fitThumb(t, el, 79); }); }
+/* favourite parts (starred) and the parts used most recently, both kept in
+   this browser so a student's go-to parts are always at the top of the rail */
+const FAVK = "circuitlab.favs", RECK = "circuitlab.recentParts";
+let favs = (store.get(FAVK) || []).filter(k => PARTS[k]), recentParts = (store.get(RECK) || []).filter(k => PARTS[k]);
+function toggleFav(k) {
+  favs = favs.includes(k) ? favs.filter(x => x !== k) : [k].concat(favs);
+  store.set(FAVK, favs); renderPalette();
+  toast(favs.includes(k) ? `<b>${esc(PARTS[k].label)}</b> added to favourites` : `Removed from favourites`);
+}
+function noteRecent(k) { if (!PARTS[k]) return; recentParts = [k].concat(recentParts.filter(x => x !== k)).slice(0, 6); store.set(RECK, recentParts); }
+const STAR = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>`;
 function renderPalette() {
   paletteDrawn = true;
   const q = ($("#psearch").value || "").toLowerCase();
   const cats = catFilter === "All" ? CATS : [catFilter];
-  $("#plist").innerHTML = cats.map(c => {
+  /* the star sits beside the tile, not inside it: a button can't hold a button */
+  const tile = ([k, d]) => `<div class="tilew"><button class="tile" draggable="true" data-add="${k}" title="${esc(d.help || "")}"><span class="tthumb" data-thumb="${k}"></span><span class="tname">${esc(d.label)}</span></button><button class="tstar ${favs.includes(k) ? "on" : ""}" data-fav="${k}" aria-pressed="${favs.includes(k)}" aria-label="${favs.includes(k) ? "Remove " + esc(d.label) + " from" : "Add " + esc(d.label) + " to"} favourites" title="${favs.includes(k) ? "Unstar" : "Star"}">${STAR}</button></div>`;
+  const quick = (title, keys) => keys.length ? `<div class="tcat tquick"><h4>${title}</h4><div class="tgrid">${keys.map(k => tile([k, PARTS[k]])).join("")}</div></div>` : "";
+  const top = !q && catFilter === "All" ? quick(`${STAR}Favourites`, favs) + quick("Used recently", recentParts.filter(k => !favs.includes(k)).slice(0, 4)) : "";
+  $("#plist").innerHTML = top + cats.map(c => {
     const items = Object.entries(PARTS).filter(([k, d]) => d.cat === c && (!q || (d.label + " " + k + " " + (d.kit || []).join(" ") + " " + (d.help || "")).toLowerCase().includes(q)));
     if (!items.length) return "";
-    const tile = ([k, d]) => `<button class="tile" draggable="true" data-add="${k}" title="${esc(d.help || "")}"><span class="tthumb" data-thumb="${k}"></span><span class="tname">${esc(d.label)}</span></button>`;
     const head = catFilter === "All" ? `<h4>${esc(c)}</h4>` : "";
     /* a searching student wants one flat list of hits, not shelves to open */
     const order = SHELF_ORDER[c];
@@ -570,6 +584,7 @@ function wireThumbs() {
   tiles.forEach(t => thumbIO.observe(t));
 }
 function addPart(type, x, y) {
+  noteRecent(type);
   if (running) return toast("Stop the simulation to change the circuit");
   const def = PARTS[type];
   if (def.kind === "board" && boardPart()) return toast(`There is already a ${esc(BOARDS[boardType()].label)}. Delete it first to switch boards.`);
@@ -680,15 +695,20 @@ async function compile(code, board) {
   const prep = prepareSketch(code, board);
   /* The editor itself is cached and runs with no connection, but the sketch is
      compiled by a server. Saying so plainly beats a raw network error. */
-  if (navigator.onLine === false) throw new Error("You are offline. The editor works offline, but compiling needs the internet. The desktop version of Circuit Lab has the compiler built in.");
+  if (navigator.onLine === false) throw Object.assign(new Error("You are offline. The editor works offline, but compiling needs the internet."), { service: true, offline: true });
+  /* The compiler is someone else's free service (Wokwi's). If it is slow,
+     down or refusing us, say so in plain words and offer a way to carry on. */
+  const svc = msg => Object.assign(new Error(msg), { service: true });
+  const ac = new AbortController(), timer = setTimeout(() => ac.abort(), 20000);
   let res;
   try {
-    res = await fetch(BUILD_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sketch: prep.sketch, files: prep.files, board: BOARDS[board].build }) });
+    res = await fetch(BUILD_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sketch: prep.sketch, files: prep.files, board: BOARDS[board].build }), signal: ac.signal });
   } catch (e) {
-    throw new Error("Could not reach the compiler. Check the connection and try again.");
-  }
-  if (!res.ok) throw new Error("Build server error " + res.status);
-  const r = await res.json(); r.prep = prep; return r;
+    throw svc(e.name === "AbortError" ? "The compiler took more than 20 seconds to answer." : "The compiler could not be reached.");
+  } finally { clearTimeout(timer); }
+  if (!res.ok) throw svc(res.status === 429 ? "The compiler is busy (too many requests)." : "The compiler answered with an error (" + res.status + ").");
+  let r; try { r = await res.json(); } catch (e) { throw svc("The compiler sent back something Circuit Lab could not read."); }
+  r.prep = prep; return r;
 }
 function setOutput(html, err) { const o = $("#buildout"); o.innerHTML = html; o.classList.toggle("err", !!err); }
 function errLines(stderr, map) { const out = []; const re = /sketch\.ino:(\d+):(\d+): (error|warning): (.*)/g; let m; while ((m = re.exec(stderr))) out.push({ line: map(+m[1]), col: +m[2], kind: m[3], msg: m[4] }); return out; }
@@ -708,7 +728,14 @@ function friendly(e) {
   else if (/does not name a type/.test(msg)) tip = "Is a library #include missing at the top, or is a type spelled wrong?";
   else if (/redefinition|previously declared/.test(msg)) tip = "Two things have the same name.";
   else if (/invalid conversion|cannot convert/.test(msg)) tip = "The value is the wrong type here (for example text where a number is needed).";
-  return `<div class="emsg"><b>Line ${e.line}</b> ${esc(msg)}${tip ? `<small>${esc(tip)}</small>` : ""}</div>`;
+  else if (/'Serial[^']*' was not declared|'serial' was not declared/i.test(msg)) tip = "It is Serial with a capital S, like Serial.begin(9600).";
+  else if (/missing terminating ["'] character/.test(msg)) tip = "A quote mark \" or ' is opened but never closed on this line.";
+  else if (/ISO C\+\+ forbids declaration of .* with no type/.test(msg)) tip = "A function needs a type in front, such as void or int.";
+  else if (/'(LED_BUILTIN|HIGH|LOW|OUTPUT|INPUT)' was not declared/i.test(msg)) tip = "These words are all capitals: HIGH, LOW, OUTPUT, INPUT, LED_BUILTIN.";
+  else if (/'[A-Z]\d+' was not declared/.test(msg)) tip = "Pin names like A0 need the right board. Check the board you chose.";
+  else if (/too few arguments|too many arguments/.test(msg)) tip = "Count the values inside the ( ): this function wants a different number.";
+  else if (/return-statement with a value, in function returning 'void'/.test(msg)) tip = "A void function can't return a value. Change void to int, or remove the value.";
+  return `<div class="emsg"><b>Line ${e.line}</b> ${esc(msg)}${tip ? `<small>${esc(tip)}</small>` : ""}${e.line >= 1 ? `<button class="golink" data-goline="${e.line}">Go to line ${e.line}</button>` : ""}</div>`;
 }
 /* Compiling takes a second or two every time Start simulation is pressed, so
    the chip comes up over the canvas. It waits 250ms first: a fast compile
@@ -719,13 +746,15 @@ function buildBusy(on) {
   if (on) { clearTimeout(buildT); buildT = setTimeout(() => box.classList.add("on"), 250); }
   else { clearTimeout(buildT); buildT = null; box.classList.remove("on"); }
 }
+let noCodeOnce = false;
 async function runSim() {
   if (running) return;
   if (!Sim) { const btn0 = $("#runbtn"); btn0.disabled = true; await loadEngine(); btn0.disabled = false; }
   await ensureEditor();
   project.code = editor.getValue(); save();
-  const btn = $("#runbtn"), board = boardType();
+  const btn = $("#runbtn"), board = noCodeOnce ? null : boardType(); noCodeOnce = false;
   if (!project.parts.length) return toast("Add some parts first");
+  setSimState(board ? "compiling" : "running");
   btn.disabled = true; btn.innerHTML = `<span class="spin"></span><span>Compiling…</span>`;
   if (board) buildBusy(true);
   let program, bt = board;
@@ -735,7 +764,7 @@ async function runSim() {
       const r = await compile(project.code, board);
       const list = errLines(r.stderr || "", r.prep.mapLine);
       if (!r.hex) {
-        markErrors(list); tab("code");
+        markErrors(list); tab("code"); setSimState("error", list.some(e => e.kind === "error") ? "Fix the code" : "Needs a fix");
         setOutput((list.filter(e => e.kind === "error").map(friendly).join("") || esc(r.stderr || "Compile failed")) + (r.prep.notes || []).map(n => `<div class="emsg"><small>${esc(n)}</small></div>`).join(""), true);
         throw 0;
       }
@@ -754,13 +783,20 @@ async function runSim() {
     sim.onSample = T.sampleScope;
     Sim.muted = muted;
     running = true; document.body.classList.add("running");
-    setRunState(true);
+    setRunState(true); loop.paused = T.state.paused; setSimState(T.state.paused ? "paused" : "running");
     btn.innerHTML = `${ic("stop")}<span>Stop simulation</span>`; btn.classList.add("stop"); btn.disabled = false;
     lastT = performance.now(); raf = requestAnimationFrame(loop);
     showInspector(); drawPins(); renderPhone();
   } catch (e) {
     buildBusy(false);
-    if (e) { setOutput(`Could not reach the compile service. Check the internet connection.<br><small>${esc(e.message || "")}</small>`, true); console.error(e); }
+    if (e && e.service) {
+      setSimState("offline", e.offline ? "Offline" : "Compiler unreachable");
+      setOutput(`<div class="svcdown"><b>${e.offline ? "You're offline" : "The compiler isn't answering"}</b>
+        <p>${esc(e.message)} Your circuit and code are safe, and you can keep wiring and editing.</p>
+        <div class="svcbtns"><button class="btn" data-act="run">Try again</button><button class="btn" data-act="runnocode">Run without code</button></div>
+        <small>Run without code powers the circuit with no program, so buttons, LEDs on switches and sensors wired to parts still work.</small></div>`, true);
+    } else if (e) { setSimState("error", "Something went wrong"); setOutput(`Something went wrong while starting the simulation.<br><small>${esc(e.message || "")}</small>`, true); console.error(e); }
+    else if (!$("#simstate") || $("#simstate").dataset.s === "compiling") setSimState("error");
     btn.disabled = false; btn.innerHTML = `${ic("play")}<span>Start simulation</span>`;
   }
 }
@@ -768,6 +804,7 @@ function loop(t) {
   if (!running) return;
   const dt = Math.min(0.05, (t - lastT) / 1000); lastT = t;
   const k = T.state.paused ? 0 : T.state.speed;
+  if (T.state.paused !== loop.paused) { loop.paused = T.state.paused; setSimState(T.state.paused ? "paused" : "running"); }
   try { if (k > 0) sim.run(dt * 1000 * k); sim.frame(dt * (k || 1)); } catch (e) { console.error(e); setOutput("Simulation error: " + esc(e.message), true); stopSim(); return; }
   T.sampleScope(sim); T.drawScope(); T.refreshReadout();
   if (T.state.volts) drawWires();
@@ -784,7 +821,7 @@ function stopSim() {
   if (!running) return;
   running = false; cancelAnimationFrame(raf); sim && sim.stop(); sim = null;
   document.body.classList.remove("running");
-  setRunState(false);
+  setRunState(false); setSimState("ready");
   const btn = $("#runbtn"); btn.innerHTML = `${ic("play")}<span>Start simulation</span>`; btn.classList.remove("stop");
   project.parts.forEach(p => {
     const el = rt[p.id] && rt[p.id].el; if (!el) return;
@@ -1307,7 +1344,9 @@ function boot() {
     const t = e.target.closest("button, a[data-act], [data-close], input[data-try]"); if (!t) { if (e.target.id === "modal") closeModal(); return; }
     const d = t.dataset;
     if (d.try != null) return;
+    if (d.fav) return toggleFav(d.fav);
     if (d.add) return addPart(d.add);
+    if (d.goline) { tab("code"); return ensureEditor().then(() => { const ln = Math.max(0, +d.goline - 1); editor.focus(); editor.setCursor({ line: ln, ch: 0 }); editor.scrollIntoView({ line: ln, ch: 0 }, 80); }); }
     if ("close" in d) return closeModal();
     if (d.tab) return tab(d.tab);
     if (d.cat) { catFilter = d.cat; renderCats(); return renderPalette(); }
@@ -1346,6 +1385,7 @@ function boot() {
       case "schclose": { const v = $("#schview"); if (v) v.classList.remove("on"); return; }
       case "schsvg": return downloadSchematic();
       case "run": return running ? stopSim() : runSim();
+      case "runnocode": noCodeOnce = true; return runSim();
       case "delete": return deleteSel();
       case "rotate": return rotateSel();
       case "deselect": sel = null; project.parts.forEach(placePart); drawWires(); return showInspector();
@@ -1476,6 +1516,13 @@ function boot() {
 }
 /* Running was signalled by a green canvas outline and a green dot: colour
    alone, and nothing a screen reader could hear. */
+/* one plain status for the whole simulation: Ready, Compiling, Running,
+   Paused or a problem. Words and an icon, not colour alone. */
+function setSimState(s, text) {
+  const el = $("#simstate"); if (!el) return;
+  const T0 = { ready: "Ready", compiling: "Compiling…", running: "Running", paused: "Paused", error: "Needs a fix", offline: "Compiler unreachable" };
+  el.dataset.s = s; el.querySelector("b").textContent = text || T0[s] || s;
+}
 function setRunState(on) {
   const st = $("#stage");
   if (st) st.setAttribute("aria-label", on ? "Circuit canvas, simulation running" : "Circuit canvas");

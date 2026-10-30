@@ -80,6 +80,7 @@ function render() {
         const col = C.GROUPS[g] ? C.GROUPS[g].color : g === "EX" ? "#0891B2" : "#475569";
         return `<button class="${g === hgroup ? "on" : ""}" data-hg="${g}" style="--c:${col}">${esc(label)}</button>`;
       }).join("")}</nav>
+      <nav class="hchips hlevels" id="hlevels" aria-label="Level">${["All", "Starter", "Core", "Advanced"].map(l => `<button class="${l === hlevel ? "on" : ""}" data-hl="${l}" aria-pressed="${l === hlevel}">${l === "All" ? "Any level" : l}</button>`).join("")}</nav>
 
       <div id="hbody"></div>
     </div>`;
@@ -92,8 +93,8 @@ function renderBody() {
 
   if (hgroup === "MINE" && !hq) { body.innerHTML = mineSection(); wireObserver(); return; }
 
-  const all = lessonList().filter(matches).filter(it => hgroup === "All" || hgroup === "MINE" || it.group === hgroup);
-  if (!all.length) { body.innerHTML = `<p class="hempty">Nothing matches “${esc(hq)}”. Try a part name such as servo, OLED or motor.</p>`; return; }
+  const all = lessonList().filter(matches).filter(it => hgroup === "All" || hgroup === "MINE" || it.group === hgroup).filter(it => hlevel === "All" || levelOf(it.code) === hlevel);
+  if (!all.length) { body.innerHTML = hq ? `<p class="hempty">Nothing matches “${esc(hq)}”. Try a part name such as servo, OLED or motor.</p>` : `<p class="hempty">No ${esc(hlevel)} circuits here. Try another level or group.</p>`; return; }
 
   const order = [...Object.keys(C.GROUPS).filter(g => g !== "F"), "F", "EX"];
   let out = "";
@@ -124,6 +125,15 @@ function mineSection() {
     }).join("")}</div></section>`;
 }
 
+/* the same levels as the portal: Foundation lessons are Starter, classes
+   1-16 are Phase 1 (Core) and 17 onward are Phase 2 (Advanced) */
+function levelOf(code) {
+  if (!code) return "";
+  if (/^F-|^[A-Z]{2}-00\b/.test(code)) return "Starter";
+  const m = /^[A-Z]{2}-(\d+)/.exec(code); if (!m) return "";
+  return +m[1] <= 16 ? "Core" : "Advanced";
+}
+let hlevel = "All";
 function card(it) {
   return `<button class="hcard" data-lesson="${esc(it.key)}" style="--c:${(C.GROUPS[it.group] || {}).color || "#0891B2"}">
     <span class="hprev" data-spec="${esc(it.key)}"></span>
@@ -131,7 +141,7 @@ function card(it) {
       <span class="hcode">${esc(it.code)}</span>
       <b>${esc(it.title)}</b>
       <small>${esc(it.goal)}</small>
-      <span class="hmeta"><em class="${it.board === "esp32" ? "esp" : it.board === null ? "nob" : ""}">${esc(boardName(it.board))}</em>${it.parts ? `<span>${it.parts} part${it.parts === 1 ? "" : "s"}</span>` : ""}</span>
+      <span class="hmeta"><em class="${it.board === "esp32" ? "esp" : it.board === null ? "nob" : ""}">${esc(boardName(it.board))}</em>${levelOf(it.code) ? `<em class="hlvl ${levelOf(it.code).toLowerCase()}">${levelOf(it.code)}</em>` : ""}${it.parts ? `<span>${it.parts} part${it.parts === 1 ? "" : "s"}</span>` : ""}</span>
     </span></button>`;
 }
 
@@ -242,8 +252,9 @@ async function build(box) {
 
 /* ---------- clicks ---------- */
 function onClick(e) {
-  const t = e.target.closest("[data-hnew], [data-lesson], [data-openp], [data-hcont], [data-hg]");
+  const t = e.target.closest("[data-hnew], [data-lesson], [data-openp], [data-hcont], [data-hg], [data-hl]");
   if (!t) return;
+  if (t.dataset.hl) { hlevel = t.dataset.hl; [...document.querySelectorAll("#hlevels button")].forEach(b => { b.classList.toggle("on", b === t); b.setAttribute("aria-pressed", b === t); }); renderBody(); return; }
   if (t.dataset.hg != null) { hgroup = t.dataset.hg; [...document.querySelectorAll("#hchips button")].forEach(b => b.classList.toggle("on", b === t)); renderBody(); return; }
   if (t.dataset.hcont) { hideHome(); C.resume(); return; }
   if (t.dataset.hnew) { hideHome(); C.newCircuit(t.dataset.hnew === "none" ? null : t.dataset.hnew); return; }

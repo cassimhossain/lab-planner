@@ -12,9 +12,9 @@
    index.html and in VERSION below, and the old cache is thrown away whole on
    the next visit, so a student never runs half an old version. */
 
-const VERSION = "v19";
+const VERSION = "v20";
 const CACHE = "circuitlab-" + VERSION;
-const V = "?" + VERSION.replace("v", "v=");          // "?v=19", the same string the page uses
+const V = "?" + VERSION.replace("v", "v=");          // "?v=20", the same string the page uses
 
 const MODULES = ["app", "assist", "boards", "home", "elements", "elements2", "elements3", "elements4", "elements5",
   "layout", "lessons", "lessons-jm", "lessons-le", "lessons-tl", "lessons-yi",
@@ -22,10 +22,10 @@ const MODULES = ["app", "assist", "boards", "home", "elements", "elements2", "el
   "parts", "parts2", "parts3", "parts4", "parts5", "parts6", "parts7", "parts8",
   "schematic", "sim", "sim2", "sim3", "sim4", "sim5", "sim7", "snippets", "tools"];
 
-/* the fonts, so an offline app does not drop to a system face mid-lesson. The
-   woff2 files are named inside this stylesheet, so they are read out of it at
-   install time rather than guessed. */
-const FONT_CSS = "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap";
+/* the shared theme, tokens and fonts live one folder up, next to the portal.
+   The fonts are plain files on this site, so an offline app keeps its faces. */
+const FONTS = ["atkinson-hyperlegible-next-latin-wght", "atkinson-hyperlegible-next-latin-wght-italic",
+  "bricolage-grotesque-latin-wght", "jetbrains-mono-latin-wght"];
 
 const SHELL = [
   "./", "./index.html", "./circuit.css" + V, "./manifest.webmanifest" + V,
@@ -36,7 +36,8 @@ const SHELL = [
   "../vendor/codemirror/codemirror.css" + V,
   "../vendor/avr8js.mjs",
   "../logo.svg",
-  FONT_CSS,
+  "../theme.js" + V, "../tokens.css" + V,
+  ...FONTS.map(f => "../fonts/" + f + ".woff2"),
 ];
 
 self.addEventListener("install", e => {
@@ -45,18 +46,9 @@ self.addEventListener("install", e => {
     /* one at a time: addAll fails the whole install if any single file 404s,
        and a missing icon should not cost the student the offline copy */
     await Promise.all(SHELL.map(u => c.add(new Request(u, { cache: "reload" })).catch(() => {})));
-    await precacheFonts(c);
     self.skipWaiting();
   })());
 });
-
-async function precacheFonts(c) {
-  try {
-    const css = await (await fetch(FONT_CSS)).text();
-    const urls = [...new Set([...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com[^)]+)\)/g)].map(m => m[1]))];
-    await Promise.all(urls.slice(0, 40).map(u => c.add(u).catch(() => {})));
-  } catch (e) { /* no fonts cached: the app still works, in a system face */ }
-}
 
 self.addEventListener("activate", e => {
   e.waitUntil((async () => {
@@ -66,14 +58,12 @@ self.addEventListener("activate", e => {
   })());
 });
 
-const FONTS = /^https:\/\/fonts\.(googleapis|gstatic)\.com\//;
-
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;                       // the compiler is a POST: never touched
   const url = new URL(req.url);
   const sameOrigin = url.origin === location.origin;
-  if (!sameOrigin && !FONTS.test(req.url)) return;        // anything else goes straight to the network
+  if (!sameOrigin) return;                                  // anything else goes straight to the network
 
   /* the page itself: fresh when online, cached when not, so a deployed update
      is never hidden behind yesterday's copy */
@@ -97,9 +87,7 @@ self.addEventListener("fetch", e => {
     if (hit) return hit;
     try {
       const net = await fetch(req);
-      /* an opaque font response has status 0: still worth keeping, the
-         browser can use it even though this script cannot read it */
-      if (net && (net.status === 200 || net.type === "opaque")) {
+      if (net && net.status === 200) {
         const c = await caches.open(CACHE); c.put(req, net.clone());
       }
       return net;

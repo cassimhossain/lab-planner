@@ -123,14 +123,18 @@ export function installAutocomplete(CodeMirror, cm) {
   return true;
 }
 
-/* ---------- dark mode ---------- */
-const THEME_KEY = "circuitlab.theme";
+/* ---------- dark mode ----------
+   The choice lives in ../theme.js (window.RACTheme), shared with the portal and
+   Code Lab. Setting the theme it is already in changes nothing, so a page
+   that follows the device keeps following it. */
+const RT = () => window.RACTheme;
 export function currentTheme() {
-  try { return localStorage.getItem(THEME_KEY) || "light"; } catch (e) { return "light"; }
+  return RT() ? RT().theme : (document.documentElement.getAttribute("data-theme") || "light");
 }
 export function applyTheme(name) {
-  document.documentElement.setAttribute("data-theme", name === "dark" ? "dark" : "light");
-  try { localStorage.setItem(THEME_KEY, name); } catch (e) { }
+  const t = name === "dark" ? "dark" : "light";
+  if (t === currentTheme()) return;
+  if (RT()) RT().set(t); else document.documentElement.setAttribute("data-theme", t);
 }
 export function toggleTheme() {
   const next = currentTheme() === "dark" ? "light" : "dark";

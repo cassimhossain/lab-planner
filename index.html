@@ -13,10 +13,11 @@
 <meta property="og:image" content="https://cassimhossain.github.io/lab-planner/og-card.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#22345A">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=34">
+<script src="theme.js?v=35"></script>
+<link rel="preload" href="fonts/atkinson-hyperlegible-next-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/bricolage-grotesque-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="tokens.css?v=35">
+<link rel="stylesheet" href="styles.css?v=35">
 </head>
 <body>
 <!-- First load is a real wait: fonts, the curriculum data and the slide index.
@@ -79,7 +80,8 @@
     <header class="topbar">
       <button class="burger" id="burger" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <button class="cmdk" id="cmdk" aria-label="Search"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span>Search activities, slides, documents</span><kbd>Ctrl K</kbd></button>
-      <a class="btn primary tb-plan" href="circuit/"><svg class="ic" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg><span>Circuit Lab</span></a>
+      <button class="theme-btn" type="button" aria-label="Theme"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="t-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></g><g class="t-moon"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></g><g class="t-auto"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></g></svg></button>
+      <a class="btn primary tb-plan" href="circuit/" aria-label="Open Circuit Lab"><svg class="ic" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg><span>Circuit Lab</span></a>
     </header>
     <main id="app"></main>
   </div>
@@ -90,11 +92,11 @@
 <div class="viewer" id="viewer" role="dialog" aria-modal="true"></div>
 <div id="toast" role="status"></div>
 
-<script src="data.js?v=34"></script>
-<script src="library.js?v=34"></script>
-<script src="videos.js?v=34"></script>
-<script src="sims.js?v=34"></script>
-<script src="kitparts.js?v=34"></script>
-<script src="app.js?v=34"></script>
+<script src="data.js?v=35"></script>
+<script src="library.js?v=35"></script>
+<script src="videos.js?v=35"></script>
+<script src="sims.js?v=35"></script>
+<script src="kitparts.js?v=35"></script>
+<script src="app.js?v=35"></script>
 </body>
 </html>

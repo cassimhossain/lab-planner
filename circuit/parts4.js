@@ -1,5 +1,5 @@
 /* Circuit Lab - part catalogue, round 3: I2C, SPI and serial modules. */
-import "./elements4.js?v=19";
+import "./elements4.js?v=20";
 
 const v = (k, label, min, max, unit = "", step = 1) => ({ k, label, type: "range", min, max, step, unit, sim: true, live: true });
 

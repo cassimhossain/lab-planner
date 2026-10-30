@@ -4,8 +4,8 @@
    compiler). Picture output: Python turtle (Skulpt, bundled and offline),
    p5.js, Processing and a web page - those three run inside a sandboxed
    frame. The editor, toolbar, examples, saving and font size are shared. */
-import { EXAMPLES } from "./examples.js?v=3";
-import { runTurtle, stopTurtle, turtleHint, turtleReady, runFrame, stopFrame, docUrl, frameHint } from "./visual.js?v=3";
+import { EXAMPLES } from "./examples.js?v=4";
+import { runTurtle, stopTurtle, turtleHint, turtleReady, runFrame, stopFrame, docUrl, frameHint } from "./visual.js?v=4";
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));

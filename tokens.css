@@ -1,0 +1,170 @@
+/* =====================================================================
+   Robotics & AI Club - design tokens
+   One file for the Portal, Circuit Lab and Code Lab, so the three feel like
+   one product. Components never use raw colours: they use the names below,
+   and dark mode only swaps the values.
+
+   Identity, "Bench & Signal":
+   - board navy  : the chrome (sidebar, top bars, hero panels)
+   - LED amber   : the one signature accent - the main action and highlights
+   - signal teal : links and focus rings
+   - track colours stay as they always were, tuned for AA contrast
+
+   Type: Bricolage Grotesque for headings, Atkinson Hyperlegible Next for
+   reading, JetBrains Mono for code, Caveat for the odd handwritten touch.
+   All four are SIL Open Font License files in fonts/, served from this site.
+
+   The theme is set on <html data-theme="light|dark"> by theme.js before the
+   page paints. Printing always uses the light values.
+   ===================================================================== */
+
+/* ---------- 1. Fonts (self-hosted, variable, Latin subset) ---------- */
+@font-face { font-family: "Bricolage Grotesque"; src: url("fonts/bricolage-grotesque-latin-wght.woff2") format("woff2"); font-weight: 200 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "Atkinson Hyperlegible Next"; src: url("fonts/atkinson-hyperlegible-next-latin-wght.woff2") format("woff2"); font-weight: 200 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "Atkinson Hyperlegible Next"; src: url("fonts/atkinson-hyperlegible-next-latin-wght-italic.woff2") format("woff2"); font-weight: 200 800; font-style: italic; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("fonts/jetbrains-mono-latin-wght.woff2") format("woff2"); font-weight: 100 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "Caveat"; src: url("fonts/caveat-latin-wght.woff2") format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; }
+
+/* ---------- 2. Light theme (the default, and always for print) ---------- */
+:root {
+  color-scheme: light;
+
+  /* brand palette: raw values, the same in both themes */
+  --navy-950: #0B1424; --navy-900: #0F1D36; --navy-800: #17284A; --navy-700: #1B3A6B; --navy-600: #24497F; --navy-500: #2D5A9E;
+  --amber-300: #FFD27A; --amber-400: #F5B83D; --amber-500: #E5A11F; --amber-700: #8F5E00;
+  --teal-300: #5ED3D9; --teal-500: #0FA5AE; --teal-700: #0B7285;
+
+  /* surfaces */
+  --bg: #F4F6FA;               /* page */
+  --surface: #FFFFFF;          /* cards, panels, sheets */
+  --surface-2: #F7F9FC;        /* insets inside a card */
+  --surface-3: #EEF2F7;        /* chips, quiet buttons */
+  --surface-hover: #F1F4FA;
+  --overlay: rgba(11, 20, 36, .45);
+
+  /* text: --ink-muted is the lightest colour allowed for real text (AA on --bg) */
+  --ink: #121A2B; --ink-2: #3C4659; --ink-muted: #5B6578; --ink-faint: #94A0B3;
+
+  /* lines */
+  --line: #E3E8F0; --line-2: #EEF2F7; --line-strong: #C9D3E3;
+
+  /* chrome: the navy frame around the content, dark in both themes */
+  --chrome: #22345A; --chrome-2: #2D4370; --chrome-ink: #CBD5E8; --chrome-label: #93A3C2;
+  --chrome-grad: linear-gradient(180deg, #2A3E68 0%, #22345A 55%, #1F3054 100%);
+  --hero-grad: linear-gradient(115deg, #22345A 0%, #2D4A80 60%, #3B5FA0 100%);
+
+  /* actions */
+  --primary: var(--navy-700); --primary-hover: var(--navy-600); --on-primary: #FFFFFF;
+  --accent: var(--amber-400); --accent-hover: var(--amber-500); --on-accent: #1B2A47;
+  --accent-soft: #FFF4DC; --accent-ink: var(--amber-700);
+  --brand-ink: var(--navy-700);      /* navy as text: headings in bands, quiet links */
+  --link: var(--teal-700);
+  --focus: var(--teal-500);
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--focus) 45%, transparent);
+
+  /* status: background + text pairs that pass AA together */
+  --ok-bg: #E2F5EC; --ok-ink: #157A50;
+  --warn-bg: #FFF4DC; --warn-ink: #8F5E00;
+  --err-bg: #FDE9E7; --err-ink: #B23B2B;
+  --info-bg: #E8EFFD; --info-ink: #2357C6;
+  --video: #E63946; --video-hover: #C92F3B;
+
+  /* tracks: the colour, and a tint for backgrounds */
+  --tr-f: #1B3A6B;  --tr-f-tint: #E7ECF5;
+  --tr-le: #17805F; --tr-le-tint: #E3F4EC;
+  --tr-jm: #2F6BDE; --tr-jm-tint: #E8EFFD;
+  --tr-yi: #7B4DD6; --tr-yi-tint: #F0EAFC;
+  --tr-tl: #C9433F; --tr-tl-tint: #FCEAE9;
+
+  /* the background pattern: circuit traces and solder pads, drawn once and
+     used as a mask so its colour can follow the theme */
+  --trace-ink: rgba(27, 58, 107, .055);
+  --traces: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='480' viewBox='0 0 480 480'%3E%3Cg fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M0 60h70l20 20h90'/%3E%3Ccircle cx='186' cy='80' r='6'/%3E%3Cpath d='M300 0v40l-20 20v60'/%3E%3Ccircle cx='280' cy='126' r='6'/%3E%3Cpath d='M480 150h-90l-24 24v70'/%3E%3Ccircle cx='366' cy='250' r='6'/%3E%3Cpath d='M40 480v-80l30-30h80'/%3E%3Ccircle cx='156' cy='370' r='6'/%3E%3Cpath d='M210 480v-50l24-24h120l20-20'/%3E%3Ccircle cx='378' cy='382' r='6'/%3E%3Cpath d='M0 250h40l16 16v40'/%3E%3Ccircle cx='56' cy='312' r='6'/%3E%3Crect x='190' y='196' width='60' height='40' rx='5'/%3E%3Cpath d='M200 196v-10M215 196v-10M230 196v-10M200 236v10M215 236v10M230 236v10'/%3E%3Cpath d='M250 216h46'/%3E%3Ccircle cx='302' cy='216' r='6'/%3E%3C/g%3E%3Cg fill='%23000'%3E%3Ccircle cx='70' cy='60' r='3'/%3E%3Ccircle cx='300' cy='40' r='3'/%3E%3Ccircle cx='390' cy='150' r='3'/%3E%3Ccircle cx='70' cy='370' r='3'/%3E%3Ccircle cx='354' cy='406' r='3'/%3E%3Ccircle cx='40' cy='250' r='3'/%3E%3C/g%3E%3C/svg%3E");
+
+  /* type */
+  --font-display: "Bricolage Grotesque", "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-body: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, Menlo, monospace;
+  --font-hand: "Caveat", "Comic Sans MS", cursive;
+  --fs-2xs: 11.5px; --fs-xs: 12.5px; --fs-sm: 13.5px; --fs-base: 15px; --fs-md: 16px; --fs-lg: 18px;
+  --fs-xl: 22px; --fs-2xl: 27px; --fs-3xl: clamp(26px, 2.2vw + 16px, 34px);
+  --lh-tight: 1.2; --lh: 1.5;
+
+  /* spacing (4px steps) */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-7: 28px; --sp-8: 32px; --sp-10: 40px;
+
+  /* radius */
+  --r-xs: 6px; --r-sm: 10px; --r-md: 12px; --r-lg: 18px; --r-xl: 24px; --r-pill: 999px;
+
+  /* shadow */
+  --sh-1: 0 1px 2px rgba(15, 27, 45, .04), 0 4px 14px rgba(15, 27, 45, .06);
+  --sh-2: 0 12px 34px rgba(15, 27, 45, .14);
+  --sh-3: 0 30px 80px rgba(15, 27, 45, .35);
+
+  /* motion */
+  --dur-fast: .12s; --dur: .2s; --dur-slow: .32s;
+  --ease-out: cubic-bezier(.22, .61, .36, 1);
+  --ease-in-out: cubic-bezier(.45, 0, .55, 1);
+
+  /* the smallest comfortable thing to tap */
+  --tap: 44px;
+}
+
+/* ---------- 3. Dark theme (screen only: print keeps the light values) ---------- */
+@media screen {
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --bg: #0B1322;
+    --surface: #131D30; --surface-2: #18243A; --surface-3: #1E2B44; --surface-hover: #1C2840;
+    --overlay: rgba(2, 6, 14, .62);
+
+    --ink: #E8EDF5; --ink-2: #C3CDDC; --ink-muted: #9AA7BC; --ink-faint: #66748C;
+    --line: #26344F; --line-2: #1E2B44; --line-strong: #3A4C70;
+
+    --chrome: #101B30; --chrome-2: #1A2843; --chrome-ink: #BCC8DC; --chrome-label: #7F90AE;
+    --chrome-grad: linear-gradient(180deg, #13213A 0%, #101B30 55%, #0D172A 100%);
+    --hero-grad: linear-gradient(115deg, #172A4D 0%, #1F3966 60%, #2A4C86 100%);
+
+    --primary: #3D6FC2; --primary-hover: #4A7DD1; --on-primary: #FFFFFF;
+    --accent-soft: #3A2E12; --accent-ink: var(--amber-300);
+    --brand-ink: #A9C1EE;
+    --link: var(--teal-300);
+    --focus: var(--teal-300);
+
+    --ok-bg: #12301F; --ok-ink: #6FD49F;
+    --warn-bg: #3A2E12; --warn-ink: #FFD27A;
+    --err-bg: #3A1A18; --err-ink: #FF9B90;
+    --info-bg: #182A4D; --info-ink: #93B6FF;
+
+    --tr-f: #8FB0E8;  --tr-f-tint: #1A2A47;
+    --tr-le: #4CC9A0; --tr-le-tint: #12302A;
+    --tr-jm: #7FA8F5; --tr-jm-tint: #1A2A4D;
+    --tr-yi: #B394F2; --tr-yi-tint: #2A2047;
+    --tr-tl: #F2837F; --tr-tl-tint: #3A1C22;
+
+    --trace-ink: rgba(143, 176, 232, .06);
+
+    --sh-1: 0 1px 2px rgba(0, 0, 0, .34), 0 4px 14px rgba(0, 0, 0, .28);
+    --sh-2: 0 12px 34px rgba(0, 0, 0, .5);
+    --sh-3: 0 30px 80px rgba(0, 0, 0, .6);
+  }
+}
+
+/* ---------- 4. Shared behaviour ---------- */
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* reduced motion: animations and transitions finish at once instead of playing */
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0s; --dur: 0s; --dur-slow: 0s; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
+/* the Light / Dark / System button used in all three apps */
+.theme-btn { display: inline-grid; place-items: center; width: var(--tap); height: var(--tap); border-radius: var(--r-md); border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; flex: none; transition: background var(--dur-fast), border-color var(--dur-fast); }
+.theme-btn:hover { border-color: var(--line-strong); background: var(--surface-hover); }
+.theme-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.theme-btn .t-sun, .theme-btn .t-moon, .theme-btn .t-auto { display: none; }
+:root[data-theme-mode="light"] .theme-btn .t-sun,
+:root[data-theme-mode="dark"] .theme-btn .t-moon,
+:root[data-theme-mode="system"] .theme-btn .t-auto, :root:not([data-theme-mode]) .theme-btn .t-auto { display: block; }

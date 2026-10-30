@@ -179,7 +179,7 @@ export function drawScope() {
     });
     if (started) g.lineTo(w, prevY);
     g.stroke();
-    g.fillStyle = ch.color; g.font = "600 20px 'Plus Jakarta Sans', sans-serif";
+    g.fillStyle = ch.color; g.font = "600 20px 'Atkinson Hyperlegible Next', sans-serif";
     g.fillText(ch.name, 8, top + 18);
     const last = ch.buf[ch.buf.length - 1];
     if (last) { g.fillStyle = "#64748B"; g.font = "18px 'JetBrains Mono', monospace"; g.fillText(last[1] == null ? "—" : last[1].toFixed(2) + " V", w - 110, top + 18); }

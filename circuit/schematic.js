@@ -220,7 +220,7 @@ const CSS = `
 .sp { fill: #0F1D36; stroke: none; }
 .sw { fill: none; stroke: #0F1D36; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .sgnd, .spwr { fill: none; stroke: #0F1D36; stroke-width: 1.5; stroke-linecap: round; }
-text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; fill: #0F1D36; stroke: none; }
+text { font-family: "Atkinson Hyperlegible Next", system-ui, sans-serif; fill: #0F1D36; stroke: none; }
 .sl { font-size: 11.5px; font-weight: 700; text-anchor: middle; }
 .sl.box { font-size: 11.5px; }
 .spn { font-size: 8.5px; fill: #5A6B86; font-weight: 600; }

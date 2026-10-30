@@ -8,11 +8,10 @@
 <link rel="icon" type="image/svg+xml" href="../logo.svg">
 <!-- lets Python's input() wait for typing: adds the cross-origin isolation headers GitHub Pages can't set -->
 <script src="coi-serviceworker.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" crossorigin="anonymous">
-<link rel="stylesheet" href="vendor/codemirror.css?v=3">
-<link rel="stylesheet" href="codelab.css?v=3">
+<script src="../theme.js?v=4"></script>
+<link rel="stylesheet" href="../tokens.css?v=4">
+<link rel="stylesheet" href="vendor/codemirror.css?v=4">
+<link rel="stylesheet" href="codelab.css?v=4">
 </head>
 <body>
 <header class="top">
@@ -33,6 +32,7 @@
   </nav>
   <div class="grow"></div>
   <span id="engine" class="engine"></span>
+  <button class="theme-btn" type="button" aria-label="Theme"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="t-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></g><g class="t-moon"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></g><g class="t-auto"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></g></svg></button>
   <button id="runbtn" class="run" data-act="run" title="Run (Ctrl+Enter)"><svg class="ic" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg><span>Run</span></button>
 </header>
 
@@ -90,9 +90,9 @@
 <div id="toast" class="toast"></div>
 <input id="fileup" type="file" accept=".py,.cpp,.cc,.c,.h,.txt,.js,.pde,.html,.htm,.css" hidden>
 
-<script src="vendor/codemirror.min.js?v=3"></script>
+<script src="vendor/codemirror.min.js?v=4"></script>
 <!-- javascript, css, xml and htmlmixed modes for the p5, Processing and Web tabs -->
-<script src="vendor/cm-modes.js?v=3"></script>
-<script type="module" src="app.js?v=3"></script>
+<script src="vendor/cm-modes.js?v=4"></script>
+<script type="module" src="app.js?v=4"></script>
 </body>
 </html>

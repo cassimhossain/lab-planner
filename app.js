@@ -7,7 +7,8 @@
   const KEY = "rac-lab-planner-v1";
   const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
   const DAYFULL = { Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", "": "No day" };
-  const PAL = { LE: ["#1F9D74", "#E6F6F0"], JM: ["#2F6BDE", "#E8EFFD"], YI: ["#7B4DD6", "#F0EAFC"], TL: ["#E0524F", "#FDECEC"] };
+  /* track colours are CSS tokens (tokens.css), so they follow light and dark mode */
+  const PAL = { LE: ["var(--tr-le)", "var(--tr-le-tint)"], JM: ["var(--tr-jm)", "var(--tr-jm-tint)"], YI: ["var(--tr-yi)", "var(--tr-yi-tint)"], TL: ["var(--tr-tl)", "var(--tr-tl-tint)"] };
   D.groups.forEach(g => { if (PAL[g.code]) { g.color = PAL[g.code][0]; g.light = PAL[g.code][1]; } });
   const GROUPS = Object.fromEntries(D.groups.map(g => [g.code, g]));
   const ACTS = D.activities;
@@ -18,7 +19,7 @@
   const DECK = Object.fromEntries(LIB.decks.map(d => [d.code, d]));
   const VIDS = window.VIDEOS || {};
   const vidOf = id => { const c = String(id).split("@")[0].split(" ")[0]; return (VIDS[c] || [])[0] || null; };
-  const LGROUPS = [{ code: "F", name: "Foundation", ages: "All age groups", color: "#1B3A6B", light: "#E7ECF5" }].concat(D.groups);
+  const LGROUPS = [{ code: "F", name: "Foundation", ages: "All age groups", color: "var(--tr-f)", light: "var(--tr-f-tint)" }].concat(D.groups);
   const LG = Object.fromEntries(LGROUPS.map(g => [g.code, g]));
   const deckOf = id => DECK[String(id).split("@")[0].split(" ")[0]] || null;
   const deckTitle = d => { const a = BYCODE[d.code] || BYCODE[d.code + " (LE)"]; return a ? a.title : d.title; };
@@ -352,7 +353,7 @@
     const act = a => ({ icon: a.domain, title: `${lab(a)} · ${a.title}`, sub: `${GROUPS[a.group].name}${a.from ? " (borrowed)" : ""} · ${statusText(a.code)}`, color: GROUPS[a.group].color, light: GROUPS[a.group].light, run: () => openModal(a.code), badge: deckOf(a.code) ? "Slides" : "" });
     const deck = d => ({ thumb: d.thumb, title: `${d.code} · ${deckTitle(d)}`, sub: `${LG[d.group].name} · ${d.pages} slides`, color: LG[d.group].color, light: LG[d.group].light, run: () => openDeck(d.code), badge: "Present" });
     const doc = (d, n) => ({ icon: d.type === "pdf" ? "file" : "sheet", title: d.title, sub: d.about, color: "#C98A12", light: "#FFF4DC", run: () => { if (d.type === "pdf") openViewer(d.file, d.title, "doc", "#F5B83D", d.about); else { const l = document.createElement("a"); l.href = d.file; l.download = ""; document.body.appendChild(l); l.click(); l.remove(); } }, badge: d.type === "pdf" ? "PDF" : "Excel" });
-    const page = ([k, t, i]) => ({ icon: i, title: t, sub: "Go to page", color: "#1B3A6B", light: "#E7ECF5", run: () => { location.hash = "#" + k; } });
+    const page = ([k, t, i]) => ({ icon: i, title: t, sub: "Go to page", color: "var(--tr-f)", light: "var(--tr-f-tint)", run: () => { location.hash = "#" + k; } });
     if (!toks.length) {
       if (CMD.mode !== "plan") sec("Jump to", PAGES.map(page).concat(D.groups.map(g => ({ icon: "users", title: g.name, sub: "Ages " + g.ages, color: g.color, light: g.light, run: () => { location.hash = "#" + g.code; } }))), 11);
       sec("Planned this week", planned().map(act), 6);

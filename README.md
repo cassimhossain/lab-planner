@@ -30,6 +30,16 @@ Use the arrows in the top bar to change the planning week.
 `build_library.py` copies new or changed PDFs into `library/`, makes the cover images and rebuilds `library.js`.
 Cover images need poppler (`brew install poppler`).
 
+## After changing any file
+
+Browsers keep old copies of the site's files, so every file is loaded with a version number (`?v=38`). After editing, bump them all at once:
+
+```
+python3 tools/bump_version.py --dry-run   # see what would change
+python3 tools/bump_version.py             # portal, Circuit Lab and Code Lab
+python3 tools/bump_version.py portal      # or just one
+```
+
 ## Adding steps, a challenge or questions to a lesson
 
 The lesson sheet shows three extra sections when an activity in `data.js` has these optional fields. Leave them out and the sections don't appear.
@@ -74,6 +84,8 @@ A student's progress (finished lessons, their group, the slide they stopped on, 
 | `library.js` | List of presentations and documents (generated) |
 | `library/slides`, `library/docs`, `library/thumbs` | Presentation PDFs, documents, cover images |
 | `tools/build_library.py` | Syncs `library/` from the Robotics Curriculum folder |
+| `tools/bump_version.py` | Bumps every `?v=` version string together |
+| `tokens.css`, `theme.js`, `fonts/` | Shared colours, type and light / dark theme for all three apps |
 | `circuit/` | Circuit Lab: the circuit editor and simulator |
 | `codelab/` | Code Lab: the six-language editor |
 | `buddy/` | Study Buddy: settings, glossary, teacher prompt, chat panel |

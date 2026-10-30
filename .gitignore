@@ -1,1 +1,17 @@
+# macOS
 .DS_Store
+
+# Python (tools/)
+__pycache__/
+*.pyc
+
+# editors and local tooling
+.vscode/
+.idea/
+*.swp
+.claude/
+
+# Study Buddy's Cloudflare Worker, if deployed with wrangler
+chatbot-proxy/.wrangler/
+chatbot-proxy/node_modules/
+node_modules/

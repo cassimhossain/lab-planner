@@ -154,6 +154,10 @@
 /* ---------- 4. Shared behaviour ---------- */
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
+/* "Skip to content": hidden until a keyboard user tabs to it */
+.skip { position: fixed; left: 12px; top: -60px; z-index: 200; padding: 10px 16px; border-radius: var(--r-md); background: var(--accent); color: var(--on-accent); font: 700 15px var(--font-body); text-decoration: none; box-shadow: var(--sh-2); transition: top var(--dur-fast); }
+.skip:focus { top: 12px; }
+
 /* reduced motion: animations and transitions finish at once instead of playing */
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-fast: 0s; --dur: 0s; --dur-slow: 0s; }

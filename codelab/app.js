@@ -4,8 +4,8 @@
    compiler). Picture output: Python turtle (Skulpt, bundled and offline),
    p5.js, Processing and a web page - those three run inside a sandboxed
    frame. The editor, toolbar, examples, saving and font size are shared. */
-import { EXAMPLES } from "./examples.js?v=6";
-import { runTurtle, stopTurtle, turtleHint, turtleReady, runFrame, stopFrame, docUrl, frameHint } from "./visual.js?v=6";
+import { EXAMPLES } from "./examples.js?v=7";
+import { runTurtle, stopTurtle, turtleHint, turtleReady, runFrame, stopFrame, docUrl, frameHint } from "./visual.js?v=7";
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -659,6 +659,9 @@ window.addEventListener("hashchange", () => {
   const h = location.hash.slice(1);
   if (LANGS[h] && h !== S.lang) setLang(h);
 });
+
+/* "Skip to the code editor" puts the cursor in the editor, not just near it */
+const skip = document.querySelector(".skip"); if (skip) skip.addEventListener("click", e => { e.preventDefault(); editor.focus(); });
 
 setLang(S.lang);
 window.CODELAB = { editor, run, setLang, get running() { return running; }, PY, loadExample };

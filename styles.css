@@ -267,7 +267,7 @@ body.pal-open .palette { display: flex; }
 .bitem:hover { transform: translateY(-1px); background: var(--l); }
 .bitem span { display: flex; align-items: center; gap: 4px; color: var(--c); font-weight: 800; font-size: 12px; } .bitem span .ic { width: 12px; height: 12px; fill: currentColor; stroke: none; }
 .bitem b { display: block; font-size: 13.5px; line-height: 1.25; font-weight: 700; } .bitem small { color: var(--ink-muted); font-size: 11.5px; }
-.badd { margin-top: auto; border: 1.5px dashed var(--line-strong); background: transparent; border-radius: var(--r-sm); height: 34px; color: var(--ink-muted); cursor: pointer; display: grid; place-items: center; opacity: .7; }
+.badd { margin-top: auto; border: 1.5px dashed var(--line-strong); background: transparent; border-radius: var(--r-sm); height: var(--tap); color: var(--ink-muted); cursor: pointer; display: grid; place-items: center; opacity: .7; }
 .badd:hover { opacity: 1; border-color: var(--brand-ink); color: var(--brand-ink); background: var(--surface); }
 .badd .ic { width: 16px; height: 16px; }
 
@@ -1069,6 +1069,13 @@ table.kt td.box::after { content: ""; display: block; width: 16px; height: 16px;
   .lacts { gap: 10px; }
 }
 
+
+/* on touch screens every control is at least a fingertip (44px) */
+@media (pointer: coarse) {
+  .pfoot a, .pfoot .lk, .sec-link, .att .lk, .exchip, .recent button, .panel-h a, .more, .linkbtn, .m-links button, .lacts a, .wprint, .msim, .gtab, .tabs button, .rchip button { min-height: var(--tap); }
+  .rchip button { min-width: var(--tap); }
+  .linkbtn, .m-links button, .lacts a, .more, .panel-h a { display: inline-flex; align-items: center; }
+}
 
 /* ---------- 20. Print ---------- */
 @media print {

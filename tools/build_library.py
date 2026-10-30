@@ -46,8 +46,8 @@ def thumb(src, dst_dir, name, force):
     jpg = os.path.join(dst_dir, name + ".jpg")
     if force or not os.path.exists(jpg) or os.path.getmtime(jpg) < os.path.getmtime(src):
         try:
-            subprocess.run(["pdftoppm", "-jpeg", "-jpegopt", "quality=78", "-f", "1", "-l", "1", "-singlefile",
-                            "-scale-to", "960", src, jpg[:-4]], check=False)
+            subprocess.run(["pdftoppm", "-jpeg", "-jpegopt", "quality=72", "-f", "1", "-l", "1", "-singlefile",
+                            "-scale-to", "640", src, jpg[:-4]], check=False)
         except FileNotFoundError:
             pass
     return "library/thumbs/" + name + ".jpg" if os.path.exists(jpg) else ""

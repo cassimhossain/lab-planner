@@ -1,6 +1,29 @@
 /* Robotics & AI Club Lab Planner
    Plain HTML + CSS + JavaScript. No build step, no server: works on GitHub Pages.
-   Your plan is saved in this browser (localStorage). Use Settings to download / load a backup. */
+   Your plan is saved in this browser (localStorage). Use Settings to download / load a backup.
+
+   One file on purpose: every part shares the same few variables (the plan S,
+   the progress PR, the UI state), and splitting it into modules would change
+   the order things load in. Search for a heading below to jump to it.
+
+   Contents (each starts with a line like  ---------- NAME ----------)
+     icons                 the line-drawing icon set
+     state                 the plan (rac-lab-planner-v1): load, save, sessions, borrowing
+     student progress      rac-progress-v1, levels and lesson length
+     helpers               escaping, dates, totals
+     routing / sidebar     #pages, filters after "?", the menu
+     shared bits           status chips, activity cards, page headings
+     HOME / STUDENT HOME   teacher dashboard and the student's home
+     COMMAND PALETTE       Ctrl K search
+     AGE GROUP             track pages, roadmap and filters
+     SESSION MODAL         the lesson sheet and "Plan this session"
+     SCHEDULER, WEEK       adding sessions, the timetable
+     PRINT, HARDWARE LIST  kit lists and one activity's printable list
+     KITS, CURRICULUM, HARDWARE, VIRTUAL LABS   the remaining pages
+     the robot             loaders
+     PDF VIEWER            slides, documents and video
+     COPY, TIPS, STUDY BUDDY, NOT FOUND, SETTINGS
+     events                every click, change, input and key, in one place */
 (function () {
   "use strict";
   const D = window.CLUB_DATA;
@@ -434,7 +457,7 @@
   const PAGES = [["home", "Home", "home"], ["curriculum", "Curriculum", "book"], ["hardware", "Hardware", "parts"], ["week", "Timetable", "week"], ["sims", "Simulators", "flask"], ["print", "Print lists", "print"], ["kits", "Edit kits & parts", "box"], ["settings", "Settings & backup", "gear"]];
   const CMD = { open: false, mode: "all", q: "", i: 0, res: [] };
   function openPalette(mode, q0) { CMD.open = true; CMD.mode = mode || "all"; CMD.q = q0 || ""; CMD.i = 0;
-    $("#palette").innerHTML = `<div class="pal-box"><div class="pal-in">${ic("search")}<input id="palQ" autocomplete="off" aria-label="Search" placeholder="${CMD.mode === "plan" ? "Which activity? Type a code or name, e.g. JM-06 or robot" : "Search activities, presentations, documents, pages"}"><kbd>Esc</kbd></div><div class="pal-res" id="palRes"></div>
+    $("#palette").innerHTML = `<div class="pal-box"><div class="pal-in">${ic("search")}<input id="palQ" autocomplete="off" aria-label="Search" role="combobox" aria-expanded="true" aria-controls="palRes" aria-autocomplete="list" placeholder="${CMD.mode === "plan" ? "Which activity? Type a code or name, e.g. JM-06 or robot" : "Search activities, presentations, documents, pages"}"><kbd>Esc</kbd></div><div class="pal-res" id="palRes" role="listbox" aria-label="Results"></div>
       <div class="pal-foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>Enter</kbd> open</span><span><kbd>Ctrl K</kbd> search anywhere</span></div></div>`;
     /* focus at once, not after a delay: letters typed straight after Ctrl K
        used to land on the page behind and go missing */
@@ -471,13 +494,14 @@
       }
     }
     CMD.res = R.filter(x => !x.head); CMD.i = Math.min(CMD.i, Math.max(0, CMD.res.length - 1));
+    const qi = $("#palQ"); if (qi) { if (CMD.res.length) qi.setAttribute("aria-activedescendant", "pal-" + CMD.i); else qi.removeAttribute("aria-activedescendant"); }
     let k = -1;
-    $("#palRes").innerHTML = R.length ? R.map(x => x.head ? `<div class="pal-h">${x.head}</div>` : (k++, `<button class="pal-i ${k === CMD.i ? "on" : ""}" role="option" aria-selected="${k === CMD.i}" data-pal="${k}" style="--c:${x.color};--l:${x.light}">
+    $("#palRes").innerHTML = R.length ? R.map(x => x.head ? `<div class="pal-h">${x.head}</div>` : (k++, `<button class="pal-i ${k === CMD.i ? "on" : ""}" role="option" id="pal-${k}" aria-selected="${k === CMD.i}" data-pal="${k}" style="--c:${x.color};--l:${x.light}">
         ${x.thumb ? `<img src="${esc(x.thumb)}" alt="">` : `<span class="pal-ic">${ic(x.icon)}</span>`}<span class="pal-t"><b>${esc(x.title)}</b><small>${esc(x.sub)}</small></span>${x.badge ? `<em>${x.badge}</em>` : ""}${ic("arrow", "pal-go")}</button>`)).join("")
       : `<div class="pal-empty">${DOODLE}<p>Nothing found for “${esc(CMD.q)}”.</p></div>`;
   }
   const statusText = c => { const s = peek(c); return s.status === "Next week" ? (s.day ? "Planned " + DAYFULL[s.day] : "Planned") : s.status === "Not started" ? "Not planned" : s.status; };
-  function palMove(n) { if (!CMD.res.length) return; CMD.i = (CMD.i + n + CMD.res.length) % CMD.res.length; document.querySelectorAll(".pal-i").forEach((b, i) => { b.classList.toggle("on", i === CMD.i); b.setAttribute("aria-selected", i === CMD.i); }); const on = document.querySelector(".pal-i.on"); if (on) on.scrollIntoView({ block: "nearest" }); }
+  function palMove(n) { if (!CMD.res.length) return; CMD.i = (CMD.i + n + CMD.res.length) % CMD.res.length; document.querySelectorAll(".pal-i").forEach((b, i) => { b.classList.toggle("on", i === CMD.i); b.setAttribute("aria-selected", i === CMD.i); }); $("#palQ").setAttribute("aria-activedescendant", "pal-" + CMD.i); const on = document.querySelector(".pal-i.on"); if (on) on.scrollIntoView({ block: "nearest" }); }
   function palRun(i) {
     const x = CMD.res[i]; if (!x) return; const q = CMD.q.trim();
     if (q && CMD.mode !== "plan") { PR.recent = [q].concat(PR.recent.filter(r => r.toLowerCase() !== q.toLowerCase())).slice(0, 6); savePr(); }
@@ -536,8 +560,25 @@
 
   /* ---------- SESSION MODAL ---------- */
   let modalCode = null;
-  function openModal(code) { modalCode = code; UI.swapOpen = false; if (getA(code)) { PR.last = code; savePr(); } renderModal(); document.body.classList.add("modal-open"); }
-  function closeModal() { modalCode = null; document.body.classList.remove("modal-open"); render(); }
+  /* keyboard users land inside the sheet, Tab stays in it, and closing puts
+     focus back on whatever opened it */
+  let modalReturn = null;
+  const focusables = root => [...root.querySelectorAll('a[href], button:not([disabled]), input:not([type="hidden"]), select, textarea, summary, [tabindex]:not([tabindex="-1"])')].filter(el => el.offsetParent !== null);
+  function focusSheet() { const m = $("#modal .sheet-m"); if (!m) return; const f = m.querySelector("[data-close], .m-x") || focusables(m)[0]; if (f) f.focus({ preventScroll: true }); }
+  /* the page is redrawn when the sheet closes, so the button that opened it
+     is found again by its data-open / data-sched / data-pick value */
+  function opener(el) {
+    if (!el || el === document.body) return null;
+    const k = ["open", "sched", "pick"].find(x => el.dataset && el.dataset[x] != null);
+    return { el, sel: k ? `[data-${k}="${CSS.escape(el.dataset[k])}"]` : "" };
+  }
+  function openModal(code) { if (!modalCode) modalReturn = opener(document.activeElement); modalCode = code; UI.swapOpen = false; if (getA(code)) { PR.last = code; savePr(); } renderModal(); document.body.classList.add("modal-open"); focusSheet(); }
+  function closeModal() {
+    modalCode = null; document.body.classList.remove("modal-open"); render();
+    const r = modalReturn; modalReturn = null; if (!r) return;
+    const back = document.contains(r.el) ? r.el : r.sel ? $("#app " + r.sel) || $(r.sel) : null;
+    if (back) back.focus({ preventScroll: true });
+  }
   function renderPicker(gc) {
     const g = GROUPS[gc], others = D.groups.filter(x => x.code !== gc);
     if (!UI.pickG || UI.pickG === gc) UI.pickG = others[0].code;
@@ -632,7 +673,8 @@
     const r = (S.routine || []).find(x => x.day === day && (!gc || x.group === gc));
     const g = gc || (r && r.group) || (UI.sch && UI.sch.g) || "LE";
     UI.sch = { day, g, code: suggestFor(g), time: r ? r.time : "", section: r ? r.section : "", groups: r ? r.groups : S.defaultGroups, notes: "", q: "", keep: !!r };
-    modalCode = "sched:" + day; renderModal(); document.body.classList.add("modal-open");
+    if (!modalCode) modalReturn = opener(document.activeElement);
+    modalCode = "sched:" + day; renderModal(); document.body.classList.add("modal-open"); focusSheet();
   }
   function renderSched() {
     const c = UI.sch, g = GROUPS[c.g], q = c.q.toLowerCase();
@@ -655,7 +697,7 @@
         <div class="m-row">
           <div class="m-sec"><label>Time <i>optional</i></label><input data-sf="time" list="schTimes" value="${esc(c.time)}" placeholder="e.g. 2:30 pm"><datalist id="schTimes">${TIMES.map(t => `<option value="${t}">`).join("")}</datalist></div>
           <div class="m-sec"><label>Class / section <i>optional</i></label><input data-sf="section" value="${esc(c.section)}" placeholder="e.g. Grade 4 B"></div>
-          <div class="m-sec"><label>Groups (pairs)</label><div class="stepper"><button data-schstep="-1">${ic("minus")}</button><b>${c.groups}</b><button data-schstep="1">${ic("plus")}</button></div></div>
+          <div class="m-sec"><label>Groups (pairs)</label><div class="stepper"><button data-schstep="-1" aria-label="Fewer groups">${ic("minus")}</button><b>${c.groups}</b><button data-schstep="1" aria-label="More groups">${ic("plus")}</button></div></div>
         </div>
         <div class="m-sec"><label>Notes <i>optional</i></label><input data-sf="notes" value="${esc(c.notes)}" placeholder="Room, helper, anything to remember"></div>
         <label class="tog"><input type="checkbox" id="schKeep" ${c.keep ? "checked" : ""}><span></span>Repeat every week: save ${esc(g.name)} on ${DAYFULL[c.day]}${c.time ? " at " + esc(c.time) : ""} to my weekly routine</label>
@@ -861,7 +903,7 @@
     return `<div class="noprint">${head("Hardware list · " + lab(a), esc(a.title) + " · " + esc(g.name),
         `<a class="btn" href="#${a.group}">${ic("arrow")}Back to ${esc(g.name)}</a><button class="btn" data-copycode="${esc(a.code)}">${ic("copy")}Copy list</button><button class="btn primary big" data-act="print">${ic("print")}Print / Save PDF</button>`)}
       <div class="pbar kbar"><span class="gl">Groups (pairs) in the class</span>
-        <div class="stepper"><button data-kstep="-1">${ic("minus")}</button><b>${gr}</b><button data-kstep="1">${ic("plus")}</button></div>
+        <div class="stepper"><button data-kstep="-1" aria-label="Fewer groups">${ic("minus")}</button><b>${gr}</b><button data-kstep="1" aria-label="More groups">${ic("plus")}</button></div>
         <span class="muted">The totals follow this number.</span></div></div>
       <div id="printArea"><div class="paper kitpaper">
         <div class="shead"><div><h2>Hardware list</h2>
@@ -889,7 +931,7 @@
       <datalist id="partsList">${Object.keys(parts).sort().map(n => `<option value="${esc(n)}">`).join("")}</datalist>
       <div class="krows">${kit.map((k, i) => { const c = catOf(k.n), known = !!parts[k.n]; return `<div class="krow" data-i="${i}">
           <div class="kname"><input class="kn" list="partsList" data-k="n" value="${esc(k.n)}" placeholder="Part name"><span class="kmeta">${known ? esc(c.cat) + " · " + esc(c.type) : `<select data-k="cat">${catOpts(c.cat)}</select>`}</span></div>
-          <div class="kq"><button data-kstep="-1" data-i="${i}">${ic("minus")}</button><b>${esc(k.q)}</b><button data-kstep="1" data-i="${i}">${ic("plus")}</button></div>
+          <div class="kq"><button data-kstep="-1" data-i="${i}" aria-label="One fewer">${ic("minus")}</button><b>${esc(k.q)}</b><button data-kstep="1" data-i="${i}" aria-label="One more">${ic("plus")}</button></div>
           <select data-k="b"><option value="group" ${k.b !== "class" ? "selected" : ""}>per group</option><option value="class" ${k.b === "class" ? "selected" : ""}>per class</option></select>
           <button class="kdel" data-del="${i}" aria-label="Remove">${ic("x")}</button></div>`; }).join("")}</div>
       <div class="kfoot"><button class="btn primary" data-act="addrow">${ic("plus")}Add part</button>${S.kits[a.code] ? `<button class="btn" data-act="resetkit">Reset to original</button>` : ""}<span class="muted">Quantities are per group of 2 students unless "per class".</span></div></div>`;
@@ -1208,7 +1250,7 @@
   function vSettings() {
     return head("Settings", "Defaults for planning and printing, and backups of your plan.") + `<div class="setgrid">
       <div class="card"><h2>Defaults</h2>
-        <label class="field">Groups (pairs) per session<div class="stepper"><button data-gstep="-1">${ic("minus")}</button><b>${S.defaultGroups}</b><button data-gstep="1">${ic("plus")}</button></div></label>
+        <label class="field">Groups (pairs) per session<div class="stepper"><button data-gstep="-1" aria-label="Fewer groups">${ic("minus")}</button><b>${S.defaultGroups}</b><button data-gstep="1" aria-label="More groups">${ic("plus")}</button></div></label>
         <label class="field">Your name on printouts<input id="setName" value="${esc(S.name)}"></label>
         <label class="field">School line on printouts<input id="setCampus" value="${esc(S.campus)}"></label></div>
       <div class="card"><h2>Backup</h2>
@@ -1340,7 +1382,16 @@
       else if (e.key === "?") { const h = $("#vHelp"); if (h) h.hidden = !h.hidden; }
       return;
     }
-    if (e.key === "Escape" && modalCode) closeModal(); });
+    if (e.key === "Escape" && modalCode) closeModal();
+    /* Tab and Shift+Tab go round the open sheet or palette rather than out behind it */
+    if (e.key === "Tab") {
+      const box = CMD.open ? $(".pal-box") : modalCode ? $("#modal .sheet-m") : null; if (!box) return;
+      const f = focusables(box); if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (!box.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    } });
   /* Ctrl+P from anywhere should still give a usable sheet, so a page with
      nothing printable on it hands over to the Print lists page first. A page
      that already has a #printArea - the kit lists and every activity's

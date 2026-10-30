@@ -241,7 +241,19 @@
     $(".bd-in", panel).addEventListener("submit", e => { e.preventDefault(); send(input.value); });
     input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input.value); } });
     input.addEventListener("input", () => { input.style.height = "auto"; input.style.height = Math.min(120, input.scrollHeight) + "px"; });
-    document.addEventListener("keydown", e => { if (e.key === "Escape" && !panel.hidden) { e.stopPropagation(); close(); } }, true);
+    document.addEventListener("keydown", e => {
+      if (panel.hidden) return;
+      if (e.key === "Escape") { e.stopPropagation(); close(); return; }
+      /* Tab goes round the panel while it is open */
+      if (e.key === "Tab") {
+        const f = [...panel.querySelectorAll("button:not([disabled]), textarea, a[href]")].filter(el => el.offsetParent !== null);
+        if (!f.length) return;
+        const first = f[0], last = f[f.length - 1];
+        if (!panel.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+        else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    }, true);
   }
   function syncMode() { panel.querySelectorAll("[data-bmode]").forEach(b => { const on = b.dataset.bmode === ST.mode; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); }); }
   function quick() {

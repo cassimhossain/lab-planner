@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Circuit Lab · Robotics &amp; AI Club</title>
 <meta name="description" content="Build Arduino and ESP32 circuits, write code and run them in the browser. Ready-made circuits for every lesson.">
-<link rel="icon" type="image/svg+xml" href="chip.svg?v=22">
+<link rel="icon" type="image/svg+xml" href="chip.svg?v=23">
 <link rel="alternate icon" href="icon-192.png">
 <!-- installed-app plumbing: the manifest makes this page installable on its own,
      with its own icon and window, and the service worker keeps it working when
      the connection drops. Compiling still needs the internet. -->
-<link rel="manifest" href="manifest.webmanifest?v=22">
+<link rel="manifest" href="manifest.webmanifest?v=23">
 <meta name="theme-color" content="#1B3A6B">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,10 +19,10 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <!-- theme first, so a dark page never flashes white; the fonts are files on
      this site, so they work offline too -->
-<script src="../theme.js?v=22"></script>
-<link rel="stylesheet" href="../tokens.css?v=22">
-<link rel="stylesheet" href="../buddy/buddy.css?v=37">
-<link rel="stylesheet" href="circuit.css?v=22" fetchpriority="high">
+<script src="../theme.js?v=23"></script>
+<link rel="stylesheet" href="../tokens.css?v=23">
+<link rel="stylesheet" href="../buddy/buddy.css?v=38">
+<link rel="stylesheet" href="circuit.css?v=23" fetchpriority="high">
 
 <style>
 /* installed as an app: there is no portal around it, so the back arrow would
@@ -36,6 +36,7 @@
 </style>
 </head>
 <body>
+<a class="skip" href="#stage">Skip to the circuit</a>
 <!-- The chip holds the screen while the editor, the parts and the lessons
      load. app.js takes it down once there is something behind it. -->
 <div class="clboot" id="clboot"><div class="chipwrap"><svg class="chip" viewBox="0 0 1024 1024" aria-hidden="true">
@@ -104,8 +105,8 @@
     <button class="tbtn" data-act="library" title="Lesson circuits, examples and your saved circuits"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7"/></svg><span>Library</span></button>
     <button class="tbtn" data-act="new" title="Start a new circuit"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>New</span></button>
     <button class="tbtn" data-act="save" title="Save in this browser (Ctrl+S)"><svg class="ic" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg><span>Save</span></button>
-    <button class="tbtn icon" data-act="download" title="Download as a file"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
-    <button class="tbtn icon" data-act="upload" title="Open a circuit file"><svg class="ic" viewBox="0 0 24 24"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></svg></button>
+    <button class="tbtn icon" data-act="download" title="Download as a file" aria-label="Download as a file"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
+    <button class="tbtn icon" data-act="upload" title="Open a circuit file" aria-label="Open a circuit file"><svg class="ic" viewBox="0 0 24 24"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></svg></button>
   </nav>
   <button class="tbtn icon" data-act="mute" title="Sound on/off" aria-label="Sound on or off"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg><span class="menuonly">Sound</span></button>
   <button class="tbtn icon" id="themebtn" data-act="theme" title="Dark mode" aria-label="Switch between light and dark" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><span class="menuonly">Dark mode</span></button>
@@ -137,7 +138,7 @@
   </aside>
 
   <h1 class="vh">Circuit Lab editor</h1>
-  <section id="stage" class="stage" aria-label="Circuit canvas">
+  <section id="stage" class="stage" aria-label="Circuit canvas" tabindex="-1">
     <div id="world" class="world"><div id="parts"></div><svg id="wires" class="wires"></svg><svg id="fields" class="fields"></svg><svg id="pins" class="pinsl"></svg></div>
     <div class="ctools" role="toolbar" aria-label="Edit">
       <button data-act="rotate" title="Rotate (R)" aria-label="Rotate"><svg class="ic" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
@@ -278,41 +279,41 @@
      CodeMirror is pulled in by app.js once the first screen is up. -->
 <!-- The modules import each other four deep, so the browser would otherwise
      discover them one round trip at a time. Named here, they all start at once. -->
-<link rel="modulepreload" href="app.js?v=22">
-<link rel="modulepreload" href="parts.js?v=22">
-<link rel="modulepreload" href="elements.js?v=22">
-<link rel="modulepreload" href="elements2.js?v=22">
-<link rel="modulepreload" href="elements3.js?v=22">
-<link rel="modulepreload" href="elements4.js?v=22">
-<link rel="modulepreload" href="elements5.js?v=22">
-<link rel="modulepreload" href="parts2.js?v=22">
-<link rel="modulepreload" href="parts3.js?v=22">
-<link rel="modulepreload" href="parts4.js?v=22">
-<link rel="modulepreload" href="parts5.js?v=22">
-<link rel="modulepreload" href="parts6.js?v=22">
-<link rel="modulepreload" href="parts7.js?v=22">
-<link rel="modulepreload" href="parts8.js?v=22">
-<link rel="modulepreload" href="boards.js?v=22">
-<link rel="modulepreload" href="layout.js?v=22">
-<link rel="modulepreload" href="snippets.js?v=22">
-<link rel="modulepreload" href="lessons.js?v=22">
-<link rel="modulepreload" href="lessons-le.js?v=22">
-<link rel="modulepreload" href="lessons-jm.js?v=22">
-<link rel="modulepreload" href="lessons-yi.js?v=22">
-<link rel="modulepreload" href="lessons-tl.js?v=22">
-<link rel="modulepreload" href="tools.js?v=22">
-<link rel="modulepreload" href="home.js?v=22">
-<link rel="modulepreload" href="assist.js?v=22">
+<link rel="modulepreload" href="app.js?v=23">
+<link rel="modulepreload" href="parts.js?v=23">
+<link rel="modulepreload" href="elements.js?v=23">
+<link rel="modulepreload" href="elements2.js?v=23">
+<link rel="modulepreload" href="elements3.js?v=23">
+<link rel="modulepreload" href="elements4.js?v=23">
+<link rel="modulepreload" href="elements5.js?v=23">
+<link rel="modulepreload" href="parts2.js?v=23">
+<link rel="modulepreload" href="parts3.js?v=23">
+<link rel="modulepreload" href="parts4.js?v=23">
+<link rel="modulepreload" href="parts5.js?v=23">
+<link rel="modulepreload" href="parts6.js?v=23">
+<link rel="modulepreload" href="parts7.js?v=23">
+<link rel="modulepreload" href="parts8.js?v=23">
+<link rel="modulepreload" href="boards.js?v=23">
+<link rel="modulepreload" href="layout.js?v=23">
+<link rel="modulepreload" href="snippets.js?v=23">
+<link rel="modulepreload" href="lessons.js?v=23">
+<link rel="modulepreload" href="lessons-le.js?v=23">
+<link rel="modulepreload" href="lessons-jm.js?v=23">
+<link rel="modulepreload" href="lessons-yi.js?v=23">
+<link rel="modulepreload" href="lessons-tl.js?v=23">
+<link rel="modulepreload" href="tools.js?v=23">
+<link rel="modulepreload" href="home.js?v=23">
+<link rel="modulepreload" href="assist.js?v=23">
 <link rel="modulepreload" href="../vendor/avr8js.mjs">
-<script async src="../vendor/wokwi-elements.js?v=22"></script>
-<script type="module" src="app.js?v=22"></script>
-<script src="../buddy/config.js?v=37" defer></script>
-<script src="../buddy/buddy.js?v=37" defer></script>
+<script async src="../vendor/wokwi-elements.js?v=23"></script>
+<script type="module" src="app.js?v=23"></script>
+<script src="../buddy/config.js?v=38" defer></script>
+<script src="../buddy/buddy.js?v=38" defer></script>
 <script>
   /* Registered after load so it never competes with the editor starting up.
      The worker caches this app only; the portal is left alone. */
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=22").catch(() => {}));
+    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=23").catch(() => {}));
   }
 </script>
 </body>

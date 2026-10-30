@@ -43,6 +43,28 @@
     ]).then(buildIndex);
     return ready;
   }
+  /* the text of all 126 presentations is big (about 450 KB), so it is fetched
+     the first time a question is asked, not when the panel opens */
+  let slidesReady = null;
+  function ensureSlides() {
+    return slidesReady || (slidesReady = (window.BUDDY_SLIDES ? Promise.resolve(true) : load(BASE + "buddy/slides.js" + V)).then(() => {
+      IDX.slides = [];
+      (window.BUDDY_SLIDES || []).forEach(d => d.p.forEach((t, i) => { if (t && t.length > 30) IDX.slides.push({ c: d.c, title: d.t, n: i + 1, t, hay: norm(d.t + " " + t) }); }));
+    }));
+  }
+  /* the slides that best match a question: words in the slide count once,
+     words in the deck's title twice, and the lesson the student is in wins ties */
+  function searchSlides(q, lesson, n = 4) {
+    if (!IDX.slides || !IDX.slides.length) return [];
+    const toks = [...new Set(norm(q).trim().split(" ").filter(t => t.length > 2 && !STOP.has(t)))];
+    if (!toks.length) return [];
+    const base = String(lesson || "").split(" ")[0];
+    return IDX.slides.map(x => {
+      let sc = 0; toks.forEach(t => { if (x.hay.includes(" " + t)) sc += norm(x.title).includes(" " + t) ? 2 : 1; });
+      if (sc && base && x.c === base) sc += 1.5;
+      return { x, sc: sc / Math.sqrt(toks.length) };
+    }).filter(r => r.sc >= (toks.length > 2 ? 1.2 : 0.9)).sort((a, b) => b.sc - a.sc).slice(0, n).map(r => r.x);
+  }
   const norm = s => " " + String(s || "").toLowerCase().replace(/[^a-z0-9²+#.\-\s]/g, " ").replace(/\s+/g, " ").trim() + " ";
   const STOP = new Set("a an the is are am was be to of in on for and or with my me i you it this that what how why do does can could should would which when where who make use using get about please tell explain help need want".split(" "));
   function buildIndex() {
@@ -126,6 +148,9 @@
         return `<p><b>${esc(a.code)} · ${esc(a.title)}</b>${a.about ? `<br>${esc(a.about)}` : ""}</p>${kit ? `<p>${want ? "You need (per group of 2):" : "Parts for each group:"}</p><ul>${kit}</ul>` : ""}${lessonLinks(a)}`;
       }
     }
+    // how to wire a module ("where do I connect SCL of the OLED?")
+    const wire = wiringAnswer(n, c);
+    if (wire) return wire;
     // a glossary word
     /* everyday words such as "if", "for" or "data" only count as a glossary
        question when the student is clearly asking what something is */
@@ -136,7 +161,7 @@
       ST.lastTopic = g.t;
       const rel = searchLessons((g.k || []).join(" "), 2);
       if (hint) return `<p><b>Hint:</b> ${esc(g.s)}</p><p>Now try it: how could you use ${esc(g.t.toLowerCase())} in your project? Ask me again if you want the full explanation with an example.</p>`;
-      return `<p><b>${esc(g.t)}</b>: ${esc(ST.mode === "deep" ? g.d : g.s)}</p>${g.x ? `<pre><code>${esc(g.x)}</code></pre>` : ""}${ST.mode !== "deep" ? `<p class="bd-more">Switch to <b>Go deeper</b> for more detail.</p>` : ""}${rel.length ? `<p>In our lessons:</p><ul>${rel.map(lessonLine).join("")}</ul>` : ""}${safetyNotes(q)}`;
+      return `<p><b>${esc(g.t)}</b>: ${esc(ST.mode === "deep" ? g.d : g.s)}</p>${g.x ? `<pre><code>${esc(g.x)}</code></pre>` : ""}${ST.mode !== "deep" ? `<p class="bd-more">Switch to <b>Go deeper</b> for more detail.</p>` : ""}${(() => { const sl = searchSlides(q, c.lesson, 1); return sl.length ? `<p>From our slides:</p>${slideQuote(sl[0])}` : rel.length ? `<p>In our lessons:</p><ul>${rel.map(lessonLine).join("")}</ul>` : ""; })()}${safetyNotes(q)}`;
     }
     // a part from the catalog
     const p = IDX.parts.find(x => x.w.length > 2 && n.includes(" " + x.w));
@@ -144,9 +169,31 @@
       const info = IDX.D.catalog[p.n] || {}, used = IDX.D.activities.filter(a => (a.kit || []).some(k => k.n === p.n));
       return `<p><b>${esc(p.n)}</b>${info.cat ? ` is in <i>${esc(info.cat)}</i>` : ""}${info.spec ? `: ${esc(info.spec)}` : ""}.${info.type ? ` It's ${info.type === "Consumable" ? "used up in a project" : "reusable"}.` : ""}</p>${used.length ? `<p>Used in ${used.length} lesson${used.length === 1 ? "" : "s"}, for example:</p><ul>${used.slice(0, 3).map(lessonLine).join("")}</ul>` : ""}${safetyNotes(q)}`;
     }
+    const sl = searchSlides(q, c.lesson, 2);
+    if (sl.length) return `<p>Here's what our slides say:</p>${sl.map(slideQuote).join("")}${safetyNotes(q)}`;
     const found = searchLessons(q, 3);
     if (found.length) return `<p>I don't have a short answer for that, but these lessons cover it:</p><ul>${found.map(lessonLine).join("")}</ul>${safetyNotes(q)}`;
     return `<p>I'm not sure about that one. Try asking with a key word, like <i>"what is PWM"</i>, <i>"how does a servo work"</i> or a lesson code such as <i>JM-04</i>. Your teacher is a great person to ask too.</p>`;
+  }
+  const slideQuote = x => `<blockquote class="bd-slide"><b>${esc(x.c)} · slide ${x.n}</b> ${esc(x.t.length > 320 ? x.t.slice(0, 320) + "…" : x.t)} <a href="${lessonHref(x.c)}">Open ${esc(x.c)}</a></blockquote>`;
+  const WIRE_ASK = /\b(connect|connection|connections|wire|wiring|wired|hook|attach|plug|pin|pins|pinout|where (does|do|should)|which pin|goes|sda|scl|vcc|gnd|trig|echo|mosi|miso|sck|tx|rx|din|signal)\b/;
+  /* students often mistype SCL and SDA; the bus words themselves get explained too */
+  const PINWORD = { scl: "SCL", sdl: "SCL", stl: "SCL", sda: "SDA", vcc: "VCC", gnd: "GND", ground: "GND", trig: "TRIG", echo: "ECHO", mosi: "MOSI", miso: "MISO", sck: "SCK", rst: "RST", din: "DIN", tx: "TX", rx: "RX", signal: "signal" };
+  function wiringAnswer(n, c) {
+    if (!WIRE_ASK.test(n) && !/\b(stl|sdl)\b/.test(n)) return "";
+    const mods = window.BUDDY_WIRING || [];
+    const m = mods.map(w => ({ w, k: [w.t].concat(w.a).map(x => norm(x).trim()).filter(k => n.includes(" " + k)).sort((a, b) => b.length - a.length)[0] || "" }))
+      .filter(x => x.k).sort((a, b) => b.k.length - a.k.length)[0];
+    const pinKey = Object.keys(PINWORD).find(k => n.includes(" " + k + " "));
+    if (!m) {
+      const bus = /\b(sda|scl|sdl|stl|i2c|i²c)\b/.test(n) ? "I2C" : /\b(mosi|miso|sck|spi)\b/.test(n) ? "SPI" : /\b(tx|rx|uart)\b/.test(n) ? "UART" : "";
+      return bus && window.BUDDY_BUSES ? `<p>${esc(window.BUDDY_BUSES[bus])}</p><p class="bd-more">Tell me which module (for example "OLED" or "MPU6050") and I'll give you its exact pins.</p>` : "";
+    }
+    const w = m.w, esp = /\besp ?32\b/.test(n) || /esp32/i.test(c.parts || "");
+    const want = pinKey && w.pins.find(p => norm(p[0]).includes(" " + PINWORD[pinKey].toLowerCase()));
+    const lead = want ? `<p><b>${esc(want[0])}</b> of the ${esc(w.t)} goes to <b>${esc(esp ? want[2] : want[1])}</b> on ${esp ? "an ESP32" : "an Arduino Uno"}${!esp && want[2] && want[2] !== "—" ? ` (on an ESP32: ${esc(want[2])})` : ""}.</p>` : `<p>How to wire the <b>${esc(w.t)}</b>:</p>`;
+    const table = `<table class="bd-pins"><thead><tr><th>Module pin</th><th>Arduino Uno</th><th>ESP32</th></tr></thead><tbody>${w.pins.map(p => `<tr${want === p ? ' class="on"' : ""}><td>${esc(p[0])}${p[3] ? `<small>${esc(p[3])}</small>` : ""}</td><td>${esc(p[1])}</td><td>${esc(p[2])}</td></tr>`).join("")}</tbody></table>`;
+    return lead + table + (w.bus && window.BUDDY_BUSES ? `<p class="bd-more">${esc(window.BUDDY_BUSES[w.bus])}</p>` : "") + `<p class="bd-safe">💡 ${esc(w.tip)}</p>`;
   }
   function codeHelp(c) {
     if (!c.code || !c.code.trim()) return "There's no code yet. Write a few lines, then ask me again.";
@@ -178,6 +225,9 @@
   async function askWorker(q, o, onText) {
     const c = o.ctx || {};
     const ctx = { page: c.page, lesson: c.lesson || "", lang: c.lang || "", parts: c.parts || "" };
+    /* the club's own slides that best match the question go with it, so the AI
+       answers the way the club teaches (these are public lesson slides) */
+    ctx.slides = searchSlides(q, c.lesson, 4).map(x => ({ c: x.c, n: x.n, t: x.t.slice(0, 500) }));
     if (o.action) { ctx.code = (c.code || "").slice(0, 4000); ctx.error = (c.error || "").slice(0, 1200); }
     const history = ST.msgs.slice(-9, -1).map(m => ({ role: m.r === "u" ? "user" : "assistant", content: (m.t || (m.h || "").replace(/<[^>]+>/g, " ")).slice(0, 800) }));
     const r = await fetch(CFG.workerUrl, { method: "POST", headers: { "Content-Type": "application/json" },
@@ -296,7 +346,7 @@
     const q = String(text || "").trim().slice(0, MAXLEN);
     if (!q || busy) return;
     input.value = ""; input.style.height = "auto";
-    await ensureData();
+    await ensureData(); await ensureSlides();
     if (PERSONAL.some(re => re.test(q))) {
       ST.msgs.push({ r: "b", h: `<p class="bd-safe">🔒 That looks like personal information (an email, phone number, address or password). Please don't share it here. Ask your question again without it.</p>`, s: "local" });
       persist(); renderLog(); return;

@@ -12,10 +12,10 @@
    index.html and in VERSION below, and the old cache is thrown away whole on
    the next visit, so a student never runs half an old version. */
 
-const VERSION = "v23";
+const VERSION = "v24";
 const CACHE = "circuitlab-" + VERSION;
-const V = "?" + VERSION.replace("v", "v=");          // "?v=23", the same string the page uses
-const BUDDY_V = "38";                                  // Study Buddy and lesson data: the portal's number
+const V = "?" + VERSION.replace("v", "v=");          // "?v=24", the same string the page uses
+const BUDDY_V = "39";                                  // Study Buddy and lesson data: the portal's number
 
 const MODULES = ["app", "assist", "boards", "home", "elements", "elements2", "elements3", "elements4", "elements5",
   "layout", "lessons", "lessons-jm", "lessons-le", "lessons-tl", "lessons-yi",
@@ -42,7 +42,7 @@ const SHELL = [
   /* Study Buddy and the lesson data its built-in answers come from, so it
      still answers in a room with no internet. Its files carry the portal's
      version (BUDDY_CONFIG.version), not Circuit Lab's. */
-  ...["buddy/config.js", "buddy/buddy.js", "buddy/buddy.css", "buddy/glossary.js", "data.js", "library.js", "videos.js", "sims.js"].map(f => "../" + f + "?v=" + BUDDY_V),
+  ...["buddy/config.js", "buddy/buddy.js", "buddy/buddy.css", "buddy/glossary.js", "buddy/slides.js", "data.js", "library.js", "videos.js", "sims.js"].map(f => "../" + f + "?v=" + BUDDY_V),
 ];
 
 self.addEventListener("install", e => {

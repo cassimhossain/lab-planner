@@ -44,6 +44,14 @@ body.bd-app-codelab .bd-fab { bottom: 132px; }
 .bd-copy svg { width: 14px; height: 14px; }
 .bd-links { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 4px; font-size: 13px; font-weight: 700; }
 .bd-links a { color: var(--link, #0B7285); }
+.bd-pins { width: 100%; border-collapse: collapse; margin: 6px 0 8px; font-size: 13px; background: var(--surface, #fff); border-radius: 10px; overflow: hidden; }
+.bd-pins th { text-align: left; font: 700 10.5px var(--font-mono, monospace); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted, #5B6578); padding: 6px 8px; background: var(--surface-3, #EEF2F7); }
+.bd-pins td { padding: 6px 8px; border-top: 1px solid var(--line-2, #EEF2F7); vertical-align: top; }
+.bd-pins td small { display: block; color: var(--ink-muted, #5B6578); font-size: 11.5px; }
+.bd-pins tr.on td { background: color-mix(in srgb, var(--accent, #F5B83D) 18%, transparent); font-weight: 700; }
+.bd-slide { margin: 6px 0; padding: 8px 10px; border-left: 3px solid var(--accent, #F5B83D); border-radius: 0 10px 10px 0; background: var(--surface, #fff); font-size: 13.5px; color: var(--ink-2, #3C4659); }
+.bd-slide b { display: block; font: 700 11px var(--font-mono, monospace); color: var(--accent-ink, #8F5E00); margin-bottom: 2px; }
+.bd-slide a { display: inline-block; margin-top: 4px; font-weight: 700; font-size: 12.5px; color: var(--link, #0B7285); }
 .bd-safe { padding: 8px 10px; border-radius: 10px; background: var(--warn-bg, #FFF4DC); color: var(--warn-ink, #8F5E00); font-size: 14px; }
 .bd-note, .bd-more { font-size: 12.5px; color: var(--ink-muted, #5B6578); }
 .bd-hello { text-align: center; margin: auto 0; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 10px; }

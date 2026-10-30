@@ -129,6 +129,13 @@
   const kitOf = c => S.kits[baseOf(c)] || BYCODE[baseOf(c)].kit;
   const catOf = n => S.catalog[n] || D.catalog[n] || { cat: "Other", spec: "", type: "Reusable" };
   const allParts = () => Object.assign({}, D.catalog, S.catalog);
+  /* WEEKLY PLANNING: switched off for now. The club isn't planning weeks in
+     the portal, and with no shared database everything would only live in
+     one browser anyway. With this false, the timetable, "this week", planning
+     buttons and taught/planned counts are hidden; the planner's code, its
+     saved data (rac-lab-planner-v1), backups and the #week / #print pages are
+     untouched. Set it to true to bring it all back. */
+  const WEEK = false;
   const isPlanned = c => peek(c).status === "Next week";
   const isDone = c => peek(c).status === "Done";
 
@@ -146,7 +153,9 @@
   /* nobody has chosen yet: a browser with planned sessions belongs to a teacher */
   const isStudent = () => (PR.role || (Object.keys(S.sessions).length ? "teacher" : "student")) === "student";
   const finished = c => !!PR.done[baseOf(c)];
-  const doneFor = c => (isStudent() ? finished(c) : isDone(c));
+  const doneFor = c => (isStudent() ? finished(c) : WEEK && isDone(c));
+  /* true wherever the planner's buttons and counts should not appear */
+  const noPlan = () => isStudent() || !WEEK;
   /* level and length are read from data the curriculum already has: the phase
      says how far along an activity is, the slide count how long the lesson runs */
   const LEVEL = { Foundation: "Starter", "Phase 1": "Core", "Phase 2": "Advanced" };
@@ -197,7 +206,7 @@
   const coreOf = gc => ACTS.filter(a => a.group === gc && (a.phase === "Phase 1" || a.phase === "Phase 2"));
 
   /* ---------- routing / sidebar ---------- */
-  const ROUTES = ["home", "curriculum", "hardware", "LE", "JM", "YI", "TL", "week", "sims", "print", "kits", "settings"];
+  const ROUTES = ["home", "curriculum", "hardware", "LE", "JM", "YI", "TL", "week", "sims", "print", "kits", "settings", "attendance"];
   /* a page can carry filters after a "?", e.g. #JM?topic=AI%20%26%20Data&view=map */
   const route = () => { const r = location.hash.slice(1).split("?")[0]; return /^kit=/.test(r) ? "kitsheet" : ROUTES.includes(r) ? r : r && !/^open=/.test(r) ? "notfound" : "home"; };
   const qp = () => new URLSearchParams(location.hash.split("?")[1] || "");
@@ -214,15 +223,15 @@
       item("home", "Overview", ic("home")) +
       `<div class="mlabel">Curriculum</div>` +
       item("curriculum", "Lesson library", ic("book"), `<em class="soft">${LIB.decks.length}</em>`) +
-      D.groups.map(g => item(g.code, g.name, `<i class="gdot" style="background:${g.color}"></i>`, badge(nw.filter(a => a.group === g.code).length))).join("") +
-      (isStudent() ? "" : `<div class="mlabel">Teaching</div>` + item("week", "Timetable", ic("week"), badge(nw.length))) +
+      D.groups.map(g => item(g.code, g.name, `<i class="gdot" style="background:${g.color}"></i>`, WEEK ? badge(nw.filter(a => a.group === g.code).length) : "")).join("") +
+      (isStudent() ? "" : `<div class="mlabel">Teaching</div>` + item("attendance", "Attendance", ic("users")) + (WEEK ? item("week", "Timetable", ic("week"), badge(nw.length)) : "")) +
       `<div class="mlabel">Virtual labs</div>` +
       item("sims", "Simulators", ic("flask"), `<em class="soft">${SIM.list.length}</em>`) +
       `<a href="circuit/" class="mi">${ic("chip")}<span>Circuit Lab</span></a>` +
       `<a href="codelab/" class="mi">${ic("code")}<span>Code Lab</span><em class="soft new">New</em></a>` +
       `<div class="mlabel">Lab &amp; kit</div>` +
       item("hardware", "Hardware", ic("parts")) +
-      (isStudent() ? "" : item("print", "Print kit lists", ic("print")) + item("kits", "Edit kits & parts", ic("box"))) +
+      (isStudent() ? "" : (WEEK ? item("print", "Print kit lists", ic("print")) : "") + item("kits", "Edit kits & parts", ic("box"))) +
       `<div class="mlabel">Setup</div>` +
       item("settings", "Settings & backup", ic("gear"));
     const a = addDays(S.weekStart, 0), b = addDays(S.weekStart, 4);
@@ -237,7 +246,7 @@
   function render() {
     renderMenu();
     const r = route(), app = $("#app");
-    app.innerHTML = r === "notfound" ? vNotFound() : r === "kitsheet" ? vKitSheet(kitSheetCode()) : r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "sims" ? vSims() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
+    app.innerHTML = r === "notfound" ? vNotFound() : r === "attendance" ? vAttendance() : r === "kitsheet" ? vKitSheet(kitSheetCode()) : r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "sims" ? vSims() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
     document.body.dataset.route = r;
     if (r !== "notfound" && r !== "kitsheet") app.insertAdjacentHTML("afterbegin", hintCard(r));
     /* Circuit Lab reads this to bring the student back where they were */
@@ -274,13 +283,13 @@
     const g = GROUPS[a.group], s = peek(a.code);
     const dk = deckOf(a.code);
     const ban = dk && dk.banner ? `<span class="abanner"><img loading="lazy" src="${esc(dk.banner)}" alt=""></span>` : `<span class="abanner none"><span class="aicon">${ic(a.domain)}</span></span>`;
-    const stu = isStudent(), foot = stu ? (finished(a.code) ? `<span class="chip green">${ic("check")}Finished</span>` : `<span class="chip ghost">Not started</span>`) : statusChip(a.code);
+    const stu = isStudent(), foot = stu ? (finished(a.code) ? `<span class="chip green">${ic("check")}Finished</span>` : `<span class="chip ghost">Not started</span>`) : WEEK ? statusChip(a.code) : `<span></span>`;
     return `<button class="acard has-ban ${!stu && isPlanned(a.code) ? "is-planned" : ""} ${doneFor(a.code) ? "is-done" : ""}" data-open="${esc(a.code)}" style="--c:${g.color};--l:${g.light}">
       ${ban}<span class="acard-top"><span class="adomain">${esc(a.domain)}</span>${fromTag(a)}<span class="acode">${deckOf(a.code) ? `<i class="sbadge" title="Has slides">${ic("play")}</i>` : ""}${esc(lab(a))}</span></span>
       <span class="atitle">${esc(a.title)}</span>
       <span class="adom">${[a.cls ? "Class " + a.cls : "", dk ? dk.pages + " slides" : "", vidOf(a.code) ? "video" : ""].filter(Boolean).join(" · ") || "No slides yet"}</span>
       <span class="achips">${lvlChips(a)}</span>
-      <span class="afoot">${foot}<span class="aplan">${stu || isPlanned(a.code) || isDone(a.code) ? "Open" : "Plan"} ${ic("arrow")}</span></span>
+      <span class="afoot">${foot}<span class="aplan">${noPlan() || isPlanned(a.code) || isDone(a.code) ? "Open" : "Plan"} ${ic("arrow")}</span></span>
     </button>`;
   }
   const head = (title, sub, right = "") => `<div class="phead"><div><h1>${title}</h1>${sub ? `<p>${sub}</p>` : ""}</div><div class="phead-r">${right}</div></div>`;
@@ -424,9 +433,9 @@
       const all = ALL().filter(a => a.group === g.code), withDeck = all.filter(a => deckOf(a.code)).length;
       const dk = up ? deckOf(up.code) : null;
       return `<div class="pcard" style="--c:${g.color};--l:${g.light}">
-        <a class="pcard-h" href="#${g.code}"><span class="pbadge">${g.code}</span><span class="pt"><b>${esc(g.name)}</b><small>Ages ${esc(g.ages)} · ${withDeck} lessons with slides</small></span>${ring(pct, g.color, 48)}</a>
+        <a class="pcard-h" href="#${g.code}"><span class="pbadge">${g.code}</span><span class="pt"><b>${esc(g.name)}</b><small>Ages ${esc(g.ages)} · ${withDeck} lessons with slides</small></span>${WEEK ? ring(pct, g.color, 48) : ic("arrow", "go")}</a>
         ${up ? `<button class="pnext" data-open="${esc(up.code)}">${dk && dk.banner ? `<img loading="lazy" src="${esc(dk.banner)}" alt="">` : `<span class="pnone">${ic(up.domain)}</span>`}
-          <span class="pnext-t"><small>Next lesson · ${esc(lab(up))}</small><b>${esc(up.title)}</b></span></button>` : `<div class="pdone">${ic("check")}All lessons planned or done</div>`}
+          <span class="pnext-t"><small>${WEEK ? "Next lesson" : "First lesson"} · ${esc(lab(up))}</small><b>${esc(up.title)}</b></span></button>` : `<div class="pdone">${ic("check")}All lessons planned or done</div>`}
         <div class="pfoot"><a href="#${g.code}">All ${esc(g.name)} lessons ${ic("arrow")}</a>${dk ? `<button class="lk" data-view="${esc(dk.code)}">${ic("play")}Slides</button>` : ""}</div>
       </div>`; }).join("");
 
@@ -439,6 +448,17 @@
         <a class="labtile" href="#curriculum" data-libg="DOCS"><span class="lt-ic">${ic("file")}</span><b>Plans &amp; documents</b><small>Curriculum plans, parent brochures and forms.</small></a>
       </div>`;
 
+    if (!WEEK) return `<section class="welcome portal">
+        <div class="wl-txt"><span class="kicker">${fmt(now, { weekday: "long", day: "numeric", month: "long" })}</span>
+          <h1>${hi}, ${esc((S.name || "").split(" ")[0] || "teacher")}</h1>
+          <p>${LIB.decks.length} lessons with slides across 4 age groups · attendance and progress are saved in this browser only</p></div>
+        <div class="wl-btns">${roleSwitch()}<a class="btn primary big" href="#attendance">${ic("users")}Take attendance</a><a class="btn big" href="#curriculum">${ic("book")}Lesson library</a></div>
+        ${DOODLE}
+      </section>
+      ${attendanceHome()}
+      ${sec("book", "Curriculum", "Four learning pathways. Open any lesson for its slides, video, parts and simulator.", `<a class="sec-link" href="#curriculum">Lesson library ${ic("arrow")}</a>`, `<div class="pgrid">${pathCards}</div>`, "t-cur")}
+      ${sec("flask", "Virtual labs", "Try circuits and 3D designs on screen before building them for real.", `<a class="sec-link" href="#sims">All simulators ${ic("arrow")}</a>`, simTiles(), "t-sim")}
+      ${sec("parts", "Lab &amp; kit", "Hardware and documents for the lab.", "", lab3.replace(/<a class="labtile" href="#print">[\s\S]*?<\/a>/, `<a class="labtile" href="#attendance"><span class="lt-ic">${ic("users")}</span><b>Attendance</b><small>Mark who came and what you taught. Counts classes for each group.</small></a>`), "t-lab")}`;
     return `<section class="welcome portal">
         <div class="wl-txt"><span class="kicker">${fmt(now, { weekday: "long", day: "numeric", month: "long" })}</span>
           <h1>${hi}, ${esc((S.name || "").split(" ")[0] || "teacher")}</h1>
@@ -454,7 +474,7 @@
   }
 
   /* ---------- COMMAND PALETTE (Ctrl K) ---------- */
-  const PAGES = [["home", "Home", "home"], ["curriculum", "Curriculum", "book"], ["hardware", "Hardware", "parts"], ["week", "Timetable", "week"], ["sims", "Simulators", "flask"], ["print", "Print lists", "print"], ["kits", "Edit kits & parts", "box"], ["settings", "Settings & backup", "gear"]];
+  const PAGES = [["home", "Home", "home"], ["attendance", "Attendance", "users"], ["curriculum", "Curriculum", "book"], ["hardware", "Hardware", "parts"], ["week", "Timetable", "week"], ["sims", "Simulators", "flask"], ["print", "Print lists", "print"], ["kits", "Edit kits & parts", "box"], ["settings", "Settings & backup", "gear"]];
   const CMD = { open: false, mode: "all", q: "", i: 0, res: [] };
   function openPalette(mode, q0) { CMD.open = true; CMD.mode = mode || "all"; CMD.q = q0 || ""; CMD.i = 0;
     $("#palette").innerHTML = `<div class="pal-box"><div class="pal-in">${ic("search")}<input id="palQ" autocomplete="off" aria-label="Search" role="combobox" aria-expanded="true" aria-controls="palRes" aria-autocomplete="list" placeholder="${CMD.mode === "plan" ? "Which activity? Type a code or name, e.g. JM-06 or robot" : "Search activities, presentations, documents, pages"}"><kbd>Esc</kbd></div><div class="pal-res" id="palRes" role="listbox" aria-label="Results"></div>
@@ -466,7 +486,7 @@
   function palResults() {
     const q = CMD.q.trim().toLowerCase(), toks = q.split(/\s+/).filter(Boolean), hit = h => toks.every(t => h.includes(t));
     const R = [], sec = (title, arr, n) => { if (arr.length) R.push({ head: title }); arr.slice(0, n).forEach(x => R.push(x)); };
-    const act = a => ({ icon: a.domain, title: `${lab(a)} · ${a.title}`, sub: `${GROUPS[a.group].name}${a.from ? " (borrowed)" : ""} · ${isStudent() ? (finished(a.code) ? "Finished" : levelOf(a) + " · " + a.unit) : statusText(a.code)}`, color: GROUPS[a.group].color, light: GROUPS[a.group].light, run: () => openModal(a.code), badge: deckOf(a.code) ? "Slides" : "" });
+    const act = a => ({ icon: a.domain, title: `${lab(a)} · ${a.title}`, sub: `${GROUPS[a.group].name}${a.from ? " (borrowed)" : ""} · ${isStudent() ? (finished(a.code) ? "Finished" : levelOf(a) + " · " + a.unit) : WEEK ? statusText(a.code) : levelOf(a) + " · " + a.unit}`, color: GROUPS[a.group].color, light: GROUPS[a.group].light, run: () => openModal(a.code), badge: deckOf(a.code) ? "Slides" : "" });
     const deck = d => ({ thumb: d.thumb, title: `${d.code} · ${deckTitle(d)}`, sub: `${LG[d.group].name} · ${d.pages} slides`, color: LG[d.group].color, light: LG[d.group].light, run: () => openDeck(d.code), badge: "Present" });
     const doc = (d, n) => ({ icon: d.type === "pdf" ? "file" : "sheet", title: d.title, sub: d.about, color: "#C98A12", light: "#FFF4DC", run: () => { if (d.type === "pdf") openViewer(d.file, d.title, "doc", "#F5B83D", d.about); else { const l = document.createElement("a"); l.href = d.file; l.download = ""; document.body.appendChild(l); l.click(); l.remove(); } }, badge: d.type === "pdf" ? "PDF" : "Excel" });
     const page = ([k, t, i]) => ({ icon: i, title: t, sub: "Go to page", color: "var(--tr-f)", light: "var(--tr-f-tint)", run: () => { location.hash = "#" + k; } });
@@ -478,9 +498,9 @@
         run: () => { UI.hwG = gc; UI.hwPh[gc] = UI.hwPh[gc] || "Foundation"; UI.hwQ = n; if (route() === "hardware") render(); else location.hash = "#hardware"; } }; };
     if (!toks.length) {
       if (CMD.mode !== "plan" && PR.recent.length) sec("Recent searches", PR.recent.map(again), 5);
-      if (CMD.mode !== "plan") sec("Jump to", PAGES.filter(x => !isStudent() || !["week", "print", "kits"].includes(x[0])).map(page).concat(D.groups.map(g => ({ icon: "users", title: g.name, sub: "Ages " + g.ages, color: g.color, light: g.light, run: () => { location.hash = "#" + g.code; } }))), 11);
+      if (CMD.mode !== "plan") sec("Jump to", PAGES.filter(x => !(noPlan() && ["week", "print"].includes(x[0])) && !(isStudent() && x[0] === "kits")).map(page).concat(D.groups.map(g => ({ icon: "users", title: g.name, sub: "Ages " + g.ages, color: g.color, light: g.light, run: () => { location.hash = "#" + g.code; } }))), 11);
       if (isStudent() && CMD.mode !== "plan") sec("Next for you", (PR.track ? ACTS.filter(a => a.group === PR.track && !finished(a.code)) : []).map(act), 4);
-      else { sec("Planned this week", planned().map(act), 6); sec("Next to teach", D.groups.flatMap(g => nextUp(g.code, 2)).map(act), 8); }
+      else if (WEEK) { sec("Planned this week", planned().map(act), 6); sec("Next to teach", D.groups.flatMap(g => nextUp(g.code, 2)).map(act), 8); }
     } else {
       /* code first, then title, then everything else the activity mentions */
       const score = a => (a.code.toLowerCase().startsWith(q) ? 4 : 0) + (toks.every(t => a.title.toLowerCase().includes(t)) ? 2 : 0);
@@ -545,11 +565,11 @@
     const topics = [...new Set(all.map(a => a.domain))].sort(), parts = [...new Set(all.flatMap(a => kitOf(a.code).map(k => k.n).filter(Boolean)))].sort();
     return `<section class="gban" style="--c:${g.color};--l:${g.light}">
         <div class="gban-l"><span class="gban-badge">${gc}</span><div><h1>${esc(g.name)}</h1><p>Ages ${esc(g.ages)} · ${all.length} activities</p></div></div>
-        <div class="gban-s"><div><b>${dn}</b><span>of ${stu ? all.length : core.length} ${stu ? "finished" : "done"}</span></div>${stu ? "" : `<div><b>${nw}</b><span>planned</span></div>`}</div>
+        ${stu || WEEK ? `<div class="gban-s"><div><b>${dn}</b><span>of ${stu ? all.length : core.length} ${stu ? "finished" : "done"}</span></div>${stu ? "" : `<div><b>${nw}</b><span>planned</span></div>`}</div>` : ""}
         ${DOODLE}</section>
       <div class="gtools">${map || filt ? `<span class="muted">${plural(list.length, "lesson")}${filt ? " match the filters" : " in the path"}</span>` : `<div class="tabs">${PHASES.map(x => `<button class="${!q && ph === x ? "on" : ""}" data-phase="${x}" data-g="${gc}">${x}<em>${all.filter(a => phaseOf(a) === x).length}</em></button>`).join("")}</div>`}
         <label class="search">${ic("search")}<input type="search" data-gq="${gc}" placeholder="Search ${esc(g.name)}: title, topic or part" aria-label="Search ${esc(g.name)}" value="${esc(UI.q[gc] || "")}"></label>
-        ${stu ? "" : `<button class="btn borrowbtn" data-pick="${gc}">${ic("plus")}Add from another group</button>`}</div>
+        ${noPlan() ? "" : `<button class="btn borrowbtn" data-pick="${gc}">${ic("plus")}Add from another group</button>`}</div>
       <div class="filters" style="--c:${g.color};--l:${g.light}">
         <div class="viewsw" role="group" aria-label="View"><button class="${map ? "" : "on"}" data-vmode="cards" aria-pressed="${!map}">${ic("grid")}Cards</button><button class="${map ? "on" : ""}" data-vmode="map" aria-pressed="${map}">${ic("map")}Roadmap</button></div>
         ${opts("topic", "Topic", topics, fT)}${opts("level", "Level", ["Starter", "Core", "Advanced"], fL)}${opts("part", "Hardware", parts, fP)}
@@ -625,7 +645,7 @@
       ? kit.map(k => `<div><span>${esc(k.n)}<small>${esc(catOf(k.n).cat)}</small></span><b>${k.b === "class" ? "shared" : "× " + esc(k.q)}</b></div>`).join("")
       : kit.map(k => `<div><span>${esc(k.n)}<small>${esc(catOf(k.n).cat)}${k.b === "class" ? " · per class" : ""}</small></span><b>${lineTotal(k, a.code)}</b></div>`).join("");
     /* the teacher's planning controls, exactly as before, folded under one heading */
-    const plan = stu ? "" : `<details class="mplan" open><summary>${ic("cal")}<span>Plan this session</span><small>day, group, time and notes</small></summary><div class="mplan-b">
+    const plan = noPlan() ? "" : `<details class="mplan" open><summary>${ic("cal")}<span>Plan this session</span><small>day, group, time and notes</small></summary><div class="mplan-b">
         <div class="m-sec"><label>Day</label>
           <div class="daypick">${DAYS.map(d => `<button class="${isPlanned(a.code) && s.day === d ? "on" : ""}" data-mday="${d}"><b>${d}</b><span>${dayDate(d)}</span></button>`).join("")}</div>
           ${isPlanned(a.code) ? `<button class="linkbtn" data-unplan>${ic("x")}Remove from this week</button>` : ""}</div>
@@ -640,6 +660,8 @@
       ? `<div class="m-status">${finished(a.code) ? `<span class="chip green">${ic("check")}Finished ${fmt(new Date(PR.done[baseOf(a.code)] + "T00:00:00"), { day: "numeric", month: "short" })}</span>` : `<small class="muted">Your progress is saved on this device</small>`}</div>
         <div class="m-acts"><a class="btn kitbtn" href="#kit=${encodeURIComponent(a.code)}" data-close>${ic("print")}Hardware list</a>
           ${finished(a.code) ? `<button class="btn" data-finish>Not finished yet</button>` : `<button class="btn primary" data-finish>${ic("check")}I've finished this lesson</button>`}</div>`
+      : !WEEK ? `<div class="m-status"><small class="muted">${esc(levelOf(a))} · ${esc(a.unit)}</small></div>
+        <div class="m-acts"><a class="btn kitbtn" href="#kit=${encodeURIComponent(a.code)}" data-close>${ic("print")}Print hardware list</a><button class="btn primary" data-close>Close</button></div>`
       : `<div class="m-status">${statusChip(a.code)}${s.status === "Done" && s.date ? `<small>on ${fmt(new Date(s.date + "T00:00:00"), { day: "numeric", month: "short" })}</small>` : ""}</div>
         <div class="m-acts">
           <a class="btn kitbtn" href="#kit=${encodeURIComponent(a.code)}" data-close>${ic("print")}Print hardware list</a>
@@ -652,7 +674,7 @@
         <h2>${esc(a.title)}</h2>
         <div class="facts"><span class="lvl lvl-${levelOf(a).toLowerCase()}">${levelOf(a)}</span>${lengthOf(a) ? `<span class="fact">${lengthOf(a)} lesson</span>` : ""}
           <span class="fact grp"><i class="gdot" style="background:${g.color}"></i>${esc(g.name)}${a.from ? ` (from ${esc(GROUPS[a.from].name)})` : ""}</span>
-          ${stu ? (finished(a.code) ? `<span class="fact ok">${ic("check")}Finished</span>` : "") : `<span class="fact ${isPlanned(a.code) ? "on" : ""}">${ic("cal")}${esc(dayTxt)}${s.time ? " · " + esc(s.time) : ""}</span><span class="fact">${ic("users")}${gr} groups · ${gr * 2} students</span>`}</div>
+          ${stu ? (finished(a.code) ? `<span class="fact ok">${ic("check")}Finished</span>` : "") : !WEEK ? "" : `<span class="fact ${isPlanned(a.code) ? "on" : ""}">${ic("cal")}${esc(dayTxt)}${s.time ? " · " + esc(s.time) : ""}</span><span class="fact">${ic("users")}${gr} groups · ${gr * 2} students</span>`}</div>
       </div>
       <div class="m-body">
         ${a.goal || a.about ? `<div class="m-sec lsec lgoal"><label><span>${ic("target")}Goal</span></label><p>${esc(a.goal || a.about)}</p></div>` : ""}
@@ -991,10 +1013,10 @@
   function hwCard(a) {
     const g = GROUPS[a.group], gr = groupsOf(a.code), kit = kitOf(a.code).filter(k => k.n && lineTotal(k, a.code) > 0);
     return `<div class="hwcard" style="--c:${g.color};--l:${g.light}">
-      <div class="hwhead"><div><span class="acode">${deckOf(a.code) ? `<i class="sbadge">${ic("play")}</i>` : ""}${esc(lab(a))}</span>${fromTag(a)}<b>${esc(a.title)}</b></div>${statusChip(a.code)}</div>
+      <div class="hwhead"><div><span class="acode">${deckOf(a.code) ? `<i class="sbadge">${ic("play")}</i>` : ""}${esc(lab(a))}</span>${fromTag(a)}<b>${esc(a.title)}</b></div>${WEEK ? statusChip(a.code) : ""}</div>
       <div class="hwsub">${UI.hwG === "WEEK" ? `${esc(g.name)} · ` : ""}${gr} groups · ${plural(kit.length, "part")}</div>
       <div class="hwlist">${kit.map(k => `<div><span>${esc(k.n)}<small>${esc(catOf(k.n).cat)}${k.b === "class" ? " · per class" : ""}</small></span><b>${lineTotal(k, a.code)}</b></div>`).join("") || `<p class="muted">No parts listed.</p>`}</div>
-      <div class="hwfoot"><button class="btn" data-open="${esc(a.code)}">${isStudent() || isPlanned(a.code) || isDone(a.code) ? "Open" : "Plan"}</button>${isStudent() ? "" : `<a class="btn ghost" href="#kits" data-editkit="${esc(lab(a))}">Edit kit</a>`}<button class="btn ghost hwcopy" data-copycode="${esc(a.code)}" aria-label="Copy ${esc(lab(a))} parts list" title="Copy list">${ic("copy")}</button></div></div>`;
+      <div class="hwfoot"><button class="btn" data-open="${esc(a.code)}">${noPlan() || isPlanned(a.code) || isDone(a.code) ? "Open" : "Plan"}</button>${isStudent() ? "" : `<a class="btn ghost" href="#kits" data-editkit="${esc(lab(a))}">Edit kit</a>`}<button class="btn ghost hwcopy" data-copycode="${esc(a.code)}" aria-label="Copy ${esc(lab(a))} parts list" title="Copy list">${ic("copy")}</button></div></div>`;
   }
   /* ---------- VIRTUAL LABS ---------- */
   const SIM = window.SIMS || { list: [], circuits: [], byKey: {}, forLesson: () => [] };
@@ -1036,9 +1058,9 @@
 
   function vHardware() {
     const nw = planned();
-    if (!UI.hwG) UI.hwG = nw.length ? "WEEK" : "LE";
+    if (!UI.hwG || (!WEEK && UI.hwG === "WEEK")) UI.hwG = WEEK && nw.length ? "WEEK" : "LE";
     const sel = UI.hwG, q = (UI.hwQ || "").toLowerCase();
-    const tabs = [{ code: "WEEK", name: "This week", color: "#C98A12", light: "#FFF4DC", icon: "cal", sub: plural(nw.length, "session") }]
+    const tabs = (WEEK ? [{ code: "WEEK", name: "This week", color: "#C98A12", light: "#FFF4DC", icon: "cal", sub: plural(nw.length, "session") }] : [])
       .concat(D.groups.map(g => ({ code: g.code, name: g.name, color: g.color, light: g.light, sub: "Ages " + g.ages })));
     let list, sub = "";
     if (sel === "WEEK") list = nw;
@@ -1050,7 +1072,7 @@
     }
     if (q && sel === "WEEK") list = list.filter(a => hayOf(a).includes(q));
     return head("Hardware", `Parts each activity needs. Totals use each session's number of groups (default ${S.defaultGroups}).`,
-        `<a class="btn primary" href="#print">${ic("print")}Print lists</a>`) +
+        WEEK ? `<a class="btn primary" href="#print">${ic("print")}Print lists</a>` : "") +
       gtabs(tabs, sel, "data-hwg") +
       `<div class="gtools">${sub || "<span></span>"}<label class="search">${ic("search")}<input type="search" id="hwQ" placeholder="Search activities or parts" aria-label="Search activities or parts" value="${esc(UI.hwQ || "")}"></label></div>` +
       (list.length ? `<div class="hwgrid">${list.map(hwCard).join("")}</div>` : empty(sel === "WEEK" ? "Nothing planned this week yet." : "Nothing matches your search.", sel === "WEEK" ? `<a class="btn primary" href="#home">Start planning</a>` : ""));
@@ -1222,7 +1244,8 @@
      One short card per page, gone for good once closed (rac-progress-v1). */
   const HINTS = {
     homeS: "Open a lesson to see its goal, the parts you need and the slides. Tick “I've finished this lesson” and your progress fills up.",
-    homeT: "Today's session and the parts to pack are at the top. Switch to Student to see the page the way a student does.",
+    homeT: "Take attendance from the button at the top. Switch to Student to see the page the way a student does.",
+    attendance: "Import your class list from Excel once. Names stay in this browser only and never go to the website.",
     group: "Switch between Cards and Roadmap, or filter the lessons by topic, level or a part you have on the table.",
     curriculum: "Tap a presentation to show it full screen. Use the arrow keys or swipe; it remembers the slide you stopped on.",
     hardware: "Search for a part, like “servo”, to find every lesson that uses it. The copy button puts a list on your clipboard.",
@@ -1234,6 +1257,206 @@
     if (!t || PR.hints[k]) return "";
     return `<div class="hintcard" role="note">${ic("bulb")}<p>${t}</p><button class="hint-x" data-hintx="${k}" aria-label="Close this tip">${ic("x")}</button></div>`;
   }
+
+  /* ---------- ATTENDANCE ----------
+     Who came to each club class and what was taught. Kept in this browser
+     only, under its own key (rac-attendance-v1), with its own backup file:
+     the club's student list is never written into the website's files,
+     because the site is public. The class list comes from the Excel sheet
+     the club already keeps; only the Name and Class columns are read. */
+  const AKEY = "rac-attendance-v1";
+  const AGROUPS = [
+    { code: "G1", name: "Grade 1–5", total: 8, color: "var(--tr-le)", light: "var(--tr-le-tint)" },
+    { code: "G2", name: "Grade 6–8", total: 16, color: "var(--tr-jm)", light: "var(--tr-jm-tint)" },
+    { code: "G3", name: "IG · Matric · FSc · A level", total: 16, color: "var(--tr-yi)", light: "var(--tr-yi-tint)" },
+  ];
+  const AG = Object.fromEntries(AGROUPS.map(g => [g.code, g]));
+  const AT = (() => { const b = { v: 1, totals: {}, students: [], classes: [], lastBackup: "" };
+    try { const x = JSON.parse(localStorage.getItem(AKEY) || "null"); if (x && x.v === 1) return Object.assign(b, x); } catch (e) { } return b; })();
+  function saveAt() { try { localStorage.setItem(AKEY, JSON.stringify(AT)); } catch (e) { toast("Could not save attendance in this browser. Download a backup."); } }
+  const atTotal = gc => +AT.totals[gc] || AG[gc].total;
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  /* the club's three groups, read from the Class column: 1-5, 6-8, and
+     everything from 9 up (Matric/SSC, IG, FSc, AS/A level, O level) */
+  function groupFromClass(cls) {
+    const c = String(cls || "").toUpperCase().replace(/[\s.\-]/g, "");
+    if (/^(IG|FSC|FA|ICS|AS|A2|ALEVEL|OLEVEL|SSC|HSSC|MATRIC|GRADE(9|10|11|12))/.test(c)) return "G3";
+    const n = parseInt(c.replace(/^(GRADE|CLASS)/, ""), 10);
+    return n >= 1 && n <= 5 ? "G1" : n >= 6 && n <= 8 ? "G2" : n >= 9 ? "G3" : "";
+  }
+  const AUI = { g: "", date: "", topics: [], marks: {}, editing: "", tq: "", newName: "", newCls: "" };
+  const todayIso = () => iso(new Date());
+  const studentsOf = gc => AT.students.filter(s => s.group === gc).sort((a, b) => a.name.localeCompare(b.name));
+  const classesOf = gc => AT.classes.filter(c => c.group === gc).sort((a, b) => a.date.localeCompare(b.date));
+  function startDraft(gc, cls) {
+    AUI.g = gc; AUI.editing = cls ? cls.id : ""; AUI.date = cls ? cls.date : todayIso(); AUI.topics = cls ? cls.topics.slice() : []; AUI.tq = "";
+    AUI.marks = {}; studentsOf(gc).forEach(s => { AUI.marks[s.id] = cls ? (cls.marks[s.id] || "") : "p"; });
+  }
+  const topicName = c => { const a = BYCODE[c]; return a ? `${lab(a)} · ${a.title}` : c; };
+
+  /* ----- reading the Excel sheet in the browser (an .xlsx is a zip of XML files) ----- */
+  async function unzip(buf) {
+    const v = new DataView(buf), u8 = new Uint8Array(buf), out = {};
+    let e = buf.byteLength - 22; while (e >= 0 && v.getUint32(e, true) !== 0x06054b50) e--;
+    if (e < 0) throw new Error("not a zip");
+    let p = v.getUint32(e + 16, true); const n = v.getUint16(e + 10, true);
+    for (let i = 0; i < n; i++) {
+      const method = v.getUint16(p + 10, true), size = v.getUint32(p + 20, true), nl = v.getUint16(p + 28, true), xl = v.getUint16(p + 30, true), cl = v.getUint16(p + 32, true), off = v.getUint32(p + 42, true);
+      const name = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl));
+      const start = off + 30 + v.getUint16(off + 26, true) + v.getUint16(off + 28, true), data = u8.subarray(start, start + size);
+      if (/^xl\/(sharedStrings|workbook)\.xml$|^xl\/worksheets\/sheet\d+\.xml$|^xl\/_rels\/workbook\.xml\.rels$/.test(name))
+        out[name] = method === 0 ? new TextDecoder().decode(data) : await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();
+      p += 46 + nl + xl + cl;
+    }
+    return out;
+  }
+  async function readSheet(file) {
+    if (/\.csv$/i.test(file.name)) return (await file.text()).split(/\r?\n/).map(l => l.match(/("([^"]|"")*"|[^,]*)(,|$)/g).slice(0, -1).map(c => c.replace(/,$/, "").replace(/^"|"$/g, "").replace(/""/g, '"')));
+    const f = await unzip(await file.arrayBuffer()), X = s => new DOMParser().parseFromString(s, "application/xml");
+    const ss = f["xl/sharedStrings.xml"] ? [...X(f["xl/sharedStrings.xml"]).getElementsByTagName("si")].map(si => [...si.getElementsByTagName("t")].map(t => t.textContent).join("")) : [];
+    const sheetName = Object.keys(f).filter(k => /worksheets\/sheet\d+\.xml$/.test(k)).sort()[0];
+    if (!sheetName) throw new Error("no sheet");
+    return [...X(f[sheetName]).getElementsByTagName("row")].map(r => {
+      const row = [];
+      [...r.getElementsByTagName("c")].forEach(c => {
+        const col = c.getAttribute("r").replace(/\d+/g, "").split("").reduce((t, ch) => t * 26 + ch.charCodeAt(0) - 64, 0) - 1;
+        const t = c.getAttribute("t"), vEl = c.getElementsByTagName("v")[0];
+        row[col] = t === "inlineStr" ? [...c.getElementsByTagName("t")].map(x => x.textContent).join("") : !vEl ? "" : t === "s" ? ss[+vEl.textContent] || "" : vEl.textContent;
+      });
+      return row;
+    });
+  }
+  async function importStudents(file) {
+    let rows; try { rows = await readSheet(file); } catch (e) { return toast("Couldn't read that file. Save it as .xlsx or .csv and try again."); }
+    const hi = rows.findIndex(r => r && r.some(c => /^\s*(student\s*)?name\s*$/i.test(c || "")));
+    if (hi < 0) return toast("No “Name” column found in that sheet.");
+    const head = rows[hi].map(c => String(c || "").trim().toLowerCase()), ni = head.findIndex(h => /^(student\s*)?name$/.test(h)), ci = head.findIndex(h => /^(class|grade|section)/.test(h));
+    let added = 0, kept = 0;
+    rows.slice(hi + 1).forEach(r => {
+      const name = String((r || [])[ni] || "").replace(/\s+/g, " ").trim(), cls = ci >= 0 ? String(r[ci] || "").trim() : "";
+      if (!name || /^name$/i.test(name)) return;
+      const have = AT.students.find(s => s.name.toLowerCase() === name.toLowerCase() && s.cls.toLowerCase() === cls.toLowerCase());
+      if (have) { kept++; return; }
+      AT.students.push({ id: uid(), name, cls, group: groupFromClass(cls) }); added++;
+    });
+    saveAt(); if (AUI.g) startDraft(AUI.g); render();
+    const unsure = AT.students.filter(s => !s.group).length;
+    toast(`${plural(added, "student")} added${kept ? `, ${kept} already on the list` : ""}${unsure ? `. ${unsure} need a group` : ""}`);
+  }
+
+  /* ----- the page ----- */
+  function attendanceHome() {
+    const n = AT.students.length;
+    if (!n) return `<section class="sec t-week"><div class="sec-h"><span class="sec-ic">${ic("users")}</span><div><h2>Attendance</h2><p>Import your class list once, then mark each class in a few taps.</p></div><a class="sec-link" href="#attendance">Set up ${ic("arrow")}</a></div></section>`;
+    return `<section class="sec t-week"><div class="sec-h"><span class="sec-ic">${ic("users")}</span><div><h2>Attendance</h2><p>${plural(n, "student")} · saved in this browser only</p></div><a class="sec-link" href="#attendance">Open ${ic("arrow")}</a></div>
+      <div class="atgrid">${AGROUPS.map(g => { const cs = classesOf(g.code), last = cs[cs.length - 1], st = studentsOf(g.code).length;
+        return `<a class="atcard" href="#attendance" data-atgo="${g.code}" style="--c:${g.color};--l:${g.light}"><span class="atcard-h"><b>${esc(g.name)}</b><small>${plural(st, "student")}</small></span>
+          <span class="atcount"><b>${cs.length}</b> of ${atTotal(g.code)} classes</span><span class="bar"><i style="width:${Math.min(100, 100 * cs.length / atTotal(g.code))}%"></i></span>
+          <small class="muted">${last ? `Last: ${fmt(new Date(last.date + "T00:00:00"), { day: "numeric", month: "short" })}${last.topics.length ? " · " + esc(topicName(last.topics[0])) : ""}` : "No classes yet"}</small></a>`; }).join("")}</div></section>`;
+  }
+  function vAttendance() {
+    const head0 = head("Attendance", "Mark who came and what you taught. Everything here is saved in this browser only.",
+      `<label class="btn file">${ic("down")}Import class list<input type="file" id="atImport" accept=".xlsx,.csv"></label><button class="btn" data-at="export">${ic("sheet")}Register (Excel)</button>`);
+    const bk = AT.lastBackup ? Math.floor((Date.now() - new Date(AT.lastBackup)) / 864e5) : -1;
+    const backupBar = `<div class="atbackup ${AT.classes.length && (bk < 0 || bk > 7) ? "warn" : ""}">${ic("box")}<span>${AT.classes.length && (bk < 0 || bk > 7) ? `<b>${bk < 0 ? "No attendance backup yet." : `Last backup ${bk} days ago.`}</b> ` : ""}Attendance lives in this browser only. Download a backup each week, and load it on another computer.</span>
+      <button class="btn" data-at="backup">Download backup</button><label class="btn file">Load backup<input type="file" id="atRestore" accept=".json,application/json"></label></div>`;
+    if (!AT.students.length) return head0 + `<div class="card atempty">${empty("No students yet. Import the club's Excel sheet: only the Name and Class columns are read, and the names stay in this browser.",
+      `<label class="btn primary big file">${ic("down")}Import class list (.xlsx)<input type="file" id="atImport2" accept=".xlsx,.csv"></label>`)}
+      <form class="atadd" data-atform><input id="atNewName" placeholder="Or add one student: name" aria-label="Student name"><input id="atNewCls" placeholder="Class, e.g. 5A or IG II" aria-label="Class"><button class="btn" type="submit">${ic("plus")}Add</button></form></div>` + backupBar;
+    if (!AUI.g || !AG[AUI.g]) startDraft(AT.students.some(s => s.group === "G1") ? "G1" : AT.students.find(s => s.group) ? AT.students.find(s => s.group).group : "G1");
+    const g = AG[AUI.g], list = studentsOf(g.code), cs = classesOf(g.code), unsure = AT.students.filter(s => !s.group);
+    const tabs = `<div class="gtabs attabs">${AGROUPS.map(x => { const n = classesOf(x.code).length;
+      return `<button class="gtab ${x.code === g.code ? "on" : ""}" data-atg="${x.code}" style="--c:${x.color};--l:${x.light}"><span class="gtab-code">${x.code.slice(1)}</span><span class="gtab-txt"><b>${esc(x.name)}</b><small>${n} of ${atTotal(x.code)} classes · ${plural(studentsOf(x.code).length, "student")}</small></span></button>`; }).join("")}</div>`;
+    const presentN = list.filter(s => AUI.marks[s.id] === "p").length, num = AUI.editing ? cs.findIndex(c => c.id === AUI.editing) + 1 : cs.length + 1;
+    const tq = AUI.tq.toLowerCase();
+    const toks = tq.split(/\s+/).filter(Boolean);
+    const sugg = toks.length ? ACTS.filter(a => !AUI.topics.includes(a.code) && toks.every(t => hayOf(a).includes(t))).sort((x, y) => (y.code.toLowerCase().startsWith(tq) - x.code.toLowerCase().startsWith(tq)) || (toks.every(t => y.title.toLowerCase().includes(t)) - toks.every(t => x.title.toLowerCase().includes(t)))).slice(0, 8) : [];
+    const take = `<div class="card attake" style="--c:${g.color};--l:${g.light}">
+      <div class="attake-h"><div><span class="acode">${AUI.editing ? "Editing" : "New class"} · ${esc(g.name)}</span><h2>Class ${num} of ${atTotal(g.code)}</h2>${num > atTotal(g.code) ? `<small class="atover">That's more than the ${atTotal(g.code)} planned classes. It still counts.</small>` : ""}</div>
+        <label class="atdate"><span>Date</span><input type="date" id="atDate" value="${esc(AUI.date)}"></label></div>
+      <div class="m-sec"><label>Today's topics <i>pick from any age group</i></label>
+        <div class="attopics">${AUI.topics.map(c => `<span class="attopic">${esc(topicName(c))}<button data-atuntopic="${esc(c)}" aria-label="Remove ${esc(c)}">${ic("x")}</button></span>`).join("") || `<small class="muted">No topic yet.</small>`}</div>
+        <label class="search attq">${ic("search")}<input type="search" id="atTopicQ" placeholder="Search lessons: code, title or topic (e.g. JM-04, servo, traffic)" value="${esc(AUI.tq)}" aria-label="Search lessons to add as a topic" autocomplete="off"></label>
+        <div class="atsugg" id="atSugg">${sugg.map(a => `<button class="prow" data-attopic="${esc(a.code)}" style="--c:${GROUPS[a.group].color};--l:${GROUPS[a.group].light}"><span class="acode">${esc(lab(a))}</span><span class="nt">${esc(a.title)}<small>${esc(GROUPS[a.group].name)} · ${esc(a.unit)}</small></span><span class="nplan">Add</span></button>`).join("")}</div></div>
+      <div class="m-sec"><label>Students <i>${presentN} present · ${list.length - presentN} absent</i><span class="atall"><button class="linkbtn navy" data-atall="p">All present</button><button class="linkbtn navy" data-atall="a">All absent</button></span></label>
+        ${list.length ? `<div class="atlist">${list.map(s => { const m = AUI.marks[s.id];
+          return `<div class="atrow"><span class="atname"><b>${esc(s.name)}</b><small>${esc(s.cls)}</small></span><span class="atpa" role="group" aria-label="${esc(s.name)}"><button class="p ${m === "p" ? "on" : ""}" data-atmark="${s.id}" data-v="p" aria-pressed="${m === "p"}">Present</button><button class="a ${m === "a" ? "on" : ""}" data-atmark="${s.id}" data-v="a" aria-pressed="${m === "a"}">Absent</button></span></div>`; }).join("")}</div>`
+          : `<p class="muted">No students in this group yet. Import the class list, or set a student's group below.</p>`}</div>
+      <div class="m-foot atfoot">${AUI.editing ? `<button class="btn danger" data-at="delclass">Delete this class</button><button class="btn" data-at="cancel">Cancel</button>` : "<span></span>"}<button class="btn primary big" data-at="save" ${list.length ? "" : "disabled"}>${ic("check")}${AUI.editing ? "Save changes" : "Save attendance"}</button></div></div>`;
+    const held = cs.length;
+    const history = `<div class="card"><div class="panel-h"><h2>Classes so far <small class="muted">${held} of ${atTotal(g.code)}</small></h2>
+        <label class="attotal">Planned classes <input type="number" min="1" max="60" id="atTotal" value="${atTotal(g.code)}" aria-label="Planned classes for ${esc(g.name)}"></label></div>
+      ${held ? `<div class="athist">${cs.map((c, i) => { const p = Object.values(c.marks).filter(v => v === "p").length, a = Object.values(c.marks).filter(v => v === "a").length;
+        return `<button class="athrow ${c.id === AUI.editing ? "on" : ""}" data-atedit="${c.id}"><span class="athn">${i + 1}</span><span class="atht"><b>${fmt(new Date(c.date + "T00:00:00"), { weekday: "short", day: "numeric", month: "short" })}</b><small>${c.topics.map(t => esc(topicName(t))).join(" · ") || "No topic recorded"}</small></span><span class="athc"><em class="ok">${p}</em><em class="no">${a}</em></span></button>`; }).join("")}</div>` : `<p class="muted">No classes recorded for this group yet.</p>`}</div>`;
+    const roster = `<div class="card"><div class="panel-h"><h2>Students <small class="muted">${list.length}</small></h2></div>
+      ${list.length ? `<table class="kt atroster"><thead><tr><th>Name</th><th>Class</th><th class="c">Attended</th><th class="c">%</th><th>Group</th><th></th></tr></thead><tbody>${list.map(s => {
+        const mine = cs.filter(c => c.marks[s.id]), here = mine.filter(c => c.marks[s.id] === "p").length, pct = mine.length ? Math.round(100 * here / mine.length) : null;
+        return `<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.cls)}</td><td class="c">${here} / ${mine.length}</td><td class="c ${pct != null && pct < 75 ? "atlow" : ""}">${pct == null ? "–" : pct + "%"}</td>
+          <td><select data-atgroup="${s.id}" aria-label="Group for ${esc(s.name)}">${AGROUPS.map(x => `<option value="${x.code}" ${x.code === s.group ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></td>
+          <td><button class="kdel" data-atdel="${s.id}" aria-label="Remove ${esc(s.name)}">${ic("x")}</button></td></tr>`; }).join("")}</tbody></table>` : ""}
+      <form class="atadd" data-atform><input id="atNewName" placeholder="Add a student: name" aria-label="Student name"><input id="atNewCls" placeholder="Class, e.g. 5A or IG II" aria-label="Class"><button class="btn" type="submit">${ic("plus")}Add</button></form></div>`;
+    const fix = unsure.length ? `<div class="warn">${plural(unsure.length, "student")} couldn't be placed from their class: ${unsure.map(s => `${esc(s.name)} <select data-atgroup="${s.id}" aria-label="Group for ${esc(s.name)}"><option value="">Pick a group</option>${AGROUPS.map(x => `<option value="${x.code}">${esc(x.name)}</option>`).join("")}</select>`).join(" · ")}</div>` : "";
+    return head0 + fix + tabs + `<div class="atlayout"><div>${take}</div><div>${history}${roster}</div></div>` + backupBar;
+  }
+  function saveClass() {
+    const list = studentsOf(AUI.g);
+    if (!AUI.date) return toast("Pick the date first");
+    const marks = {}; list.forEach(s => { if (AUI.marks[s.id]) marks[s.id] = AUI.marks[s.id]; });
+    if (AUI.editing) { const c = AT.classes.find(x => x.id === AUI.editing); if (c) Object.assign(c, { date: AUI.date, topics: AUI.topics.slice(), marks }); }
+    else AT.classes.push({ id: uid(), group: AUI.g, date: AUI.date, topics: AUI.topics.slice(), marks });
+    saveAt(); const was = !!AUI.editing; startDraft(AUI.g); render();
+    toast(was ? "Class updated" : `Saved: class ${classesOf(AUI.g).length} of ${atTotal(AUI.g)} for <b>${esc(AG[AUI.g].name)}</b>`);
+  }
+  function exportRegister() {
+    const rows = [["Group", "Name", "Class"].concat(["Attended", "Classes marked", "%"])];
+    AGROUPS.forEach(g => {
+      const cs = classesOf(g.code); rows.push([]); rows.push([g.name, "", ""].concat(cs.map((c, i) => `Class ${i + 1} ${c.date}`)));
+      rows.push(["", "Topics", ""].concat(cs.map(c => c.topics.map(topicName).join(" / "))));
+      studentsOf(g.code).forEach(s => { const mine = cs.filter(c => c.marks[s.id]), here = mine.filter(c => c.marks[s.id] === "p").length;
+        rows.push([g.name, s.name, s.cls].concat(cs.map(c => c.marks[s.id] === "p" ? "P" : c.marks[s.id] === "a" ? "A" : ""), [here, mine.length, mine.length ? Math.round(100 * here / mine.length) + "%" : ""])); });
+    });
+    download(`attendance-register-${iso(new Date())}.csv`, "﻿" + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n"), "text/csv");
+  }
+  /* attendance has its own events, kept here so the page reads in one place */
+  document.addEventListener("click", e => {
+    const t = e.target.closest("button, a"); if (!t || !document.body.contains(t)) return; const d = t.dataset;
+    if (d.atgo) { AUI.g = d.atgo; startDraft(d.atgo); return; }
+    if (route() !== "attendance") return;
+    if (d.atg) { startDraft(d.atg); render(); return; }
+    if (d.atmark) { AUI.marks[d.atmark] = d.v; render(); return; }
+    if (d.atall) { studentsOf(AUI.g).forEach(s => { AUI.marks[s.id] = d.atall; }); render(); return; }
+    if (d.attopic) { if (!AUI.topics.includes(d.attopic)) AUI.topics.push(d.attopic); AUI.tq = ""; render(); const q = $("#atTopicQ"); if (q) q.focus(); return; }
+    if (d.atuntopic) { AUI.topics = AUI.topics.filter(c => c !== d.atuntopic); render(); return; }
+    if (d.atedit) { const c = AT.classes.find(x => x.id === d.atedit); if (c) { startDraft(c.group, c); render(); window.scrollTo({ top: 0, behavior: "smooth" }); } return; }
+    if (d.atdel) { const s = AT.students.find(x => x.id === d.atdel); if (s && confirm(`Remove ${s.name} from the list? Their past marks are kept in old classes.`)) { AT.students = AT.students.filter(x => x.id !== d.atdel); saveAt(); render(); } return; }
+    switch (d.at) {
+      case "save": saveClass(); break;
+      case "cancel": startDraft(AUI.g); render(); break;
+      case "delclass": if (confirm("Delete this class and its attendance?")) { AT.classes = AT.classes.filter(c => c.id !== AUI.editing); saveAt(); startDraft(AUI.g); render(); toast("Class deleted"); } break;
+      case "backup": AT.lastBackup = new Date().toISOString(); saveAt(); download(`attendance-backup-${iso(new Date())}.json`, JSON.stringify(AT, null, 1), "application/json"); render(); break;
+      case "export": exportRegister(); break;
+    }
+  });
+  document.addEventListener("submit", e => {
+    if (!e.target.matches("[data-atform]")) return; e.preventDefault();
+    const name = ($("#atNewName").value || "").trim(), cls = ($("#atNewCls").value || "").trim(); if (!name) return toast("Type the student's name");
+    AT.students.push({ id: uid(), name, cls, group: groupFromClass(cls) || AUI.g || "" }); saveAt(); if (AUI.g) startDraft(AUI.g, AUI.editing ? AT.classes.find(c => c.id === AUI.editing) : null); render(); toast(`${esc(name)} added`);
+  });
+  document.addEventListener("change", e => {
+    const t = e.target; if (route() !== "attendance") return;
+    if (t.id === "atImport" || t.id === "atImport2") { if (t.files[0]) importStudents(t.files[0]); t.value = ""; return; }
+    if (t.id === "atRestore") { const f = t.files[0]; if (!f) return; const r = new FileReader();
+      r.onload = () => { try { const x = JSON.parse(r.result); if (x.v !== 1 || !Array.isArray(x.students)) throw 0; if (confirm("Replace the attendance in this browser with this backup?")) { Object.assign(AT, { totals: {}, students: [], classes: [], lastBackup: "" }, x); saveAt(); AUI.g = ""; render(); toast("Attendance backup loaded"); } } catch (er) { toast("That file is not an attendance backup"); } };
+      r.readAsText(f); t.value = ""; return; }
+    if (t.id === "atDate") { AUI.date = t.value; return; }
+    if (t.id === "atTotal") { const n = Math.max(1, Math.min(60, +t.value || AG[AUI.g].total)); AT.totals[AUI.g] = n; saveAt(); render(); return; }
+    if (t.dataset.atgroup) { const s = AT.students.find(x => x.id === t.dataset.atgroup); if (s && t.value) { s.group = t.value; saveAt(); startDraft(AUI.g); render(); } return; }
+  });
+  document.addEventListener("input", e => {
+    if (e.target.id !== "atTopicQ") return;
+    AUI.tq = e.target.value; const pos = e.target.selectionStart; render();
+    const n = $("#atTopicQ"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (er) { } }
+  });
 
   /* ---------- STUDY BUDDY ----------
      buddy/buddy.js asks the page where it was opened from, so a question
@@ -1399,7 +1622,7 @@
      swapped the hardware list out from under the print dialog, which is why
      it came out as the empty "plan some sessions" page. */
   window.addEventListener("beforeprint", () => {
-    if (document.getElementById("printArea")) return;
+    if (document.getElementById("printArea") || !WEEK) return;
     if (route() !== "print") { location.hash = "#print"; render(); }
   });
 

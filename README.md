@@ -5,7 +5,8 @@ It is plain HTML, CSS and JavaScript. There is no server, no build step and no l
 
 ## Pages
 
-- **Home**: a **Student / Teacher** switch at the top. Students pick their group once and see the next lesson, the one they left half way, and their progress. Teachers see today's session with the parts to pack, then the dashboard for the planning week. It shows the next session with a Present button, the week board, students and parts totals, the pack list, things that need attention (sessions without a day, sessions without slides, backups) and progress for each age group.
+- **Home**: a **Student / Teacher** switch at the top. Students pick their group once and see the next lesson, the one they left half way, and their progress. Teachers see attendance for each group, the four learning pathways, the virtual labs and the lab pages.
+- **Attendance** (teachers): import the club's Excel class list once (only the Name and Class columns are read), then for each class pick the date and today's topics (from any age group) and mark everyone present or absent. It counts classes for each group (Grade 1–5: 8 classes; Grade 6–8 and IG/Matric/FSc/A level: 16 each), shows each student's attendance, and exports the register to Excel. It shows the next session with a Present button, the week board, students and parts totals, the pack list, things that need attention (sessions without a day, sessions without slides, backups) and progress for each age group.
 - **Curriculum**: coloured tabs for Foundation, Little Explorers, Junior Makers, Young Innovators and Tech Leaders, plus **Plans & documents**. Tap a presentation to open it full screen. Move with the arrow keys or space, by tapping the sides, or by swiping on a phone. Press F for full screen.
 - **Hardware**: the same coloured tabs plus **This week**. Each activity is a card with its parts and totals.
 - **Age group pages**: activity cards by phase, or the whole track as a **Roadmap**. Filter by topic, level (Starter, Core, Advanced) or a part from the kit. Filters stay in the address, so a filtered page can be shared.
@@ -58,12 +59,17 @@ The lesson sheet shows three extra sections when an activity in `data.js` has th
 
 `goal` is optional too: when it is missing, the goal is the activity's `about` line.
 
+## Weekly planning (switched off)
+
+The weekly timetable, "this week" panels, print lists and planned/taught counts are hidden for now, because the portal has no shared database and the club isn't planning weeks here. Nothing was deleted: set `const WEEK = true;` near the top of `app.js` to bring it all back. A shared database (Supabase, for example) could later keep attendance and progress across devices.
+
 ## Study Buddy (for teachers)
 
 The robot button on every page opens **Study Buddy**, a helper students can ask about circuits, code, robots, AI and any club lesson. By default it answers from our own lessons, parts list and the glossary in `buddy/glossary.js`, in the browser, with nothing sent anywhere.
 
-- **What it says:** edit `buddy/system-prompt.txt` (teaching style, safety rules, topics) and `buddy/glossary.js` (definitions). Push, and the change is live.
-- **AI answers (optional):** deploy the free Cloudflare Worker in `chatbot-proxy/` (see its README), then set `backend: "worker"` and `workerUrl` in `buddy/config.js`. Check Cloudflare's current free limits first. The Worker limits each tab to 20 questions per 10 minutes and the whole club to 300 a day; when either runs out, or the free AI allowance does, Study Buddy quietly uses its built-in answers instead. The free plan can't create a bill.
+- **What it says:** edit `buddy/system-prompt.txt` (teaching style, safety rules, topics) and `buddy/glossary.js` (definitions and the wiring guides for each module). Push, and the change is live.
+- **It knows our presentations:** `buddy/slides.js` holds the text of every slide deck. After adding or changing presentations, run `python3 tools/build_slide_text.py` (on a Mac) to refresh it.
+- **AI answers (recommended):** set up the free Worker in `chatbot-proxy/`, about 10 minutes in the Cloudflare dashboard. It can use Cloudflare's own AI (no key) or Google Gemini's free tier (key kept as a secret in Cloudflare); its README compares them, including Gemini's age terms. Then set `backend: "worker"` and `workerUrl` in `buddy/config.js`. Check Cloudflare's current free limits first. The Worker limits each tab to 20 questions per 10 minutes and the whole club to 300 a day; when either runs out, or the free AI allowance does, Study Buddy quietly uses its built-in answers instead. The free plan can't create a bill.
 - **Privacy:** questions are capped at 600 characters, messages that look like a phone number, email, address or password are blocked before sending, and a student's code is only sent when they press "Explain this error" or "Help with my code". The chat is saved only in that browser (`rac-chat-v1`), with a Clear button.
 - **Turn it off:** `enabled: false` in `buddy/config.js` hides it everywhere. To stop only the AI, set `BUDDY_OFF` to `1` in the Worker, or `backend: "local"`.
 
@@ -71,7 +77,7 @@ The robot button on every page opens **Study Buddy**, a helper students can ask 
 
 Your plan is saved **in the browser you use** (local storage, key `rac-lab-planner-v1`), not on GitHub. Use **Settings → Download backup** every Friday. The home page reminds you when a backup is older than a week.
 
-A student's progress (finished lessons, their group, the slide they stopped on, recent searches) and the Student / Teacher choice are kept separately under `rac-progress-v1`, on that device only. The light / dark choice is `rac-theme-v1`. Neither is part of the plan backup.
+A student's progress (finished lessons, their group, the slide they stopped on, recent searches) and the Student / Teacher choice are kept separately under `rac-progress-v1`, on that device only. Attendance and the student list are under `rac-attendance-v1`, with their own **Download backup** on the Attendance page: student names are never written into the website's files. The light / dark choice is `rac-theme-v1`. Neither is part of the plan backup.
 
 **Note:** the repository is public, so anyone with the link can open everything in `library/`, including the INTERNAL plans and the requisitions.
 
@@ -85,6 +91,7 @@ A student's progress (finished lessons, their group, the slide they stopped on, 
 | `library/slides`, `library/docs`, `library/thumbs` | Presentation PDFs, documents, cover images |
 | `tools/build_library.py` | Syncs `library/` from the Robotics Curriculum folder |
 | `tools/bump_version.py` | Bumps every `?v=` version string together |
+| `tools/build_slide_text.py` | Refreshes Study Buddy's copy of the slide text (`buddy/slides.js`) |
 | `tokens.css`, `theme.js`, `fonts/` | Shared colours, type and light / dark theme for all three apps |
 | `circuit/` | Circuit Lab: the circuit editor and simulator |
 | `codelab/` | Code Lab: the six-language editor |

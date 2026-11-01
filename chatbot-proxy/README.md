@@ -1,7 +1,7 @@
 # Study Buddy's AI (free)
 
 Without this, Study Buddy answers from the club's slides, glossary and wiring guides, in the browser. That works offline but can't reason like a real AI.
-This small Cloudflare Worker connects Study Buddy to a **real AI model for free**, so it can explain anything in robotics, electronics, coding and AI. It also sends the AI the most relevant slides from our own presentations with each question, so answers match how the club teaches.
+This small Cloudflare Worker connects Study Buddy to a **real AI model for free**, so it answers like ChatGPT or Claude: components, wiring and pins, code, errors, electronics, robotics and AI.
 
 If the AI is off, busy, out of its free allowance or unreachable, Study Buddy quietly falls back to its built-in answers.
 
@@ -9,10 +9,10 @@ If the AI is off, busy, out of its free allowance or unreachable, Study Buddy qu
 
 | | Cloudflare Workers AI (`workers-ai`) | Google Gemini (`gemini`) |
 |---|---|---|
-| Model | Llama 3.1 8B | Gemini 2.5 Flash (or whichever free model you set in `GEMINI_MODEL`) |
+| Model | Llama 3.3 70B (set `WORKERS_AI_MODEL` to change it) | Gemini 2.5 Flash (or whichever free model you set in `GEMINI_MODEL`) |
 | Key | **None.** Connected inside Cloudflare. | A free key from Google AI Studio, stored as a Worker **secret**. |
-| Quality | Good for short explanations. | Usually stronger, especially for code and explanations. |
-| Free limit | A daily allowance (it has been 10,000 "neurons", roughly a few hundred answers). | Per-minute and per-day request limits on the free tier. |
+| Quality | Strong general answers. | Also strong, especially for code. |
+| Free limit | A daily allowance (it has been 10,000 "neurons"; with the 70B model that's very roughly 100 full answers a day, with the 8B model several times more). | Per-minute and per-day request limits on the free tier. |
 | Can it bill you? | No: the Workers Free plan has no paid overage. | Not if the Google project has **no billing account**. Never add billing to that project. |
 | For students? | Check Cloudflare's terms and the Llama licence. | **Read Google's Gemini API terms first:** they have required users to be 18+ and restricted apps likely to be used by under-18s, and free-tier prompts may be used to improve Google's products. |
 

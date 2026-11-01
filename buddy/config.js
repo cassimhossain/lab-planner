@@ -13,5 +13,5 @@ window.BUDDY_CONFIG = {
   enabled: true,
   backend: "local",
   workerUrl: "",
-  version: "39",
+  version: "40",
 };

@@ -2,8 +2,8 @@
 
    It sits between the club's site and a free AI model, and holds any key, so
    no key is ever in the website. Pick the model with PROVIDER:
-     "workers-ai"  Cloudflare Workers AI (Llama 3.1 8B). No key at all: add a
-                   Workers AI binding called AI.
+     "workers-ai"  Cloudflare Workers AI (Llama 3.3 70B by default). No key at
+                   all: add a Workers AI binding called AI.
      "gemini"      Google Gemini through AI Studio's free tier. Add your key as
                    a SECRET called GEMINI_API_KEY (never in this file).
 
@@ -24,7 +24,7 @@
    site quietly answers from its built-in helper instead. */
 import { DurableObject } from "cloudflare:workers";
 
-const FALLBACK_PROMPT = "You are Study Buddy, a friendly, safe helper for school students learning electronics, Arduino, ESP32, Python, C++, robotics and AI. Explain clearly and correctly, give hints before full answers for homework, say \"I'm not sure\" rather than guess, refuse anything unsafe (mains electricity, weapons), and never ask for personal information.";
+const FALLBACK_PROMPT = "You are Study Buddy, an expert, friendly tutor for school students learning electronics, Arduino, ESP32, sensors, Python, C++, robotics and AI. Answer directly, correctly and completely, with pin tables for wiring and short commented code where useful. Use Markdown. Refuse anything unsafe (mains electricity, weapons), keep it age-appropriate, and never ask for personal information.";
 const memo = { sessions: new Map(), day: "", n: 0 };   // used when no Durable Object is bound
 
 export default {
@@ -56,15 +56,12 @@ export default {
       try { const r = await fetch(env.PROMPT_URL, { cf: { cacheTtl: 600, cacheEverything: true } }); if (r.ok) prompt = (await r.text()).slice(0, 8000); } catch (e) { }
     }
     const c = body.context || {}, clip = (s, n) => String(s || "").slice(0, n);
-    const slides = (Array.isArray(c.slides) ? c.slides : []).slice(0, 5).map(s => `- ${clip(s.c, 12)} slide ${clip(s.n, 4)}: ${clip(s.t, 600)}`).join("\n");
     const notes = [
       body.mode === "deep" ? "Mode: deeper. Add the reason behind it and one more detail." : "Mode: simple. Explain like the student is 10 years old.",
       body.hint ? "The student wants a hint, not the answer. Give a hint or a guiding question only." : "",
       c.page ? `The student is in: ${clip(c.page, 20)}.` : "",
-      c.lesson ? `Current club lesson: ${clip(c.lesson, 20)}.` : "",
       c.lang ? `Language: ${clip(c.lang, 20)}.` : "",
       c.parts ? `Parts in their circuit: ${clip(c.parts, 400)}.` : "",
-      slides ? `Slides from the club's own presentations that may be relevant (use them when they fit, and mention the lesson and slide; otherwise answer from your own knowledge):\n${slides}` : "",
       c.error ? `Their error message:\n${clip(c.error, 1200)}` : "",
       c.code ? `Their code:\n${clip(c.code, 4000)}` : "",
     ].filter(Boolean).join("\n\n");
@@ -86,9 +83,12 @@ const provider = env => (env.PROVIDER || "workers-ai").toLowerCase();
 
 async function workersAI(env, system, history, message) {
   if (!env.AI) throw new Error("No Workers AI binding called AI");
-  const model = env.WORKERS_AI_MODEL || "@cf/meta/llama-3.1-8b-instruct";
+  /* Llama 3.3 70B is the strongest general model on the free tier; set
+     WORKERS_AI_MODEL to "@cf/meta/llama-3.1-8b-instruct" for more (but
+     simpler) answers per day */
+  const model = env.WORKERS_AI_MODEL || "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
   /* Workers AI already streams "data: {"response": "..."}" lines, the format the site reads */
-  return env.AI.run(model, { messages: [{ role: "system", content: system }, ...history, { role: "user", content: message }], stream: true, max_tokens: 600, temperature: 0.4 });
+  return env.AI.run(model, { messages: [{ role: "system", content: system }, ...history, { role: "user", content: message }], stream: true, max_tokens: 1024, temperature: 0.3 });
 }
 
 async function gemini(env, system, history, message) {
@@ -97,7 +97,7 @@ async function gemini(env, system, history, message) {
   const contents = history.map(m => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })).concat([{ role: "user", parts: [{ text: message }] }]);
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, {
     method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-    body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { maxOutputTokens: 800, temperature: 0.4 } }),
+    body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { maxOutputTokens: 1500, temperature: 0.3 } }),
   });
   if (!r.ok || !r.body) throw Object.assign(new Error("Gemini " + r.status), { status: r.status });
   /* turn Gemini's stream into the same "data: {"response": ...}" lines Workers AI sends */

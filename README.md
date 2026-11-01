@@ -16,6 +16,16 @@ It is plain HTML, CSS and JavaScript. There is no server, no build step and no l
 - **Circuit Lab** (`circuit/`): build Arduino and ESP32 circuits on a canvas, write the sketch and run it in the browser. Ready-made circuits for every lesson, a schematic view, a multimeter and a logic scope. Installable as its own app and works offline; only compiling needs the internet.
 - **Code Lab** (`codelab/`): six languages in the browser. Python (Pyodide), C++ (g++ online), Python turtle graphics (Skulpt), p5.js, Processing and web pages (HTML, CSS and JavaScript with a live preview). Every one except Python and C++ runs with no internet.
 
+Three links to share:
+
+| Link | Opens |
+|---|---|
+| `https://cassimhossain.github.io/lab-planner/` | The whole portal, for teachers |
+| `https://cassimhossain.github.io/lab-planner/circuit/` | Circuit Lab on its own: no Portal button, so students stay in the lab |
+| `https://cassimhossain.github.io/lab-planner/codelab/` | Code Lab on its own, the same way |
+
+Opened from inside the portal, the labs get their way back (the ← arrow, and the Portal button in Circuit Lab), for the rest of that browser tab. The portal adds `?from=portal` to its lab links for this. The site is public, so this keeps students focused rather than locking anything.
+
 Use the arrows in the top bar to change the planning week.
 
 ## Adding new presentations

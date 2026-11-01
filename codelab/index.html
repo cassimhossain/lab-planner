@@ -6,6 +6,15 @@
 <title>Code Lab · Robotics &amp; AI Club</title>
 <meta name="description" content="Write and run Python, C++, Python turtle graphics, p5.js, Processing and web pages in the browser, with error help and ready-made examples.">
 <link rel="icon" type="image/svg+xml" href="../logo.svg">
+<!-- a shared Code Lab link stays inside Code Lab; opened from the portal
+     (?from=portal), it gets its way back, for the rest of that tab -->
+<script>
+  (function () { try {
+    var u = new URL(location.href);
+    if (u.searchParams.get("from") === "portal") { sessionStorage.setItem("rac-from-portal", "1"); u.searchParams.delete("from"); history.replaceState(null, "", u.pathname + u.search + u.hash); }
+    if (sessionStorage.getItem("rac-from-portal") === "1") document.documentElement.classList.add("from-portal");
+  } catch (e) { } })();
+</script>
 <!-- lets Python's input() wait for typing: adds the cross-origin isolation headers GitHub Pages can't set.
      On the very first visit it has to reload the page once; this says so
      instead of leaving the student watching an unexplained flash. -->
@@ -18,13 +27,21 @@
   } };
 </script>
 <script src="coi-serviceworker.js"></script>
-<script src="../theme.js?v=12"></script>
-<link rel="stylesheet" href="../tokens.css?v=12">
-<link rel="stylesheet" href="../buddy/buddy.css?v=44">
-<link rel="stylesheet" href="vendor/codemirror.css?v=12">
-<link rel="stylesheet" href="codelab.css?v=12">
+<script src="../theme.js?v=13"></script>
+<link rel="stylesheet" href="../tokens.css?v=13">
+<link rel="stylesheet" href="../buddy/buddy.css?v=45">
+<link rel="stylesheet" href="vendor/codemirror.css?v=13">
+<link rel="stylesheet" href="codelab.css?v=13">
 </head>
 <body>
+<!-- held on screen while the editor and the languages load -->
+<div class="cboot" id="cboot" role="status" aria-label="Code Lab is loading"><svg class="cb-ic" viewBox="0 0 512 512" aria-hidden="true">
+  <circle class="cb-disc" cx="256" cy="256" r="256"/>
+  <path class="cb-l" d="M83.928,259.304L201.32,204.8v25.92l-88.776,38.88v0.488l88.8,38.888v25.92l-117.416-54.56C83.928,280.336,83.928,259.304,83.928,259.304z"/>
+  <path class="cb-s" d="M219.448,344.656l52.336-177.32h24.696l-52.336,177.32H219.448z"/>
+  <path class="cb-r" d="M428.072,281.064L310.68,334.872v-25.92l90.736-38.888V269.6l-90.736-38.912V204.8l117.392,53.808V281.064z"/>
+</svg><span class="cb-t">Starting Code Lab…</span></div>
+<script>setTimeout(function () { document.body.classList.add("cready"); }, 8000);  /* never trap the page behind it */</script>
 <a class="skip" href="#editor">Skip to the code editor</a>
 <header class="top">
   <a class="brand" href="../index.html#sims" title="Back to the portal"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg><img src="../logo.svg" alt=""><span><b>Code Lab</b><small>Robotics &amp; AI Club</small></span></a>
@@ -104,11 +121,11 @@
 <div id="toast" class="toast"></div>
 <input id="fileup" type="file" accept=".py,.cpp,.cc,.c,.h,.txt,.js,.pde,.html,.htm,.css" hidden>
 
-<script src="vendor/codemirror.min.js?v=12"></script>
+<script src="vendor/codemirror.min.js?v=13"></script>
 <!-- javascript, css, xml and htmlmixed modes for the p5, Processing and Web tabs -->
-<script src="vendor/cm-modes.js?v=12"></script>
-<script type="module" src="app.js?v=12"></script>
-<script src="../buddy/config.js?v=44" defer></script>
-<script src="../buddy/buddy.js?v=44" defer></script>
+<script src="vendor/cm-modes.js?v=13"></script>
+<script type="module" src="app.js?v=13"></script>
+<script src="../buddy/config.js?v=45" defer></script>
+<script src="../buddy/buddy.js?v=45" defer></script>
 </body>
 </html>

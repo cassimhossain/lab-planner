@@ -10,7 +10,7 @@
    output and errors come back by postMessage. Stopping a program is just
    emptying the frame, which is also what makes "Live" re-running safe. */
 
-const V = "?v=12";
+const V = "?v=13";
 const loaded = {};
 export function loadScript(src) {
   if (loaded[src]) return loaded[src];

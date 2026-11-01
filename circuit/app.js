@@ -1,12 +1,12 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=28";
-import { BOARDS, loadHex } from "./boards.js?v=28";
-import { layoutCircuit } from "./layout.js?v=28";
-import { SNIPPETS } from "./snippets.js?v=28";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=28";
-import * as T from "./tools.js?v=28";
-import { initHome, showHome, hideHome, isHome } from "./home.js?v=28";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=28";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=29";
+import { BOARDS, loadHex } from "./boards.js?v=29";
+import { layoutCircuit } from "./layout.js?v=29";
+import { SNIPPETS } from "./snippets.js?v=29";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=29";
+import * as T from "./tools.js?v=29";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=29";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=29";
 
 /* The simulator, the Arduino library bundler and the schematic drawer are
    roughly a third of the code and none of it is needed to open the page, so
@@ -18,7 +18,7 @@ let BUILTIN_LIBS = [], EXTRA_LIBS = [], enginePromise = null;
 function loadEngine() {
   if (enginePromise) return enginePromise;
   enginePromise = Promise.all([
-    import("./sim.js?v=28"), import("./libs.js?v=28"), import("./schematic.js?v=28"),
+    import("./sim.js?v=29"), import("./libs.js?v=29"), import("./schematic.js?v=29"),
   ]).then(([s, l, c]) => {
     Netlist = s.Netlist; Sim = s.Sim; Sim.muted = muted;
     prepareSketch = l.prepareSketch; BUILTIN_LIBS = l.BUILTIN_LIBS; EXTRA_LIBS = l.EXTRA_LIBS;
@@ -37,10 +37,10 @@ function loadCodeMirror() {
   if (cmPromise) return cmPromise;
   cmPromise = new Promise((res, rej) => {
     const css = document.createElement("link");
-    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=28";
+    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=29";
     document.head.appendChild(css);
     const sc = document.createElement("script");
-    sc.src = "../vendor/codemirror/codemirror.min.js?v=28";
+    sc.src = "../vendor/codemirror/codemirror.min.js?v=29";
     sc.onload = () => res(window.CodeMirror); sc.onerror = () => rej(new Error("CodeMirror failed to load"));
     document.head.appendChild(sc);
   });
@@ -1010,7 +1010,7 @@ function renderLessonCard() {
     ${spec.try && spec.try.length ? `<div class="lbox"><b>Try this</b><ol class="checks">${spec.try.map((t, i) => `<li><label><input type="checkbox" data-try="${i}"><span>${esc(t)}</span></label></li>`).join("")}</ol></div>` : ""}
     ${spec.note ? `<div class="lbox note">${ic("info")}<p>${esc(spec.note)}</p></div>` : ""}
     <div class="lbox"><b>Parts in this circuit</b><div class="pchips">${[...new Set(project.parts.filter(p => p.type !== "breadboard").map(p => PARTS[p.type].label))].map(l => `<span>${esc(l)}</span>`).join("")}</div></div>
-    <div class="lbtns"><button class="btn" data-act="resetlesson">${ic("reload")}Reset to the original circuit</button>${spec.lesson ? `<a class="btn" href="../index.html#open=${encodeURIComponent(spec.lesson)}">${ic("book")}Lesson in the portal</a>` : ""}</div>`;
+    <div class="lbtns"><button class="btn" data-act="resetlesson">${ic("reload")}Reset to the original circuit</button>${spec.lesson ? `<a class="btn to-portal" href="../index.html#open=${encodeURIComponent(spec.lesson)}">${ic("book")}Lesson in the portal</a>` : ""}</div>`;
 }
 
 /* ---------- library modal ---------- */

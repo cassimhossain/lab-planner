@@ -25,6 +25,9 @@ kbd { font: 600 11px var(--font-mono); background: var(--surface); border: 1px s
 .brand img { width: 38px; height: 38px; }
 .brand span { display: flex; flex-direction: column; line-height: 1.12; }
 .brand { flex: none; }
+/* opened from a shared link there is no portal to go back to: the brand is only the name */
+html:not(.from-portal) .brand > svg.ic { display: none; }
+html:not(.from-portal) .brand { pointer-events: none; padding-left: 4px; }
 .brand b { font-size: 15.5px; white-space: nowrap; } .brand small { font-size: 11px; opacity: .65; white-space: nowrap; }
 .langs { display: flex; background: rgba(255, 255, 255, .08); border-radius: 11px; padding: 3px; gap: 2px; }
 .langs button { display: flex; align-items: center; gap: 7px; border: 0; background: transparent; color: #CBD6EC; padding: 6px 12px 6px 6px; border-radius: 8px; font-weight: 700; font-size: 13.5px; }
@@ -254,3 +257,25 @@ body.hasstage .stdin { display: none; }
 
 /* touch: bigger toolbar targets */
 @media (pointer: coarse) { .tbtn, .cbtn, .langs button { min-height: 40px; } .tbtn.icon { min-width: 40px; } }
+
+/* ---------- loading screen: held until the editor is ready ---------- */
+.cboot { position: fixed; inset: 0; z-index: 90; display: grid; place-content: center; justify-items: center; gap: 22px;
+  background: radial-gradient(120% 90% at 50% 42%, #FFFFFF 0%, #F6F9FD 55%, #ECF1F8 100%); transition: opacity .38s ease; }
+.cb-ic { width: 168px; height: 168px; overflow: visible; animation: cb-float 2.4s ease-in-out infinite; }
+.cb-disc { fill: #CFDCE5; }
+.cb-l, .cb-s, .cb-r { fill: #415E72; transform-box: fill-box; transform-origin: center; }
+.cb-l { animation: cb-left 1.2s ease-in-out infinite; }
+.cb-r { animation: cb-right 1.2s ease-in-out infinite; }
+.cb-s { animation: cb-slash 1.2s ease-in-out infinite; }
+.cb-t { font: 700 15px var(--font-body, system-ui); color: #415E72; letter-spacing: .02em; }
+@keyframes cb-left { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-16px); } }
+@keyframes cb-right { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(16px); } }
+@keyframes cb-slash { 0%, 100% { opacity: 1; transform: rotate(0); } 50% { opacity: .45; transform: rotate(12deg); } }
+@keyframes cb-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+body.cready .cboot { opacity: 0; pointer-events: none; }
+body.cready .cboot.gone { display: none; }
+:root[data-theme="dark"] .cboot { background: #0B1220; }
+:root[data-theme="dark"] .cb-disc { fill: #1C2A3D; }
+:root[data-theme="dark"] .cb-l, :root[data-theme="dark"] .cb-s, :root[data-theme="dark"] .cb-r { fill: #9FC0DA; }
+:root[data-theme="dark"] .cb-t { color: #9FC0DA; }
+@media (prefers-reduced-motion: reduce) { .cb-ic, .cb-l, .cb-r, .cb-s { animation: none; } }

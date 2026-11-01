@@ -5,7 +5,9 @@
      "workers-ai"  Cloudflare Workers AI (Llama 3.3 70B by default). No key at
                    all: add a Workers AI binding called AI.
      "gemini"      Google Gemini through AI Studio's free tier. Add your key as
-                   a SECRET called GEMINI_API_KEY (never in this file).
+                   a SECRET called GEMINI_API_KEY (never in this file). When a
+                   Workers AI binding is also there, it answers whenever Gemini
+                   is out of free requests or fails.
 
    What it enforces:
    - only the club's site may call it (ALLOWED_ORIGIN)
@@ -72,7 +74,13 @@ export default {
     const system = prompt + "\n\n" + notes;
 
     try {
-      const stream = provider(env) === "gemini" ? await gemini(env, system, history, message) : await workersAI(env, system, history, message);
+      /* Gemini first when chosen; if it is out of free requests or fails, the
+         Cloudflare model answers instead, so students aren't left waiting */
+      let stream;
+      if (provider(env) === "gemini") {
+        try { stream = await gemini(env, system, history, message); }
+        catch (e) { if (!env.AI) throw e; stream = await workersAI(env, system, history, message); }
+      } else stream = await workersAI(env, system, history, message);
       return new Response(stream, { headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-store", ...cors } });
     } catch (e) {
       /* most often: the free daily allowance is used up, or the key is missing */

@@ -1,12 +1,13 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=32";
-import { BOARDS, loadHex } from "./boards.js?v=32";
-import { layoutCircuit } from "./layout.js?v=32";
-import { SNIPPETS } from "./snippets.js?v=32";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=32";
-import * as T from "./tools.js?v=32";
-import { initHome, showHome, hideHome, isHome } from "./home.js?v=32";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=32";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=33";
+import { BOARDS, loadHex } from "./boards.js?v=33";
+import { layoutCircuit } from "./layout.js?v=33";
+import { SNIPPETS } from "./snippets.js?v=33";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=33";
+import * as T from "./tools.js?v=33";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=33";
+import { initUpload, showUpload, doFlash, boardChanged } from "./upload.js?v=33";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=33";
 
 /* The simulator, the Arduino library bundler and the schematic drawer are
    roughly a third of the code and none of it is needed to open the page, so
@@ -18,7 +19,7 @@ let BUILTIN_LIBS = [], EXTRA_LIBS = [], enginePromise = null;
 function loadEngine() {
   if (enginePromise) return enginePromise;
   enginePromise = Promise.all([
-    import("./sim.js?v=32"), import("./libs.js?v=32"), import("./schematic.js?v=32"),
+    import("./sim.js?v=33"), import("./libs.js?v=33"), import("./schematic.js?v=33"),
   ]).then(([s, l, c]) => {
     Netlist = s.Netlist; Sim = s.Sim; Sim.muted = muted;
     prepareSketch = l.prepareSketch; BUILTIN_LIBS = l.BUILTIN_LIBS; EXTRA_LIBS = l.EXTRA_LIBS;
@@ -37,10 +38,10 @@ function loadCodeMirror() {
   if (cmPromise) return cmPromise;
   cmPromise = new Promise((res, rej) => {
     const css = document.createElement("link");
-    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=32";
+    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=33";
     document.head.appendChild(css);
     const sc = document.createElement("script");
-    sc.src = "../vendor/codemirror/codemirror.min.js?v=32";
+    sc.src = "../vendor/codemirror/codemirror.min.js?v=33";
     sc.onload = () => res(window.CodeMirror); sc.onerror = () => rej(new Error("CodeMirror failed to load"));
     document.head.appendChild(sc);
   });
@@ -759,6 +760,24 @@ function friendly(e) {
   else if (/return-statement with a value, in function returning 'void'/.test(msg)) tip = "A void function can't return a value. Change void to int, or remove the value.";
   return `<div class="emsg"><b>Line ${e.line}</b> ${esc(msg)}${tip ? `<small>${esc(tip)}</small>` : ""}${e.line >= 1 ? `<button class="golink" data-goline="${e.line}">Go to line ${e.line}</button>` : ""}</div>`;
 }
+/* Upload to board compiles the same way, for the board picked in its dialog,
+   and hands back the Intel HEX. Errors show on the Code tab as they do for a run. */
+async function buildHex(board) {
+  await ensureEditor();
+  project.code = editor.getValue(); save();
+  setOutput("Compiling your sketch for the " + esc(BOARDS[board].label) + "…");
+  const r = await compile(project.code, board);
+  const list = errLines(r.stderr || "", r.prep.mapLine);
+  if (!r.hex) {
+    markErrors(list); tab("code");
+    setOutput((list.filter(e => e.kind === "error").map(friendly).join("") || esc(r.stderr || "Compile failed")) + (r.prep.notes || []).map(n => `<div class="emsg"><small>${esc(n)}</small></div>`).join(""), true);
+    throw { codeErr: true };
+  }
+  markErrors([]);
+  const used = /Sketch uses (\d+) bytes \((\d+)%\)/.exec(r.stdout || "");
+  setOutput(`<span class="ok">${ic("check")}Compiled for the ${esc(BOARDS[board].label)}</span>${used ? ` · program ${used[2]}%` : ""}`);
+  return r.hex;
+}
 /* Compiling takes a second or two every time Start simulation is pressed, so
    the chip comes up over the canvas. It waits 250ms first: a fast compile
    should not make the screen flash. */
@@ -1321,6 +1340,7 @@ function boot() {
     get project() { return project; }, get sim() { return sim; }, get running() { return running; }, get sel() { return sel; },
     setSel: v => { sel = v; }, centreOfView: () => toWorld(window.innerWidth / 2 - 140, window.innerHeight / 2),
   });
+  initUpload({ ic, toast, openModal, closeModal, boardType, buildHex });
   rebuildAll(); applyView();
 
   const stage = $("#stage");
@@ -1347,6 +1367,7 @@ function boot() {
   stage.addEventListener("drop", e => { e.preventDefault(); const t = e.dataTransfer.getData("text/plain"); if (PARTS[t]) { const [x, y] = toWorld(e.clientX, e.clientY); addPart(t, x - 30, y - 30); } });
   $("#plist").addEventListener("dragstart", e => { const b = e.target.closest("[data-add]"); if (b) e.dataTransfer.setData("text/plain", b.dataset.add); });
   $("#psearch").addEventListener("input", renderPalette);
+  document.addEventListener("change", e => { if (e.target.id === "upboard") boardChanged(); });
   $("#pname").addEventListener("change", e => { project.name = e.target.value.trim() || "My circuit"; save(); });
   $("#serialin").addEventListener("keydown", e => { if (e.key === "Enter") sendSerial(); });
   window.addEventListener("resize", () => { positionInspector(); plot.draw(); });
@@ -1426,6 +1447,8 @@ function boot() {
       case "partcode": { if (!sel || sel.kind !== "part") return; if (!Netlist) return void loadEngine().then(() => t.click()); const p = project.parts.find(q => q.id === sel.id); const r = partCode(p); if (!r) return; useCode(r.code, "replace"); if (r.missing.length) toast(`Pins not wired yet (${esc(r.missing.join(", "))}): example pins used.`); return; }
       case "copycode": navigator.clipboard && navigator.clipboard.writeText(editor ? editor.getValue() : (project.code || "")).then(() => toast("Code copied")); return;
       case "ino": return downloadIno();
+      case "flash": return showUpload();
+      case "doflash": return doFlash();
       case "mute": muted = !muted; if (Sim) Sim.muted = muted; t.innerHTML = ic(muted ? "mute" : "sound"); return;
       case "theme": toggleTheme(); syncViewButtons(); return;
       case "fullscreen": toggleFullscreen(); setTimeout(syncViewButtons, 120); return;

@@ -1042,3 +1042,24 @@ body.running .run::before { content: ""; }
   .tstar { width: 36px; height: 36px; }
   .chips button, .hchips button { min-height: 40px; }
 }
+
+/* Upload to board */
+.mbox.upl { width: min(500px, 100%); }
+.uplead { margin: 0 0 12px; }
+.uprow { display: flex; gap: 12px; flex-wrap: wrap; }
+.uprow label { flex: 1 1 180px; display: flex; flex-direction: column; gap: 5px; font-weight: 700; font-size: 12.5px; }
+.uprow select { border: 1px solid var(--line); border-radius: 9px; padding: 8px 9px; background: var(--card); font-weight: 400; font-size: 14px; }
+.upnote { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--blueL); font-size: 13px; line-height: 1.45; }
+:root[data-theme="dark"] .upnote { background: #1B2A47; }
+.upprog { margin-top: 14px; }
+.upbar { height: 10px; border-radius: 99px; background: var(--line2); overflow: hidden; position: relative; }
+.upbar i { display: block; height: 100%; width: 0; background: var(--green); border-radius: inherit; transition: width .15s; }
+.upbar.wait i { width: 35% !important; background: var(--blue); animation: upslide 1.1s ease-in-out infinite; }
+@keyframes upslide { from { transform: translateX(-100%); } to { transform: translateX(290%); } }
+.upstate { margin-top: 6px; font-size: 13px; font-weight: 700; }
+.uperr { margin-top: 14px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--red); color: var(--ink); font-size: 13px; line-height: 1.45; }
+.uperr b { color: var(--red); display: block; margin-bottom: 4px; font-size: 14px; }
+.uperr ul { margin: 6px 0; padding-left: 20px; }
+.upbtns { display: flex; justify-content: flex-end; margin-top: 16px; }
+.upbtns .btn { min-height: 38px; padding: 8px 16px; }
+@media (prefers-reduced-motion: reduce) { .upbar.wait i { animation: none; width: 100% !important; opacity: .5; } }

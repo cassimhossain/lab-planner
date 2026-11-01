@@ -1,4 +1,4 @@
-/* Robotics & AI Club as a desktop app (Mac and Windows).
+/* BotBench: the Robotics & AI Club site as a desktop app (Mac and Windows).
 
    It opens the club's site at its real address, so everything behaves as it
    does in the browser: Study Buddy, the Google Sheet attendance, saved work.
@@ -10,7 +10,7 @@
      the offline Code Lab languages keep working with no internet.
    Anything outside the site (the AI, the Sheet, videos) goes to the internet
    as usual and simply waits for a connection. */
-const { app, BrowserWindow, net, protocol, shell, Menu } = require("electron");
+const { app, BrowserWindow, net, protocol, shell, Menu, session, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const { pathToFileURL } = require("url");
@@ -22,6 +22,9 @@ const BASE = "/lab-planner/";
 const MODE = require("./package.json").labMode || "full";
 const ROOT = ORIGIN + BASE;
 const HOME = MODE === "circuit" ? ROOT + "circuit/" : ROOT;
+/* saved work lives in a folder named after the app; it keeps the names the
+   apps had before they were called BotBench, so nothing saved goes missing */
+app.setPath("userData", path.join(app.getPath("appData"), MODE === "circuit" ? "Circuit Lab" : "Robotics Club Lab"));
 const LOCAL = app.isPackaged ? path.join(process.resourcesPath, "site") : path.join(__dirname, "site");
 const WAIT = 6000;   // how long the live site gets before the packed copy answers
 
@@ -65,10 +68,46 @@ async function answer(req) {
   return packed(rel.endsWith("/") ? rel + "index.html" : rel);
 }
 
+/* Circuit Lab's "Upload to board" uses Web Serial. A browser shows its own
+   list of ports; Electron leaves that to the app, so this is that list. A
+   single Arduino-looking port is picked without asking. Only the club's site
+   may use serial ports. */
+const ARDUINO_VIDS = [0x2341, 0x2A03, 0x1A86, 0x0403];   // Arduino, Arduino.org, CH340 clones, FTDI
+const vid = p => { const s = String(p.vendorId || ""); return /^0x/i.test(s) ? parseInt(s, 16) : parseInt(s, 10); };
+const looksArduino = p => ARDUINO_VIDS.includes(vid(p));
+function portLabel(p) {
+  const v = vid(p), name = p.displayName || p.portName || "Serial port";
+  const kind = v === 0x2341 || v === 0x2A03 ? "Arduino" : v === 0x1A86 ? "CH340 (Nano or clone)" : v === 0x0403 ? "FTDI" : "";
+  return kind && !name.includes(kind) ? `${name}  (${kind})` : name;
+}
+function serialPorts() {
+  const ses = session.defaultSession;
+  ses.setPermissionCheckHandler((wc, permission, origin) => permission === "serial" ? origin === ORIGIN : true);
+  ses.setDevicePermissionHandler(d => d.deviceType === "serial" && d.origin === ORIGIN);
+  ses.on("select-serial-port", async (event, list, wc, callback) => {
+    event.preventDefault();
+    /* Bluetooth and debug ports a student would never mean */
+    const ports = list.filter(p => !/bluetooth|debug-console|wlan-debug/i.test(p.portName || ""));
+    const arduinos = ports.filter(looksArduino);
+    if (arduinos.length === 1) return callback(arduinos[0].portId);
+    if (!ports.length) {
+      await dialog.showMessageBox(BrowserWindow.fromWebContents(wc), { type: "info", message: "No board found", detail: "Plug the Arduino in with a USB cable (one that carries data, not just charge), then press Upload again.", buttons: ["OK"] });
+      return callback("");
+    }
+    const order = [...arduinos, ...ports.filter(p => !looksArduino(p))].slice(0, 8);
+    const { response } = await dialog.showMessageBox(BrowserWindow.fromWebContents(wc), {
+      type: "question", message: "Which port is the Arduino on?",
+      detail: "Unplug the board and press Upload again to see which one disappears, if you're not sure.",
+      buttons: [...order.map(portLabel), "Cancel"], cancelId: order.length, defaultId: 0, noLink: true,
+    });
+    callback(response < order.length ? order[response].portId : "");
+  });
+}
+
 function open(url) {
   const win = new BrowserWindow({
     width: 1440, height: 920, minWidth: 900, minHeight: 600,
-    title: MODE === "circuit" ? "Circuit Lab" : "Robotics & AI Club", backgroundColor: "#0B1220", show: false,
+    title: MODE === "circuit" ? "BotBench Circuits" : "BotBench", backgroundColor: "#0B1220", show: false,
     icon: path.join(__dirname, MODE === "circuit" ? "icon-circuit.png" : "icon.png"),
     webPreferences: { contextIsolation: true, sandbox: true },
   });
@@ -94,6 +133,7 @@ else {
   app.on("second-instance", () => { const w = BrowserWindow.getAllWindows()[0]; if (w) { if (w.isMinimized()) w.restore(); w.focus(); } });
   app.whenReady().then(() => {
     protocol.handle("https", answer);
+    serialPorts();
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
       { role: "fileMenu" }, { role: "editMenu" },

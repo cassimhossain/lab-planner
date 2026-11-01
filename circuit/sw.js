@@ -12,16 +12,16 @@
    index.html and in VERSION below, and the old cache is thrown away whole on
    the next visit, so a student never runs half an old version. */
 
-const VERSION = "v32";
+const VERSION = "v33";
 const CACHE = "circuitlab-" + VERSION;
-const V = "?" + VERSION.replace("v", "v=");          // "?v=32", the same string the page uses
+const V = "?" + VERSION.replace("v", "v=");          // "?v=33", the same string the page uses
 const BUDDY_V = "48";                                  // Study Buddy and lesson data: the portal's number
 
 const MODULES = ["app", "assist", "boards", "home", "elements", "elements2", "elements3", "elements4", "elements5",
   "layout", "lessons", "lessons-jm", "lessons-le", "lessons-tl", "lessons-yi",
   "libs", "libs2", "libs3", "libs4", "libs5",
   "parts", "parts2", "parts3", "parts4", "parts5", "parts6", "parts7", "parts8",
-  "schematic", "sim", "sim2", "sim3", "sim4", "sim5", "sim7", "snippets", "tools"];
+  "schematic", "sim", "sim2", "sim3", "sim4", "sim5", "sim7", "snippets", "tools", "upload"];
 
 /* the shared theme, tokens and fonts live one folder up, next to the portal.
    The fonts are plain files on this site, so an offline app keeps its faces. */

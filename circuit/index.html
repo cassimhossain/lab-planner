@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Circuit Lab · Robotics &amp; AI Club</title>
 <meta name="description" content="Build Arduino and ESP32 circuits, write code and run them in the browser. Ready-made circuits for every lesson.">
-<link rel="icon" type="image/svg+xml" href="chip.svg?v=32">
+<link rel="icon" type="image/svg+xml" href="chip.svg?v=33">
 <link rel="alternate icon" href="icon-192.png">
 <!-- installed-app plumbing: the manifest makes this page installable on its own,
      with its own icon and window, and the service worker keeps it working when
      the connection drops. Compiling still needs the internet. -->
-<link rel="manifest" href="manifest.webmanifest?v=32">
+<link rel="manifest" href="manifest.webmanifest?v=33">
 <meta name="theme-color" content="#1B3A6B">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,10 +28,10 @@
 </script>
 <!-- theme first, so a dark page never flashes white; the fonts are files on
      this site, so they work offline too -->
-<script src="../theme.js?v=32"></script>
-<link rel="stylesheet" href="../tokens.css?v=32">
+<script src="../theme.js?v=33"></script>
+<link rel="stylesheet" href="../tokens.css?v=33">
 <link rel="stylesheet" href="../buddy/buddy.css?v=48">
-<link rel="stylesheet" href="circuit.css?v=32" fetchpriority="high">
+<link rel="stylesheet" href="circuit.css?v=33" fetchpriority="high">
 
 <style>
 /* opened from a shared link (or installed as an app) there is no portal to go
@@ -237,6 +237,7 @@ html:not(.from-portal) .brand { pointer-events: none; }
         <button class="cbtn" data-act="partcode" id="partcodebtn" hidden><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Code for this part</span></button>
         <div class="grow"></div>
         <button class="cbtn icon" data-act="copycode" title="Copy code"><svg class="ic" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg></button>
+        <button class="cbtn" data-act="flash" id="flashbtn" hidden title="Upload the code to an Arduino plugged in by USB"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span>Upload to board</span></button>
         <button class="cbtn icon" data-act="ino" title="Download .ino for the Arduino IDE"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
       </div>
       <div id="editor" class="editor"></div>
@@ -259,6 +260,10 @@ html:not(.from-portal) .brand { pointer-events: none; }
       <ol><li>Write code on the Code tab, or start from the <b>Code library</b> or <b>Code for this part</b>.</li>
         <li>Press <b>Start simulation</b>. While it runs, press buttons and turn knobs. Click a sensor to change what it senses: for the ultrasonic, PIR, IR and flame sensors, drag the object inside the sensing cone.</li>
         <li>ESP32 web pages, Bluetooth and MQTT open in the <b>Phone</b> tab.</li></ol>
+      <h3>Upload to a real Arduino</h3>
+      <ol><li>Plug the Uno, Nano or Mega 2560 in with a USB cable and press <b>Upload to board</b> on the Code tab.</li>
+        <li>Choose the board, press <b>Upload</b> and pick the port. Circuit Lab compiles the code, puts it on the board and checks it, like the Arduino IDE.</li>
+        <li>This needs Chrome or Edge on a computer, or the desktop app. Safari, Firefox, phones and iPads can't reach USB: download the .ino and use the Arduino IDE. ESP32 upload isn't supported yet.</li></ol>
       <h3>Bench tools</h3>
       <ul><li><b>Multimeter</b> (the probe button, or <kbd>M</kbd> while running): point at any pin or wire to read its voltage and whether it counts as HIGH or LOW.</li>
         <li><b>Wire voltages</b>: colours every wire while the simulation runs — red for HIGH, blue for LOW, amber in between, grey for nothing connected.</li>
@@ -288,41 +293,42 @@ html:not(.from-portal) .brand { pointer-events: none; }
      CodeMirror is pulled in by app.js once the first screen is up. -->
 <!-- The modules import each other four deep, so the browser would otherwise
      discover them one round trip at a time. Named here, they all start at once. -->
-<link rel="modulepreload" href="app.js?v=32">
-<link rel="modulepreload" href="parts.js?v=32">
-<link rel="modulepreload" href="elements.js?v=32">
-<link rel="modulepreload" href="elements2.js?v=32">
-<link rel="modulepreload" href="elements3.js?v=32">
-<link rel="modulepreload" href="elements4.js?v=32">
-<link rel="modulepreload" href="elements5.js?v=32">
-<link rel="modulepreload" href="parts2.js?v=32">
-<link rel="modulepreload" href="parts3.js?v=32">
-<link rel="modulepreload" href="parts4.js?v=32">
-<link rel="modulepreload" href="parts5.js?v=32">
-<link rel="modulepreload" href="parts6.js?v=32">
-<link rel="modulepreload" href="parts7.js?v=32">
-<link rel="modulepreload" href="parts8.js?v=32">
-<link rel="modulepreload" href="boards.js?v=32">
-<link rel="modulepreload" href="layout.js?v=32">
-<link rel="modulepreload" href="snippets.js?v=32">
-<link rel="modulepreload" href="lessons.js?v=32">
-<link rel="modulepreload" href="lessons-le.js?v=32">
-<link rel="modulepreload" href="lessons-jm.js?v=32">
-<link rel="modulepreload" href="lessons-yi.js?v=32">
-<link rel="modulepreload" href="lessons-tl.js?v=32">
-<link rel="modulepreload" href="tools.js?v=32">
-<link rel="modulepreload" href="home.js?v=32">
-<link rel="modulepreload" href="assist.js?v=32">
+<link rel="modulepreload" href="app.js?v=33">
+<link rel="modulepreload" href="parts.js?v=33">
+<link rel="modulepreload" href="elements.js?v=33">
+<link rel="modulepreload" href="elements2.js?v=33">
+<link rel="modulepreload" href="elements3.js?v=33">
+<link rel="modulepreload" href="elements4.js?v=33">
+<link rel="modulepreload" href="elements5.js?v=33">
+<link rel="modulepreload" href="parts2.js?v=33">
+<link rel="modulepreload" href="parts3.js?v=33">
+<link rel="modulepreload" href="parts4.js?v=33">
+<link rel="modulepreload" href="parts5.js?v=33">
+<link rel="modulepreload" href="parts6.js?v=33">
+<link rel="modulepreload" href="parts7.js?v=33">
+<link rel="modulepreload" href="parts8.js?v=33">
+<link rel="modulepreload" href="boards.js?v=33">
+<link rel="modulepreload" href="layout.js?v=33">
+<link rel="modulepreload" href="snippets.js?v=33">
+<link rel="modulepreload" href="lessons.js?v=33">
+<link rel="modulepreload" href="lessons-le.js?v=33">
+<link rel="modulepreload" href="lessons-jm.js?v=33">
+<link rel="modulepreload" href="lessons-yi.js?v=33">
+<link rel="modulepreload" href="lessons-tl.js?v=33">
+<link rel="modulepreload" href="tools.js?v=33">
+<link rel="modulepreload" href="home.js?v=33">
+<link rel="modulepreload" href="assist.js?v=33">
+<link rel="modulepreload" href="upload.js?v=33">
 <link rel="modulepreload" href="../vendor/avr8js.mjs">
-<script async src="../vendor/wokwi-elements.js?v=32"></script>
-<script type="module" src="app.js?v=32"></script>
+<script async src="../vendor/wokwi-elements.js?v=33"></script>
+<script type="module" src="app.js?v=33"></script>
 <script src="../buddy/config.js?v=48" defer></script>
 <script src="../buddy/buddy.js?v=48" defer></script>
 <script>
   /* Registered after load so it never competes with the editor starting up.
      The worker caches this app only; the portal is left alone. */
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=32").catch(() => {}));
+    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=33").catch(() => {}));
   }
 </script>
 </body>

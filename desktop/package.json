@@ -1,7 +1,7 @@
 {
   "name": "robotics-club-lab",
-  "productName": "Robotics Club Lab",
-  "version": "1.0.0",
+  "productName": "BotBench",
+  "version": "1.1.0",
   "description": "Robotics & AI Club: the lesson portal, Circuit Lab and Code Lab as a desktop app",
   "author": "Qasim Mushtaq",
   "license": "UNLICENSED",
@@ -11,11 +11,11 @@
     "site": "node copy-site.js",
     "start": "npm run site && electron .",
     "mac": "npm run site && electron-builder --mac dmg --arm64 --x64",
-    "win": "LAB_MODE=circuit node copy-site.js && electron-builder --win nsis --x64 -c.extraMetadata.labMode=circuit -c.extraMetadata.productName='Circuit Lab' -c.productName='Circuit Lab' -c.appId=io.github.cassimhossain.circuitlab -c.win.icon=icon-circuit.ico -c.nsis.shortcutName='Circuit Lab' -c.nsis.installerIcon=icon-circuit.ico -c.nsis.uninstallerIcon=icon-circuit.ico '-c.artifactName=Circuit-Lab-${version}-win-${arch}.${ext}'"
+    "win": "LAB_MODE=circuit node copy-site.js && electron-builder --win nsis --x64 -c.extraMetadata.labMode=circuit -c.extraMetadata.productName='BotBench Circuits' -c.productName='BotBench Circuits' -c.appId=io.github.cassimhossain.circuitlab -c.win.icon=icon-circuit.ico -c.nsis.shortcutName='BotBench Circuits' -c.nsis.installerIcon=icon-circuit.ico -c.nsis.uninstallerIcon=icon-circuit.ico '-c.artifactName=BotBench-Circuits-${version}-win-${arch}.${ext}'"
   },
   "build": {
     "appId": "io.github.cassimhossain.labplanner",
-    "productName": "Robotics Club Lab",
+    "productName": "BotBench",
     "copyright": "Robotics & AI Club \u00b7 Qasim Mushtaq",
     "files": [
       "main.js",
@@ -32,7 +32,7 @@
     "directories": {
       "output": "dist"
     },
-    "artifactName": "Robotics-Club-Lab-${version}-${os}-${arch}.${ext}",
+    "artifactName": "BotBench-${version}-${os}-${arch}.${ext}",
     "mac": {
       "icon": "icon-mac.png",
       "category": "public.app-category.education",
@@ -40,7 +40,7 @@
       "hardenedRuntime": false
     },
     "dmg": {
-      "title": "Robotics Club Lab"
+      "title": "BotBench"
     },
     "win": {
       "icon": "icon.ico",
@@ -51,7 +51,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Robotics Club Lab",
+      "shortcutName": "BotBench",
       "installerIcon": "icon.ico",
       "uninstallerIcon": "icon.ico"
     }

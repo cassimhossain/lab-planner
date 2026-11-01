@@ -1,0 +1,4 @@
+# GitHub Pages: the site is plain HTML. knowledge/ is only read by
+# tools/build_knowledge.py, and its code samples confuse the page builder.
+exclude:
+  - knowledge

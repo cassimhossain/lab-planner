@@ -1,12 +1,12 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=29";
-import { BOARDS, loadHex } from "./boards.js?v=29";
-import { layoutCircuit } from "./layout.js?v=29";
-import { SNIPPETS } from "./snippets.js?v=29";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=29";
-import * as T from "./tools.js?v=29";
-import { initHome, showHome, hideHome, isHome } from "./home.js?v=29";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=29";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=30";
+import { BOARDS, loadHex } from "./boards.js?v=30";
+import { layoutCircuit } from "./layout.js?v=30";
+import { SNIPPETS } from "./snippets.js?v=30";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=30";
+import * as T from "./tools.js?v=30";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=30";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=30";
 
 /* The simulator, the Arduino library bundler and the schematic drawer are
    roughly a third of the code and none of it is needed to open the page, so
@@ -18,7 +18,7 @@ let BUILTIN_LIBS = [], EXTRA_LIBS = [], enginePromise = null;
 function loadEngine() {
   if (enginePromise) return enginePromise;
   enginePromise = Promise.all([
-    import("./sim.js?v=29"), import("./libs.js?v=29"), import("./schematic.js?v=29"),
+    import("./sim.js?v=30"), import("./libs.js?v=30"), import("./schematic.js?v=30"),
   ]).then(([s, l, c]) => {
     Netlist = s.Netlist; Sim = s.Sim; Sim.muted = muted;
     prepareSketch = l.prepareSketch; BUILTIN_LIBS = l.BUILTIN_LIBS; EXTRA_LIBS = l.EXTRA_LIBS;
@@ -37,10 +37,10 @@ function loadCodeMirror() {
   if (cmPromise) return cmPromise;
   cmPromise = new Promise((res, rej) => {
     const css = document.createElement("link");
-    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=29";
+    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=30";
     document.head.appendChild(css);
     const sc = document.createElement("script");
-    sc.src = "../vendor/codemirror/codemirror.min.js?v=29";
+    sc.src = "../vendor/codemirror/codemirror.min.js?v=30";
     sc.onload = () => res(window.CodeMirror); sc.onerror = () => rej(new Error("CodeMirror failed to load"));
     document.head.appendChild(sc);
   });
@@ -469,10 +469,32 @@ function downloadSchematic() {
 /* ---------- view ---------- */
 function applyView() { const r = window.devicePixelRatio || 1, sx = Math.round(view.x * r) / r, sy = Math.round(view.y * r) / r; $("#world").style.transform = `translate(${sx}px, ${sy}px) scale(${view.z})`; $("#zoomv").textContent = Math.round(view.z * 100) + "%"; positionInspector(); }
 function toWorld(cx, cy) { const r = $("#stage").getBoundingClientRect(); return [(cx - r.left - view.x) / view.z, (cy - r.top - view.y) / view.z]; }
-function zoomAt(f, cx, cy) {
+function zoomAt(f, cx, cy, snap) {
   const r = $("#stage").getBoundingClientRect(); cx = cx ?? r.left + r.width / 2; cy = cy ?? r.top + r.height / 2;
-  const [wx, wy] = toWorld(cx, cy); view.z = Math.max(0.25, Math.min(4, view.z * f));
+  const [wx, wy] = toWorld(cx, cy); view.z = snap ? stepZ(view.z, f) : Math.max(0.25, Math.min(4, view.z * f));
   view.x = cx - r.left - wx * view.z; view.y = cy - r.top - wy * view.z; applyView();
+}
+/* Sharpness: everything sits on the 0.1 inch (9.6 px) pin grid, so at a zoom
+   where one pin step is a whole number of screen pixels, breadboard holes,
+   header pins and part edges land exactly on pixels and draw sharp instead
+   of soft. Fitting, the zoom buttons and the end of a wheel or pinch zoom
+   all settle on those levels. */
+const PITCH = 9.6;
+function crispZ(z, how = Math.round) {
+  const d = window.devicePixelRatio || 1, k = Math.max(3, how(z * PITCH * d - 1e-6));
+  return Math.max(0.25, Math.min(4, k / (PITCH * d)));
+}
+function stepZ(z, f) {
+  const d = window.devicePixelRatio || 1, u = PITCH * d;
+  let k = Math.round(z * f * u); const now = z * u;
+  if (f > 1 && k <= now + 1e-6) k = Math.floor(now + 1e-6) + 1;
+  if (f < 1 && k >= now - 1e-6) k = Math.ceil(now - 1e-6) - 1;
+  return Math.max(0.25, Math.min(4, Math.max(3, k) / u));
+}
+function settleZoom(cx, cy) {
+  const z = crispZ(view.z); if (Math.abs(z - view.z) < 1e-4) return;
+  const r = $("#stage").getBoundingClientRect(), [wx, wy] = toWorld(cx, cy);
+  animateView({ z, x: cx - r.left - wx * z, y: cy - r.top - wy * z }, 120);
 }
 /* smooth move of the camera (double-click a part to zoom to it, double-click empty space to see everything) */
 function animateView(to, ms = 240) {
@@ -486,7 +508,7 @@ function animateView(to, ms = 240) {
 function zoomToPart(id) {
   const r = rt[id], p = project.parts.find(q => q.id === id); if (!r || !p) return;
   const st = $("#stage").getBoundingClientRect(), rot = (p.rot || 0) % 180 !== 0, w = rot ? r.h : r.w, h = rot ? r.w : r.h, cx = p.x + r.w / 2, cy = p.y + r.h / 2;
-  const z = Math.max(0.5, Math.min(3.2, Math.min(st.width * 0.55 / w, st.height * 0.6 / h)));
+  const z = crispZ(Math.max(0.5, Math.min(3.2, Math.min(st.width * 0.55 / w, st.height * 0.6 / h))));
   animateView({ z, x: st.width / 2 - cx * z, y: st.height / 2 - cy * z });
 }
 function fitAnimated() { const keep = Object.assign({}, view); fit(); const to = Object.assign({}, view); Object.assign(view, keep); applyView(); animateView(to); }
@@ -499,7 +521,7 @@ function bounds() {
 function fit() {
   if (!project.parts.length) return;
   const b = bounds(), st = $("#stage").getBoundingClientRect(), padL = 40, padT = $("#lessoncard").classList.contains("on") ? 124 : 56, padB = 56;
-  view.z = Math.max(0.25, Math.min(1.7, Math.min((st.width - padL * 2) / (b.x1 - b.x0 || 1), (st.height - padT - padB) / (b.y1 - b.y0 || 1))));
+  view.z = crispZ(Math.max(0.25, Math.min(1.7, Math.min((st.width - padL * 2) / (b.x1 - b.x0 || 1), (st.height - padT - padB) / (b.y1 - b.y0 || 1)))), Math.floor);
   view.x = (st.width - (b.x1 - b.x0) * view.z) / 2 - b.x0 * view.z; view.y = padT + (st.height - padT - padB - (b.y1 - b.y0) * view.z) / 2 - b.y0 * view.z; applyView();
 }
 
@@ -1314,6 +1336,7 @@ function boot() {
     const trackpad = !e.ctrlKey && e.deltaMode === 0 && (dx !== 0 || (dy % 1 !== 0) || Math.abs(dy) < 30);
     if (trackpad) { view.x -= dx; view.y -= dy; applyView(); return; }
     zoomAt(Math.exp(-Math.max(-60, Math.min(60, dy)) * (e.ctrlKey ? 0.012 : 0.0022)), e.clientX, e.clientY);
+    { const x = e.clientX, y = e.clientY; clearTimeout(zoomAt._s); zoomAt._s = setTimeout(() => settleZoom(x, y), 180); }
   }, { passive: false });
   stage.addEventListener("dblclick", e => {
     if (e.target.closest(".insp, .lessoncard, .ctools, .zoombar, .warns")) return;
@@ -1389,8 +1412,8 @@ function boot() {
       case "delete": return deleteSel();
       case "rotate": return rotateSel();
       case "deselect": sel = null; project.parts.forEach(placePart); drawWires(); return showInspector();
-      case "zin": return zoomAt(1.2);
-      case "zout": return zoomAt(1 / 1.2);
+      case "zin": return zoomAt(1.2, null, null, true);
+      case "zout": return zoomAt(1 / 1.2, null, null, true);
       case "fit": return fitAnimated();
       case "undo": return undo();
       case "redo": return redo();
@@ -1444,8 +1467,8 @@ function boot() {
     if ((e.key === "Delete" || e.key === "Backspace") && sel) { e.preventDefault(); deleteSel(); }
     if (e.key.toLowerCase() === "r" && sel) rotateSel();
     if (e.key === "0") fitAnimated();
-    if (e.key === "=" || e.key === "+") zoomAt(1.25);
-    if (e.key === "-" || e.key === "_") zoomAt(1 / 1.25);
+    if (e.key === "=" || e.key === "+") zoomAt(1.25, null, null, true);
+    if (e.key === "-" || e.key === "_") zoomAt(1 / 1.25, null, null, true);
     if (e.key.toLowerCase() === "f") sel && sel.kind === "part" ? zoomToPart(sel.id) : fitAnimated();
     if (/^Arrow/.test(e.key) && sel && sel.kind === "part" && !running) {
       e.preventDefault();

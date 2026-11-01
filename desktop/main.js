@@ -17,7 +17,11 @@ const { pathToFileURL } = require("url");
 
 const ORIGIN = "https://cassimhossain.github.io";
 const BASE = "/lab-planner/";
-const HOME = ORIGIN + BASE;
+/* "full" is the whole site; "circuit" (the Windows build for students) is
+   Circuit Lab only: it opens there and never leaves it */
+const MODE = require("./package.json").labMode || "full";
+const ROOT = ORIGIN + BASE;
+const HOME = MODE === "circuit" ? ROOT + "circuit/" : ROOT;
 const LOCAL = app.isPackaged ? path.join(process.resourcesPath, "site") : path.join(__dirname, "site");
 const WAIT = 6000;   // how long the live site gets before the packed copy answers
 
@@ -64,8 +68,8 @@ async function answer(req) {
 function open(url) {
   const win = new BrowserWindow({
     width: 1440, height: 920, minWidth: 900, minHeight: 600,
-    title: "Robotics & AI Club", backgroundColor: "#0B1220", show: false,
-    icon: path.join(__dirname, "icon.png"),
+    title: MODE === "circuit" ? "Circuit Lab" : "Robotics & AI Club", backgroundColor: "#0B1220", show: false,
+    icon: path.join(__dirname, MODE === "circuit" ? "icon-circuit.png" : "icon.png"),
     webPreferences: { contextIsolation: true, sandbox: true },
   });
   win.once("ready-to-show", () => win.show());
@@ -77,7 +81,9 @@ function open(url) {
     return { action: "deny" };
   });
   win.webContents.on("will-navigate", (e, to) => {
-    if (!to.startsWith(HOME) && /^https?:/.test(to)) { e.preventDefault(); shell.openExternal(to); }
+    if (to.startsWith(HOME)) return;
+    e.preventDefault();
+    if (!to.startsWith(ROOT) && /^https?:/.test(to)) shell.openExternal(to);   // other pages of the site stay closed in Circuit Lab
   });
   win.loadURL(url);
   return win;
@@ -91,14 +97,14 @@ else {
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
       { role: "fileMenu" }, { role: "editMenu" },
-      { label: "Go", submenu: [
-        { label: "Portal", accelerator: "CmdOrCtrl+1", click: (_, w) => w && w.loadURL(HOME) },
-        { label: "Circuit Lab", accelerator: "CmdOrCtrl+2", click: (_, w) => w && w.loadURL(HOME + "circuit/?from=portal") },
-        { label: "Code Lab", accelerator: "CmdOrCtrl+3", click: (_, w) => w && w.loadURL(HOME + "codelab/?from=portal") },
+      ...(MODE === "circuit" ? [] : [{ label: "Go", submenu: [
+        { label: "Portal", accelerator: "CmdOrCtrl+1", click: (_, w) => w && w.loadURL(ROOT) },
+        { label: "Circuit Lab", accelerator: "CmdOrCtrl+2", click: (_, w) => w && w.loadURL(ROOT + "circuit/?from=portal") },
+        { label: "Code Lab", accelerator: "CmdOrCtrl+3", click: (_, w) => w && w.loadURL(ROOT + "codelab/?from=portal") },
         { type: "separator" },
         { label: "Back", accelerator: "CmdOrCtrl+[", click: (_, w) => w && w.webContents.navigationHistory.canGoBack() && w.webContents.navigationHistory.goBack() },
         { label: "Forward", accelerator: "CmdOrCtrl+]", click: (_, w) => w && w.webContents.navigationHistory.canGoForward() && w.webContents.navigationHistory.goForward() },
-      ] },
+      ] }]),
       { role: "viewMenu" }, { role: "windowMenu" },
     ]));
     open(HOME);

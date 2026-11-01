@@ -132,16 +132,25 @@ async function v1(L, cmd, want = 0, ms = 600) {
   if ((await L.read(1, ms))[0] !== OK) throw new Error("not OK");
   return data;
 }
+/* After a reset Optiboot flashes the LED for about 0.4 s before it listens,
+   and meanwhile the chip keeps only the first two or three bytes that arrive.
+   So it gets one "are you there?" and a long wait: asking again while it is
+   deaf leaves half a message in the chip, which it reads as a broken command
+   and quits to the old sketch. A second sync then checks both sides agree. */
 async function v1sync(L) {
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 3; i++) {
     L.drain(); await L.write([0x30, EOP]);
-    try { const r = await L.read(2, 180); if (r[0] === INSYNC && r[1] === OK) { await sleep(30); L.drain(); return true; } }
-    catch (e) { if (e instanceof Oops) throw e; }
+    try {
+      const r = await L.read(2, 700);
+      if (r[0] !== INSYNC || r[1] !== OK) continue;
+      await sleep(50); L.drain(); await L.write([0x30, EOP]);
+      const r2 = await L.read(2, 300);
+      if (r2[0] === INSYNC && r2[1] === OK) return true;
+    } catch (e) { if (e instanceof Oops) throw e; }
   }
   return false;
 }
 async function v1flash(L, code, page, step) {
-  const sig = await v1(L, [0x75], 3);
   await v1(L, [0x50]);                                   // enter programming mode
   const pages = Math.ceil(code.length / page);
   for (let i = 0; i < pages; i++) {
@@ -158,7 +167,6 @@ async function v1flash(L, code, page, step) {
     step("check", (i + 1) / pages);
   }
   await v1(L, [0x51]);                                   // leave programming mode: the sketch starts
-  return sig;
 }
 const v1sig = async L => chipOf(await v1(L, [0x75], 3));
 

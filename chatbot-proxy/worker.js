@@ -57,7 +57,9 @@ export default {
     }
     const c = body.context || {}, clip = (s, n) => String(s || "").slice(0, n);
     const notes = [
-      body.mode === "deep" ? "Mode: deeper. Add the reason behind it and one more detail." : "Mode: simple. Explain like the student is 10 years old.",
+      body.mode === "deep"
+        ? "Mode: deeper. Give a thorough answer: how it works and why, all the details, pin tables, working code and tips."
+        : "Mode: simple. Use simple words and one everyday comparison, but the answer must still be COMPLETE: for wiring always give the full pin table (every module pin, Arduino Uno pin and ESP32 pin, including VCC and GND); for code give working code. Simple words, never a shorter or vaguer answer.",
       body.hint ? "The student wants a hint, not the answer. Give a hint or a guiding question only." : "",
       c.page ? `The student is in: ${clip(c.page, 20)}.` : "",
       c.lang ? `Language: ${clip(c.lang, 20)}.` : "",

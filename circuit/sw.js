@@ -12,9 +12,9 @@
    index.html and in VERSION below, and the old cache is thrown away whole on
    the next visit, so a student never runs half an old version. */
 
-const VERSION = "v34";
+const VERSION = "v35";
 const CACHE = "circuitlab-" + VERSION;
-const V = "?" + VERSION.replace("v", "v=");          // "?v=34", the same string the page uses
+const V = "?" + VERSION.replace("v", "v=");          // "?v=35", the same string the page uses
 const BUDDY_V = "48";                                  // Study Buddy and lesson data: the portal's number
 
 const MODULES = ["app", "assist", "boards", "home", "elements", "elements2", "elements3", "elements4", "elements5",
@@ -71,11 +71,12 @@ self.addEventListener("fetch", e => {
   if (!sameOrigin) return;                                  // anything else goes straight to the network
 
   /* the page itself: fresh when online, cached when not, so a deployed update
-     is never hidden behind yesterday's copy */
+     is never hidden behind yesterday's copy. "no-cache" asks the server every
+     time: GitHub Pages lets browsers keep a page for 10 minutes otherwise */
   if (req.mode === "navigate") {
     e.respondWith((async () => {
       try {
-        const net = await fetch(req);
+        const net = await fetch(req.url, { cache: "no-cache", credentials: "same-origin" });
         const c = await caches.open(CACHE); c.put("./index.html", net.clone());
         return net;
       } catch (err) {

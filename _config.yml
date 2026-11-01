@@ -1,4 +1,6 @@
 # GitHub Pages: the site is plain HTML. knowledge/ is only read by
-# tools/build_knowledge.py, and its code samples confuse the page builder.
+# tools/build_knowledge.py (its code samples confuse the page builder), and
+# desktop/ is the source of the desktop app, not part of the site.
 exclude:
   - knowledge
+  - desktop

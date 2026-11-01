@@ -15,3 +15,8 @@ __pycache__/
 chatbot-proxy/.wrangler/
 chatbot-proxy/node_modules/
 node_modules/
+
+# desktop app: the packed site copy and the built installers
+desktop/site/
+desktop/dist/
+desktop/electron-zips/

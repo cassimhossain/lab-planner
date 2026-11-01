@@ -85,3 +85,24 @@ body.bd-app-codelab .bd-fab { bottom: 132px; }
 .bd-follow { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin: 2px 0 4px; }
 .bd-follow .bd-chip { border-style: dashed; color: var(--ink-2, #3C4659); }
 .bd-follow .bd-chip::before { content: "↳"; color: var(--accent-ink, #8F5E00); font-weight: 800; }
+
+/* answers in sections: a small header with an icon for Connections, Code, How it works... */
+.bd-sh { display: flex; align-items: center; gap: 8px; margin: 12px 0 6px; padding-top: 10px; border-top: 1px solid var(--line-2, #EEF2F7); font: 800 13px var(--font-display, system-ui); letter-spacing: .01em; color: var(--ink, #121A2B); }
+.bd-m > .bd-sh:first-child { margin-top: 2px; padding-top: 0; border-top: 0; }
+.bd-sh svg { width: 26px; height: 26px; padding: 5px; border-radius: 8px; background: color-mix(in srgb, var(--accent, #F5B83D) 24%, transparent); color: var(--accent-ink, #8F5E00); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.bd-m ol { margin: 4px 0 6px; padding-left: 22px; }
+.bd-m li::marker { color: var(--accent-ink, #8F5E00); font-weight: 700; }
+.bd-m b { font-weight: 750; }
+.bd-pins td:first-child { font-weight: 700; white-space: nowrap; }
+
+/* full screen: the whole window in the labs, the Study Buddy page in the portal */
+.bd-panel.bd-full { inset: 0; width: auto; border-radius: 0; border: 0; z-index: 120; }
+.bd-panel.bd-page { position: relative; inset: auto; z-index: auto; width: auto; height: calc(100dvh - 150px); min-height: 520px; animation: none; box-shadow: var(--sh-1, 0 1px 3px rgba(0,0,0,.1)); }
+body.bd-paged .bd-fab { display: none; }
+.bd-panel.bd-page [data-bclose] { display: none; }
+.bd-panel.bd-full .bd-log, .bd-panel.bd-page .bd-log { padding-inline: max(14px, calc((100% - 860px) / 2)); }
+.bd-panel.bd-full :is(.bd-mode, .bd-quick, .bd-in, .bd-foot), .bd-panel.bd-page :is(.bd-mode, .bd-quick, .bd-in, .bd-foot) { width: calc(100% - 28px); max-width: 860px; margin-inline: auto; padding-inline: 0; box-sizing: border-box; }
+.bd-panel.bd-full .bd-in, .bd-panel.bd-page .bd-in { border-top: 0; }
+.bd-panel.bd-full .bd-m, .bd-panel.bd-page .bd-m { max-width: 88%; font-size: 15.5px; }
+.bd-panel.bd-full .bd-m.b, .bd-panel.bd-page .bd-m.b { padding: 14px 18px; }
+@media (max-width: 600px) { .bd-panel.bd-page { height: calc(100dvh - 120px); border-radius: 16px; } }

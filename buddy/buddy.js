@@ -265,35 +265,59 @@
     const pool = [...new Set(mod.concat(near, STARTERS[APP]))].filter(x => !asked.has(x.toLowerCase()));
     return pool.slice(0, 3);
   }
-  /* a small, safe subset of Markdown for AI answers: everything is escaped first */
+  /* a small, safe subset of Markdown for AI answers: everything is escaped first.
+     Answers come in short sections ("### Connections", "### Code"...), each shown
+     with its own header and icon, so wiring, code and explanation stand apart. */
+  const SECT = [[/connect|wiring|wire|pins?\b|circuit/i, "plug"], [/code|sketch|program/i, "code"], [/need|parts|material|component/i, "box"],
+    [/step|build|make|setup|set up/i, "steps"], [/how it works|why|idea|understand|explain/i, "bulb"], [/example|real life|everyday/i, "spark"],
+    [/try|challenge|next|extra|level up/i, "star"], [/mistake|careful|safety|warning|tip|check/i, "warn"]];
+  const SICON = {
+    plug: '<path d="M9 3v5M15 3v5M7 8h10v3a5 5 0 0 1-10 0zM12 16v5"/>', code: '<path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 6l-3 12"/>',
+    box: '<path d="M3 8l9-5 9 5-9 5zM3 8v8l9 5 9-5V8M12 13v8"/>', steps: '<path d="M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1"/>',
+    bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>', spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/>',
+    star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>', warn: '<path d="M12 4l9 16H3zM12 10v4M12 17v.5"/>',
+    dot: '<circle cx="12" cy="12" r="3"/>' };
+  const sectIcon = t => { const m = SECT.find(([re]) => re.test(t)); return `<svg viewBox="0 0 24 24" aria-hidden="true">${SICON[m ? m[1] : "dot"]}</svg>`; };
   function md(t) {
     const parts = String(t).split(/```[a-zA-Z+]*\n?/);
     return parts.map((seg, i) => {
       if (i % 2) return `<pre><code>${esc(seg.replace(/\n$/, ""))}</code></pre>`;
-      /* outside code: keep it conversational even if the model slips into AI-style
-         formatting: no heading marks, bold, rules, dash bullets or long dashes */
-      seg = seg.replace(/^\s*#{1,6}\s+/gm, "").replace(/\*\*([^*]+)\*\*/g, "$1").replace(/__([^_]+)__/g, "$1").replace(/^\s*([-*_]\s*){3,}$/gm, "")
-        .replace(/^\s*[-*•]\s+/gm, "").replace(/\s*[—–]\s*/g, ", ").replace(/\s+,/g, ",");
-      /* give tables their own block so they are recognised */
-      seg = ("\n" + seg + "\n").replace(/([^\n|])\n(\s*\|)/g, "$1\n\n$2").replace(/(\|[ \t]*)\n(?=\s*[^|\s])/g, "$1\n\n").replace(/\n(#{1,4} [^\n]+)\n/g, "\n\n$1\n\n").trim();
+      /* no horizontal rules or spaced long dashes; headings and tables get their own block */
+      seg = seg.replace(/^\s*([-*_]\s*){3,}$/gm, "").replace(/[ \t]+[—–][ \t]+/g, ", ").replace(/^\s*\*\*([^*\n]{2,40})\*\*:?\s*$/gm, "### $1");
+      seg = ("\n" + seg + "\n").replace(/([^\n|])\n(\s*\|)/g, "$1\n\n$2").replace(/(\|[ \t]*)\n(?=\s*[^|\s])/g, "$1\n\n").replace(/\n[ \t]*(#{1,4} [^\n]+)\n/g, "\n\n$1\n\n").trim();
+      const inline = x => x.replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>");
       return esc(seg).split(/\n{2,}/).map(p => {
-        const lines = p.split("\n");
+        const rows = p.split("\n").filter(l => l.trim());
+        if (!rows.length) return "";
         /* a Markdown table (pin connections, comparisons) */
-        const rows = lines.filter(l => l.trim());
         if (rows.length >= 2 && rows.every(l => /^\s*\|.*\|\s*$/.test(l)) && /^\s*\|[\s:|-]+\|\s*$/.test(rows[1])) {
-          const cells = l => l.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+          const cells = l => l.trim().replace(/^\||\|$/g, "").split("|").map(c => inline(c.trim()));
           return `<table class="bd-pins"><thead><tr>${cells(rows[0]).map(c => `<th>${c}</th>`).join("")}</tr></thead><tbody>${rows.slice(2).map(r => `<tr>${cells(r).map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
         }
-        /* headings */
-        if (rows.length === 1 && /^#{1,4}\s+/.test(rows[0])) return `<p><b>${rows[0].replace(/^#{1,4}\s+/, "")}</b></p>`;
-        return `<p>${p.replace(/\n/g, "<br>")}</p>`;
-      }).join("").replace(/`([^`]+)`/g, "<code>$1</code>");
+        /* a section heading */
+        if (rows.length === 1 && /^#{1,4}\s+/.test(rows[0])) { const h = rows[0].replace(/^#{1,4}\s+/, "").replace(/:$/, ""); return `<h4 class="bd-sh">${sectIcon(h)}<span>${inline(h)}</span></h4>`; }
+        /* lines, with runs of "- item" or "1. step" made into lists */
+        let out = "", list = "", buf = [];
+        const flushText = () => { if (buf.length) { out += `<p>${buf.map(inline).join("<br>")}</p>`; buf = []; } };
+        const flushList = () => { if (list) { out += list + (list.startsWith("<ul") ? "</ul>" : "</ol>"); list = ""; } };
+        rows.forEach(l => {
+          const ul = l.match(/^\s*[-*•]\s+(.*)$/), ol = l.match(/^\s*(\d+)[.)]\s+(.*)$/);
+          if (ul || ol) {
+            flushText();
+            const kind = ul ? "<ul>" : "<ol>";
+            if (!list.startsWith(kind.slice(0, 3))) { flushList(); list = kind; }
+            list += `<li>${inline(ul ? ul[1] : ol[2])}</li>`;
+          } else { flushList(); buf.push(l); }
+        });
+        flushText(); flushList();
+        return out;
+      }).join("");
     }).join("");
   }
 
   /* ---------- the panel ---------- */
   const ROBOT = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="8" width="14" height="11" rx="3"/><circle cx="9.5" cy="13" r="1.4"/><circle cx="14.5" cy="13" r="1.4"/><path d="M12 8V5M10 17h4M3 13h2M19 13h2"/><circle cx="12" cy="4" r="1"/></svg>`;
-  const ICON = { x: '<path d="M6 6l12 12M18 6L6 18"/>', send: '<path d="M4 12l16-8-6 16-2-7z"/>', trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>' };
+  const ICON = { full: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>', unfull: '<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', send: '<path d="M4 12l16-8-6 16-2-7z"/>', trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>' };
   const ic = n => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[n]}</svg>`;
   let fab, panel, log, input, hintOn = false, busy = false, lastFocus = null;
   const STARTERS = {
@@ -309,7 +333,7 @@
     panel = document.createElement("section");
     panel.className = "bd-panel"; panel.hidden = true; panel.setAttribute("role", "dialog"); panel.setAttribute("aria-labelledby", "bdTitle");
     panel.innerHTML = `<header class="bd-h"><span class="bd-av">${ROBOT}</span><div class="bd-tt"><b id="bdTitle">Study Buddy</b><small>${USE_AI ? "AI tutor · double-check important things" : "Basic offline helper"}</small></div>
-        <button class="bd-ib" data-bclear title="Clear chat" aria-label="Clear chat">${ic("trash")}</button><button class="bd-ib" data-bclose title="Close" aria-label="Close Study Buddy">${ic("x")}</button></header>
+        <button class="bd-ib" data-bclear title="Clear chat" aria-label="Clear chat">${ic("trash")}</button><button class="bd-ib" data-bfull title="Full screen" aria-label="Full screen">${ic("full")}</button><button class="bd-ib" data-bclose title="Close" aria-label="Close Study Buddy">${ic("x")}</button></header>
       <div class="bd-mode" role="group" aria-label="How should I explain?"><button data-bmode="simple">Explain like I'm 10</button><button data-bmode="deep">Go deeper</button></div>
       <div class="bd-log" role="log" aria-live="polite" aria-label="Conversation"></div>
       <div class="bd-quick"></div>
@@ -323,7 +347,7 @@
     input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input.value); } });
     input.addEventListener("input", () => { input.style.height = "auto"; input.style.height = Math.min(120, input.scrollHeight) + "px"; });
     document.addEventListener("keydown", e => {
-      if (panel.hidden) return;
+      if (panel.hidden || isPage()) return;
       if (e.key === "Escape") { e.stopPropagation(); close(); return; }
       /* Tab goes round the panel while it is open */
       if (e.key === "Tab") {
@@ -368,6 +392,7 @@
     const t = e.target.closest("button"); if (!t) return;
     const d = t.dataset;
     if ("bclose" in d) return close();
+    if ("bfull" in d) return toggleFull();
     if ("bclear" in d) { if (ST.msgs.length && !confirm("Clear this chat?")) return; ST.msgs = []; ST.lastTopic = ""; persist(); renderLog(); input.focus(); return; }
     if (d.bmode) { ST.mode = d.bmode; persist(); syncMode(); return; }
     if ("bhint" in d) { hintOn = !hintOn; quick(); return; }
@@ -403,19 +428,48 @@
     tmp.remove(); ST.msgs.push(msg); persist(); renderLog();
     busy = false; panel.classList.remove("bd-busy"); hintOn = false; quick();
   }
+  const isPage = () => panel && panel.classList.contains("bd-page");
+  /* the full-screen button: in the portal it opens the Study Buddy page (and
+     from there goes back to where you were, with the chat in the corner); in
+     the labs the panel itself fills the window */
+  function toggleFull() {
+    const host = window.RACBuddy && window.RACBuddy.full;
+    if (isPage()) { if (host) host(false); return; }
+    if (host) { host(true); return; }
+    panel.classList.toggle("bd-full"); syncFull(); log.scrollTop = log.scrollHeight;
+  }
+  function syncFull() {
+    const on = isPage() || panel.classList.contains("bd-full"), b = $("[data-bfull]", panel);
+    b.innerHTML = ic(on ? "unfull" : "full"); b.title = on ? "Back to the small chat" : "Full screen"; b.setAttribute("aria-label", b.title);
+  }
   function open(opts) {
     if (!panel) build();
+    if (isPage()) unmount();
+    if (!document.body.contains(panel)) document.body.appendChild(panel);
     lastFocus = document.activeElement;
     panel.hidden = false; fab.setAttribute("aria-expanded", "true"); document.body.classList.add("bd-open");
-    syncMode(); quick(); renderLog(); ensureData().then(renderLog);
+    syncMode(); syncFull(); quick(); renderLog(); ensureData().then(renderLog);
     setTimeout(() => input.focus(), 30);
     if (opts && opts.ask) send(opts.ask);
   }
   function close() {
-    panel.hidden = true; fab.setAttribute("aria-expanded", "false"); document.body.classList.remove("bd-open");
+    if (isPage()) return;
+    panel.hidden = true; panel.classList.remove("bd-full"); fab.setAttribute("aria-expanded", "false"); document.body.classList.remove("bd-open");
     if (lastFocus && document.contains(lastFocus)) lastFocus.focus(); else fab.focus();
   }
+  /* the portal's Study Buddy page: the same chat, filling the page */
+  function mount(el) {
+    if (!panel) build();
+    panel.classList.remove("bd-full"); panel.classList.add("bd-page"); panel.hidden = false;
+    el.appendChild(panel); document.body.classList.remove("bd-open"); document.body.classList.add("bd-paged");
+    syncMode(); syncFull(); quick(); renderLog(); ensureData().then(renderLog);
+    setTimeout(() => input.focus(), 30);
+  }
+  function unmount() {
+    if (!panel || !isPage()) return;
+    panel.classList.remove("bd-page"); panel.hidden = true; document.body.appendChild(panel); document.body.classList.remove("bd-paged");
+  }
 
-  const start = () => { build(); window.StudyBuddy = { open, close }; };
+  const start = () => { build(); window.StudyBuddy = { open, close, mount, unmount }; if (window.RACBuddy && window.RACBuddy.ready) window.RACBuddy.ready(); };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

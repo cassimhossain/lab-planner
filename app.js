@@ -62,6 +62,7 @@
     loop: '<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>',
     search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
     cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3v3H8z"/>',
+    bot: '<rect x="5" y="8" width="14" height="11" rx="3"/><circle cx="9.5" cy="13" r="1.4"/><circle cx="14.5" cy="13" r="1.4"/><path d="M12 8V5M10 17h4M3 13h2M19 13h2"/><circle cx="12" cy="4" r="1"/>',
     users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/>',
     parts: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 4v-2M15 4v-2M9 22v-2M15 22v-2M4 9H2M4 15H2M22 9h-2M22 15h-2"/><rect x="9" y="9" width="6" height="6" rx="1"/>',
     trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9 17h6"/>',
@@ -208,7 +209,7 @@
   const coreOf = gc => ACTS.filter(a => a.group === gc && (a.phase === "Phase 1" || a.phase === "Phase 2"));
 
   /* ---------- routing / sidebar ---------- */
-  const ROUTES = ["home", "curriculum", "hardware", "LE", "JM", "YI", "TL", "week", "sims", "print", "kits", "settings", "attendance"];
+  const ROUTES = ["home", "curriculum", "hardware", "LE", "JM", "YI", "TL", "week", "sims", "print", "kits", "settings", "attendance", "buddy"];
   /* a page can carry filters after a "?", e.g. #JM?topic=AI%20%26%20Data&view=map */
   const route = () => { const r = location.hash.slice(1).split("?")[0]; return /^kit=/.test(r) ? "kitsheet" : ROUTES.includes(r) ? r : r && !/^open=/.test(r) ? "notfound" : "home"; };
   const qp = () => new URLSearchParams(location.hash.split("?")[1] || "");
@@ -226,11 +227,12 @@
       `<div class="mlabel">Curriculum</div>` +
       item("curriculum", "Lesson library", ic("book"), `<em class="soft">${LIB.decks.length}</em>`) +
       D.groups.map(g => item(g.code, g.name, `<i class="gdot" style="background:${g.color}"></i>`, WEEK ? badge(nw.filter(a => a.group === g.code).length) : "")).join("") +
-      (isStudent() ? "" : `<div class="mlabel">Teaching</div>` + item("attendance", "Attendance", ic("users")) + (WEEK ? item("week", "Timetable", ic("week"), badge(nw.length)) : "")) +
+      (isStudent() ? "" : `<div class="mlabel">Teaching</div>` + item("attendance", "Attendance", ic("users")) + item("buddy", "Study Buddy", ic("bot")) + (WEEK ? item("week", "Timetable", ic("week"), badge(nw.length)) : "")) +
       `<div class="mlabel">Virtual labs</div>` +
       item("sims", "Simulators", ic("flask"), `<em class="soft">${SIM.list.length}</em>`) +
       `<a href="circuit/?from=portal" class="mi">${ic("chip")}<span>Circuit Lab</span></a>` +
       `<a href="codelab/?from=portal" class="mi">${ic("code")}<span>Code Lab</span><em class="soft new">New</em></a>` +
+      (isStudent() ? item("buddy", "Study Buddy", ic("bot")) : "") +
       `<div class="mlabel">Lab &amp; kit</div>` +
       item("hardware", "Hardware", ic("parts")) +
       (isStudent() ? "" : (WEEK ? item("print", "Print kit lists", ic("print")) : "") + item("kits", "Edit kits & parts", ic("box"))) +
@@ -248,13 +250,19 @@
   function render() {
     renderMenu();
     const r = route(), app = $("#app");
-    app.innerHTML = r === "notfound" ? vNotFound() : r === "attendance" ? vAttendance() : r === "kitsheet" ? vKitSheet(kitSheetCode()) : r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "sims" ? vSims() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
+    app.innerHTML = r === "notfound" ? vNotFound() : r === "buddy" ? vBuddy() : r === "attendance" ? vAttendance() : r === "kitsheet" ? vKitSheet(kitSheetCode()) : r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "sims" ? vSims() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
     document.body.dataset.route = r;
     if (r !== "notfound" && r !== "kitsheet") app.insertAdjacentHTML("afterbegin", hintCard(r));
     /* Circuit Lab reads this to bring the student back where they were */
     try { localStorage.setItem("labplanner.lastRoute", location.hash.slice(1) || "home"); } catch (e) { }
     if (r === "kitsheet") drawKitPics();
+    /* the Study Buddy page holds the same chat as the corner panel */
+    if (r === "buddy") mountBuddy(); else { buddyFrom = location.hash.slice(1) || "home"; if (window.StudyBuddy && window.StudyBuddy.unmount) window.StudyBuddy.unmount(); }
   }
+  let buddyFrom = "home";
+  const vBuddy = () => head("Study Buddy", "Ask anything about circuits, wiring, code, robots and AI. The same chat as the button in the corner, on a bigger screen.") +
+    `<div id="buddyPage" class="buddypage">${window.StudyBuddy ? "" : `<p class="muted">Study Buddy is loading…</p>`}</div>`;
+  function mountBuddy() { const el = $("#buddyPage"); if (el && window.StudyBuddy && window.StudyBuddy.mount) { el.innerHTML = ""; window.StudyBuddy.mount(el); } }
   /* index.html#open=CODE (from Circuit Lab) opens that lesson's details */
   function openFromHash() {
     const m = location.hash.match(/^#open=(.+)$/); if (!m) return false;
@@ -1602,7 +1610,11 @@
   /* ---------- STUDY BUDDY ----------
      buddy/buddy.js asks the page where it was opened from, so a question
      asked inside a lesson is answered about that lesson. */
-  window.RACBuddy = { context: () => { const a = modalCode && !/^(pick|sched):/.test(modalCode) ? getA(modalCode) : null; return { lesson: a ? a.code : "", route: route() }; } };
+  window.RACBuddy = {
+    /* the full-screen button: open the Study Buddy page, or go back with the chat in the corner */
+    full: on => { if (on) { location.hash = "#buddy"; return; } location.hash = "#" + (buddyFrom && buddyFrom !== "buddy" ? buddyFrom : "home"); setTimeout(() => window.StudyBuddy && window.StudyBuddy.open(), 0); },
+    ready: () => { if (route() === "buddy") mountBuddy(); },
+    context: () => { const a = modalCode && !/^(pick|sched):/.test(modalCode) ? getA(modalCode) : null; return { lesson: a ? a.code : "", route: route() }; } };
 
   /* ---------- NOT FOUND ---------- */
   function vNotFound() {

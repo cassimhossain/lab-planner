@@ -60,9 +60,9 @@ export default {
     const c = body.context || {}, clip = (s, n) => String(s || "").slice(0, n);
     const notes = [
       body.mode === "deep"
-        ? "Mode: deeper. Give a thorough answer in natural paragraphs: how it works and why, every pin for wiring, working code and tips."
+        ? "Mode: deeper. Give a thorough answer: how it works and why, every pin for wiring, working code and tips."
         : "Mode: simple. Use simple words and one everyday comparison, but still give the complete answer: for wiring say where every pin goes (including VCC and GND) on the Arduino Uno and the ESP32; for code give working code.",
-      "Write naturally, like a teacher talking: no headings, no bold, no tables, no dash bullets, no long dashes, no greeting.",
+      "Lay the answer out as the instructions above describe: the direct answer first, then short ### sections for a bigger question, wiring as a table.",
       "After your answer, on one final line by itself, write FOLLOWUPS: and then three short questions the student is likely to ask next, separated by |. Each under 60 characters, written as the student would ask them. Nothing after that line.",
       body.hint ? "The student wants a hint, not the answer. Give a hint or a guiding question only." : "",
       c.page ? `The student is in: ${clip(c.page, 20)}.` : "",

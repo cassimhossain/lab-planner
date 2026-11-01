@@ -63,6 +63,7 @@ export default {
         ? "Mode: deeper. Give a thorough answer in natural paragraphs: how it works and why, every pin for wiring, working code and tips."
         : "Mode: simple. Use simple words and one everyday comparison, but still give the complete answer: for wiring say where every pin goes (including VCC and GND) on the Arduino Uno and the ESP32; for code give working code.",
       "Write naturally, like a teacher talking: no headings, no bold, no tables, no dash bullets, no long dashes, no greeting.",
+      "After your answer, on one final line by itself, write FOLLOWUPS: and then three short questions the student is likely to ask next, separated by |. Each under 60 characters, written as the student would ask them. Nothing after that line.",
       body.hint ? "The student wants a hint, not the answer. Give a hint or a guiding question only." : "",
       c.page ? `The student is in: ${clip(c.page, 20)}.` : "",
       c.lang ? `Language: ${clip(c.lang, 20)}.` : "",
@@ -100,7 +101,10 @@ async function workersAI(env, system, history, message) {
      WORKERS_AI_MODEL to "@cf/meta/llama-3.1-8b-instruct" for more (but
      simpler) answers per day */
   const model = env.WORKERS_AI_MODEL || "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
-  const stream = await env.AI.run(model, { messages: [{ role: "system", content: system }, ...history, { role: "user", content: message }], stream: true, max_tokens: 1024, temperature: 0.3 });
+  const stream = await Promise.race([
+    env.AI.run(model, { messages: [{ role: "system", content: system }, ...history, { role: "user", content: message }], stream: true, max_tokens: 1024, temperature: 0.3 }),
+    new Promise((_, no) => setTimeout(() => no(new Error("Workers AI timeout")), 15000)),
+  ]);
   /* Workers AI's "response" field turns number-only words into numbers and
      drops their leading space (" 22" arrives as 22), so the exact text is
      taken from choices[0].delta.content and re-sent as plain strings */
@@ -128,14 +132,20 @@ async function gemini(env, system, history, message) {
   if (!env.GEMINI_API_KEY) throw new Error("No GEMINI_API_KEY secret");
   /* "gemini-flash-latest" always points at Google's current Flash model. If a
      name is retired (404) or busy (429/500/503), the next one is tried */
-  const models = env.GEMINI_MODEL ? [env.GEMINI_MODEL] : ["gemini-flash-latest", "gemini-flash-lite-latest", "gemini-2.5-flash-lite", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
+  const models = env.GEMINI_MODEL ? [env.GEMINI_MODEL] : ["gemini-flash-latest", "gemini-flash-lite-latest"];
   const contents = history.map(m => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })).concat([{ role: "user", parts: [{ text: message }] }]);
   let last = "";
   for (const model of models) {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, {
-      method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+    /* a busy Gemini can take a long time to say so: give each model 9 seconds to
+       start answering, then move on, so the student is never left waiting */
+    const ac = new AbortController(), timer = setTimeout(() => ac.abort(), 9000);
+    let r;
+    try {
+      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, {
+      method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
       body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { maxOutputTokens: 2048, temperature: 0.3 } }),
-    });
+      });
+    } catch (e) { last = `Gemini timeout (${model})`; continue; } finally { clearTimeout(timer); }
     if (r.ok && r.body) return reshape(r.body, j => ((((j.candidates || [])[0] || {}).content || {}).parts || []).map(p => p.text || "").join(""));
     let detail = ""; try { detail = ((await r.json()).error || {}).message || ""; } catch (e) { }
     last = `Gemini ${r.status} (${model}) ${detail}`.slice(0, 160);

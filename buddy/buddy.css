@@ -81,3 +81,7 @@ body.bd-app-codelab .bd-fab { bottom: 132px; }
   body.bd-app-portal .bd-fab span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 }
 @media print { .bd-fab, .bd-panel { display: none !important; } }
+/* suggested next questions, under the latest answer */
+.bd-follow { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin: 2px 0 4px; }
+.bd-follow .bd-chip { border-style: dashed; color: var(--ink-2, #3C4659); }
+.bd-follow .bd-chip::before { content: "↳"; color: var(--accent-ink, #8F5E00); font-weight: 800; }

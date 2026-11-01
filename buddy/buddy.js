@@ -219,9 +219,21 @@
     const ctx = { page: c.page, lang: c.lang || "", parts: c.parts || "" };
     ctx.notes = searchKnowledge(q, 3).map(k => k.t.slice(0, 450));
     if (o.action) { ctx.code = (c.code || "").slice(0, 4000); ctx.error = (c.error || "").slice(0, 1200); }
-    const history = ST.msgs.slice(-9, -1).map(m => ({ role: m.r === "u" ? "user" : "assistant", content: (m.t || (m.h || "").replace(/<[^>]+>/g, " ")).slice(0, 800) }));
-    const r = await fetch(CFG.workerUrl, { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: q, mode: ST.mode, hint: !!o.hint, action: o.action || "", context: ctx, history, session }) });
+    /* earlier turns as question/answer pairs only: a question whose answer never
+       arrived (a closed tab, a dropped connection) is left out, so it isn't
+       answered again on top of the new one */
+    const past = ST.msgs.slice(0, -1), history = [];
+    for (let i = 0; i < past.length - 1; i++) if (past[i].r === "u" && past[i + 1].r === "b") {
+      history.push({ role: "user", content: past[i].t.slice(0, 800) }, { role: "assistant", content: (past[i + 1].t || (past[i + 1].h || "").replace(/<[^>]+>/g, " ")).replace(/\nFOLLOWUPS:[\s\S]*$/, "").slice(0, 800) });
+    }
+    /* if nothing has started arriving after 25 seconds, give up and answer from
+       what Study Buddy knows rather than leave the student waiting */
+    const ac = new AbortController(), timer = setTimeout(() => ac.abort(), 25000);
+    let r;
+    try {
+      r = await fetch(CFG.workerUrl, { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: q, mode: ST.mode, hint: !!o.hint, action: o.action || "", context: ctx, history: history.slice(-8), session }) });
+    } finally { clearTimeout(timer); }
     if (!r.ok || !r.body) throw Object.assign(new Error("worker " + r.status), { status: r.status });
     const rd = r.body.getReader(), dec = new TextDecoder(); let buf = "", text = "";
     for (;;) {
@@ -236,6 +248,22 @@
     }
     if (!text) throw new Error("empty");
     return text;
+  }
+  /* the AI ends each answer with "FOLLOWUPS: q1 | q2 | q3": split them off */
+  function splitFollowups(t) {
+    const i = String(t).search(/\n?\s*FOLLOW-?UPS?\s*:/i);
+    if (i < 0) return { text: t, f: [] };
+    const f = t.slice(i).replace(/^\s*FOLLOW-?UPS?\s*:/i, "").split("|").map(x => x.replace(/^[\s"'*-]+|[\s"'*]+$/g, "")).filter(x => x.length > 3 && x.length < 90).slice(0, 3);
+    return { text: t.slice(0, i).trim(), f };
+  }
+  /* offline suggestions: other words and modules from the glossary that relate to the question */
+  function localFollowups(q) {
+    const n = norm(q), g = window.BUDDY_GLOSSARY || [], w = window.BUDDY_WIRING || [];
+    const asked = new Set(ST.msgs.filter(m => m.r === "u").map(m => m.t.toLowerCase()));
+    const near = g.filter(x => (x.k || []).some(k => n.includes(" " + k)) && !n.includes(" " + x.t.toLowerCase() + " ")).map(x => `What is ${x.t.replace(/\(\)$/, "()")}?`);
+    const mod = w.filter(x => x.a.some(a => n.includes(" " + a))).map(x => `How do I wire the ${x.t.split(" (")[0]} to an ESP32?`);
+    const pool = [...new Set(mod.concat(near, STARTERS[APP]))].filter(x => !asked.has(x.toLowerCase()));
+    return pool.slice(0, 3);
   }
   /* a small, safe subset of Markdown for AI answers: everything is escaped first */
   function md(t) {
@@ -329,6 +357,8 @@
       return;
     }
     log.innerHTML = ST.msgs.map(msgHTML).join("");
+    const last = ST.msgs[ST.msgs.length - 1];
+    if (last && last.r === "b" && last.f && last.f.length) log.insertAdjacentHTML("beforeend", `<div class="bd-follow" aria-label="Suggested questions">${last.f.map(x => `<button class="bd-chip" data-bask="${esc(x)}">${esc(x)}</button>`).join("")}</div>`);
     addCopy(log); log.scrollTop = log.scrollHeight;
   }
   function addCopy(root) {
@@ -362,13 +392,14 @@
     let msg;
     if (USE_AI && navigator.onLine !== false) {
       try {
-        const t = await askWorker(q, o, partial => { tmp.classList.remove("typing"); tmp.innerHTML = md(partial); log.scrollTop = log.scrollHeight; });
-        msg = { r: "b", t, s: "ai" };
+        const t = await askWorker(q, o, partial => { tmp.classList.remove("typing"); tmp.innerHTML = md(splitFollowups(partial).text.replace(/\n\s*F[OLWUPS-]*$/i, "")); log.scrollTop = log.scrollHeight; });
+        const sp = splitFollowups(t);
+        msg = { r: "b", t: sp.text, s: "ai", f: sp.f.length ? sp.f : localFollowups(q) };
       } catch (e) {
         /* both AI models are unreachable: answer from what Study Buddy knows, without fuss */
-        await know; msg = { r: "b", h: answerLocal(q, o), s: "local" };
+        await know; msg = { r: "b", h: answerLocal(q, o), s: "local", f: localFollowups(q) };
       }
-    } else { await know; msg = { r: "b", h: answerLocal(q, o), s: "local" }; }
+    } else { await know; msg = { r: "b", h: answerLocal(q, o), s: "local", f: localFollowups(q) }; }
     tmp.remove(); ST.msgs.push(msg); persist(); renderLog();
     busy = false; panel.classList.remove("bd-busy"); hintOn = false; quick();
   }

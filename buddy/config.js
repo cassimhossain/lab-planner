@@ -13,5 +13,5 @@ window.BUDDY_CONFIG = {
   enabled: true,
   backend: "worker",
   workerUrl: "https://study-buddy.cassimhossain.workers.dev",
-  version: "42",
+  version: "43",
 };

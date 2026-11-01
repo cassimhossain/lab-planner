@@ -5,8 +5,8 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const OUT = path.join(__dirname, "site");
-/* LAB_MODE=circuit packs only what Circuit Lab (and Study Buddy) load */
-const ONLY = process.env.LAB_MODE === "circuit" ? new Set(["circuit", "vendor", "buddy", "fonts", "tokens.css", "theme.js", "logo.svg", "404.html"]) : null;
+/* LAB_MODE=circuit packs only what Circuit Lab, Code Lab and Study Buddy load */
+const ONLY = process.env.LAB_MODE === "circuit" ? new Set(["circuit", "codelab", "vendor", "buddy", "fonts", "tokens.css", "theme.js", "logo.svg", "404.html"]) : null;
 /* tooling and sources the site itself never loads */
 const SKIP = new Set(["desktop", ".git", ".github", ".claude", "tools", "chatbot-proxy", "knowledge", "node_modules", "_config.yml", ".gitignore", ".DS_Store"]);
 

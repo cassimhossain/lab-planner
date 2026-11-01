@@ -22,6 +22,9 @@ const BASE = "/lab-planner/";
 const MODE = require("./package.json").labMode || "full";
 const ROOT = ORIGIN + BASE;
 const HOME = MODE === "circuit" ? ROOT + "circuit/" : ROOT;
+/* the student build opens Circuit Lab and Code Lab only; the full build, the whole site */
+const ALLOWED = MODE === "circuit" ? [ROOT + "circuit/", ROOT + "codelab/"] : [ROOT];
+const inApp = to => ALLOWED.some(a => to.startsWith(a));
 /* saved work lives in a folder named after the app; it keeps the names the
    apps had before they were called BotBench, so nothing saved goes missing */
 app.setPath("userData", path.join(app.getPath("appData"), MODE === "circuit" ? "Circuit Lab" : "Robotics Club Lab"));
@@ -107,7 +110,7 @@ function serialPorts() {
 function open(url) {
   const win = new BrowserWindow({
     width: 1440, height: 920, minWidth: 900, minHeight: 600,
-    title: MODE === "circuit" ? "BotBench Circuits" : "BotBench", backgroundColor: "#0B1220", show: false,
+    title: MODE === "circuit" ? "BotBench Labs" : "BotBench", backgroundColor: "#0B1220", show: false,
     icon: path.join(__dirname, MODE === "circuit" ? "icon-circuit.png" : "icon.png"),
     webPreferences: { contextIsolation: true, sandbox: true },
   });
@@ -115,14 +118,14 @@ function open(url) {
   /* pages of the site (Circuit Lab opened in a new tab, for example) open in
      another app window; everything else opens in the normal web browser */
   win.webContents.setWindowOpenHandler(({ url: to }) => {
-    if (to.startsWith(HOME)) { open(to); return { action: "deny" }; }
+    if (inApp(to)) { open(to); return { action: "deny" }; }
     if (/^https?:|^mailto:/.test(to)) shell.openExternal(to);
     return { action: "deny" };
   });
   win.webContents.on("will-navigate", (e, to) => {
-    if (to.startsWith(HOME)) return;
+    if (inApp(to)) return;
     e.preventDefault();
-    if (!to.startsWith(ROOT) && /^https?:/.test(to)) shell.openExternal(to);   // other pages of the site stay closed in Circuit Lab
+    if (!to.startsWith(ROOT) && /^https?:/.test(to)) shell.openExternal(to);   // other pages of the site stay closed in the student build
   });
   win.loadURL(url);
   return win;
@@ -137,7 +140,10 @@ else {
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
       { role: "fileMenu" }, { role: "editMenu" },
-      ...(MODE === "circuit" ? [] : [{ label: "Go", submenu: [
+      ...(MODE === "circuit" ? [{ label: "Labs", submenu: [
+        { label: "Circuit Lab", accelerator: "CmdOrCtrl+1", click: (_, w) => w && w.loadURL(ROOT + "circuit/") },
+        { label: "Code Lab", accelerator: "CmdOrCtrl+2", click: (_, w) => w && w.loadURL(ROOT + "codelab/") },
+      ] }] : [{ label: "Go", submenu: [
         { label: "Portal", accelerator: "CmdOrCtrl+1", click: (_, w) => w && w.loadURL(ROOT) },
         { label: "Circuit Lab", accelerator: "CmdOrCtrl+2", click: (_, w) => w && w.loadURL(ROOT + "circuit/?from=portal") },
         { label: "Code Lab", accelerator: "CmdOrCtrl+3", click: (_, w) => w && w.loadURL(ROOT + "codelab/?from=portal") },

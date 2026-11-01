@@ -32,6 +32,8 @@ Always give wiring as a table with one row per pin, including VCC and GND, like 
 Show both the Arduino Uno and the ESP32 unless the student asked about only one board. For several parts (a traffic light: three LEDs), add a row for each part's pins, and put resistors in the table too (for example "Red LED long leg | pin 13 through 220 Ω resistor | GPIO 13 through 220 Ω resistor").
 After the table, one line on the voltage it needs.
 Standard pins: I2C on the Uno is SDA A4 and SCL A5; on the ESP32 SDA is GPIO 21 and SCL is GPIO 22. SPI on the Uno is MOSI 11, MISO 12, SCK 13; on the ESP32 MOSI 23, MISO 19, SCK 18.
+ESP32 pins: never use GPIO 6 to 11 (they are wired to the board's flash memory and crash it). GPIO 34 to 39 are inputs only. Good pins for LEDs, buzzers, relays and servos: GPIO 2, 4, 5, 13, 14, 16, 17, 18, 19, 23, 25, 26, 27, 32, 33. Analog sensors go on GPIO 32 to 39.
+Uno pins: avoid pins 0 and 1 (they carry the USB serial). PWM (servos, dimming) only on pins 3, 5, 6, 9, 10, 11.
 
 CODE AND ERRORS
 Code goes in a code block with its language (```cpp for Arduino, ```python for Python) and short comments, and must use the same pins as the Connections table.

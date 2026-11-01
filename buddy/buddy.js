@@ -210,7 +210,7 @@
         const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
         if (!line.startsWith("data:")) continue;
         const d = line.slice(5).trim(); if (d === "[DONE]") return text;
-        try { const j = JSON.parse(d); if (j.response) { text += j.response; onText(text); } } catch (e) { }
+        try { const j = JSON.parse(d), t = typeof j.response === "string" ? j.response : j.response != null ? String(j.response) : ""; if (t) { text += t; onText(text); } } catch (e) { }
       }
     }
     if (!text) throw new Error("empty");
@@ -221,8 +221,18 @@
     const parts = String(t).split(/```[a-zA-Z+]*\n?/);
     return parts.map((seg, i) => {
       if (i % 2) return `<pre><code>${esc(seg.replace(/\n$/, ""))}</code></pre>`;
+      /* outside code: give tables and headings their own block so they are recognised */
+      seg = ("\n" + seg + "\n").replace(/([^\n|])\n(\s*\|)/g, "$1\n\n$2").replace(/(\|[ \t]*)\n(?=\s*[^|\s])/g, "$1\n\n").replace(/\n(#{1,4} [^\n]+)\n/g, "\n\n$1\n\n").trim();
       return esc(seg).split(/\n{2,}/).map(p => {
         const lines = p.split("\n");
+        /* a Markdown table (pin connections, comparisons) */
+        const rows = lines.filter(l => l.trim());
+        if (rows.length >= 2 && rows.every(l => /^\s*\|.*\|\s*$/.test(l)) && /^\s*\|[\s:|-]+\|\s*$/.test(rows[1])) {
+          const cells = l => l.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+          return `<table class="bd-pins"><thead><tr>${cells(rows[0]).map(c => `<th>${c}</th>`).join("")}</tr></thead><tbody>${rows.slice(2).map(r => `<tr>${cells(r).map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+        }
+        /* headings */
+        if (rows.length === 1 && /^#{1,4}\s+/.test(rows[0])) return `<p><b>${rows[0].replace(/^#{1,4}\s+/, "")}</b></p>`;
         if (lines.every(l => /^\s*([-*]|\d+\.)\s+/.test(l) || !l.trim())) return `<ul>${lines.filter(l => l.trim()).map(l => `<li>${l.replace(/^\s*([-*]|\d+\.)\s+/, "")}</li>`).join("")}</ul>`;
         return `<p>${p.replace(/\n/g, "<br>")}</p>`;
       }).join("").replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");

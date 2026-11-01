@@ -11,7 +11,7 @@
    version    matches the portal's ?v= so the lesson data is fetched fresh. */
 window.BUDDY_CONFIG = {
   enabled: true,
-  backend: "local",
-  workerUrl: "",
-  version: "40",
+  backend: "worker",
+  workerUrl: "https://study-buddy.cassimhossain.workers.dev",
+  version: "41",
 };

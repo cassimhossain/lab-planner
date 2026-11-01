@@ -15,7 +15,7 @@
 const VERSION = "v25";
 const CACHE = "circuitlab-" + VERSION;
 const V = "?" + VERSION.replace("v", "v=");          // "?v=25", the same string the page uses
-const BUDDY_V = "40";                                  // Study Buddy and lesson data: the portal's number
+const BUDDY_V = "41";                                  // Study Buddy and lesson data: the portal's number
 
 const MODULES = ["app", "assist", "boards", "home", "elements", "elements2", "elements3", "elements4", "elements5",
   "layout", "lessons", "lessons-jm", "lessons-le", "lessons-tl", "lessons-yi",

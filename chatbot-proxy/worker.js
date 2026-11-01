@@ -87,8 +87,28 @@ async function workersAI(env, system, history, message) {
      WORKERS_AI_MODEL to "@cf/meta/llama-3.1-8b-instruct" for more (but
      simpler) answers per day */
   const model = env.WORKERS_AI_MODEL || "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
-  /* Workers AI already streams "data: {"response": "..."}" lines, the format the site reads */
-  return env.AI.run(model, { messages: [{ role: "system", content: system }, ...history, { role: "user", content: message }], stream: true, max_tokens: 1024, temperature: 0.3 });
+  const stream = await env.AI.run(model, { messages: [{ role: "system", content: system }, ...history, { role: "user", content: message }], stream: true, max_tokens: 1024, temperature: 0.3 });
+  /* Workers AI's "response" field turns number-only words into numbers and
+     drops their leading space (" 22" arrives as 22), so the exact text is
+     taken from choices[0].delta.content and re-sent as plain strings */
+  return reshape(stream, j => { const d = (((j.choices || [])[0] || {}).delta || {}).content; return typeof d === "string" ? d : j.response != null ? String(j.response) : ""; });
+}
+
+/* any provider's stream -> "data: {"response": "<text>"}" lines, then [DONE] */
+function reshape(stream, textOf) {
+  const enc = new TextEncoder(), dec = new TextDecoder(); let buf = "";
+  return stream.pipeThrough(new TransformStream({
+    transform(chunk, ctl) {
+      buf += dec.decode(chunk, { stream: true });
+      let i; while ((i = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+        if (!line.startsWith("data:")) continue;
+        const raw = line.slice(5).trim(); if (raw === "[DONE]") continue;
+        try { const text = textOf(JSON.parse(raw)); if (text) ctl.enqueue(enc.encode("data: " + JSON.stringify({ response: text }) + "\n\n")); } catch (e) { }
+      }
+    },
+    flush(ctl) { ctl.enqueue(enc.encode("data: [DONE]\n\n")); },
+  }));
 }
 
 async function gemini(env, system, history, message) {
@@ -100,23 +120,7 @@ async function gemini(env, system, history, message) {
     body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { maxOutputTokens: 1500, temperature: 0.3 } }),
   });
   if (!r.ok || !r.body) throw Object.assign(new Error("Gemini " + r.status), { status: r.status });
-  /* turn Gemini's stream into the same "data: {"response": ...}" lines Workers AI sends */
-  const enc = new TextEncoder(), dec = new TextDecoder(); let buf = "";
-  return r.body.pipeThrough(new TransformStream({
-    transform(chunk, ctl) {
-      buf += dec.decode(chunk, { stream: true });
-      let i; while ((i = buf.indexOf("\n")) >= 0) {
-        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
-        if (!line.startsWith("data:")) continue;
-        try {
-          const j = JSON.parse(line.slice(5));
-          const text = ((((j.candidates || [])[0] || {}).content || {}).parts || []).map(p => p.text || "").join("");
-          if (text) ctl.enqueue(enc.encode("data: " + JSON.stringify({ response: text }) + "\n\n"));
-        } catch (e) { }
-      }
-    },
-    flush(ctl) { ctl.enqueue(enc.encode("data: [DONE]\n\n")); },
-  }));
+  return reshape(r.body, j => ((((j.candidates || [])[0] || {}).content || {}).parts || []).map(p => p.text || "").join(""));
 }
 
 /* rate limits: exact with a Durable Object, best effort without one */

@@ -217,7 +217,7 @@
   async function askWorker(q, o, onText) {
     const c = o.ctx || {};
     const ctx = { page: c.page, lang: c.lang || "", parts: c.parts || "" };
-    ctx.notes = searchKnowledge(q, 3).map(k => k.t.slice(0, 450));
+    ctx.notes = searchKnowledge(q, 4).map(k => (k.s + ": " + k.t).slice(0, 900));
     if (o.action) { ctx.code = (c.code || "").slice(0, 4000); ctx.error = (c.error || "").slice(0, 1200); }
     /* earlier turns as question/answer pairs only: a question whose answer never
        arrived (a closed tab, a dropped connection) is left out, so it isn't

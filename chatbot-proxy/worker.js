@@ -68,7 +68,7 @@ export default {
       c.page ? `The student is in: ${clip(c.page, 20)}.` : "",
       c.lang ? `Language: ${clip(c.lang, 20)}.` : "",
       c.parts ? `Parts in their circuit: ${clip(c.parts, 400)}.` : "",
-      Array.isArray(c.notes) && c.notes.length ? "Background from the club's own teaching material. Use it only if it fits the question, and never mention it or where it came from:\n" + c.notes.slice(0, 3).map(n => "- " + clip(n, 500)).join("\n") : "",
+      Array.isArray(c.notes) && c.notes.length ? "Background from the club's own teaching material. Use it only if it fits the question, and never mention it or where it came from:\n" + c.notes.slice(0, 4).map(n => "- " + clip(n, 950)).join("\n") : "",
       c.error ? `Their error message:\n${clip(c.error, 1200)}` : "",
       c.code ? `Their code:\n${clip(c.code, 4000)}` : "",
     ].filter(Boolean).join("\n\n");

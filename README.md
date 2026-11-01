@@ -6,7 +6,7 @@ It is plain HTML, CSS and JavaScript. There is no server, no build step and no l
 ## Pages
 
 - **Home**: a **Student / Teacher** switch at the top. Students pick their group once and see the next lesson, the one they left half way, and their progress. Teachers see attendance for each group, the four learning pathways, the virtual labs and the lab pages.
-- **Attendance** (teachers): import the club's Excel class list once (only the Name and Class columns are read), then for each class pick the date and today's topics (from any age group) and mark everyone present or absent. It counts classes for each group (Grade 1–5: 8 classes; Grade 6–8 and IG/Matric/FSc/A level: 16 each), shows each student's attendance, and exports the register to Excel. It shows the next session with a Present button, the week board, students and parts totals, the pack list, things that need attention (sessions without a day, sessions without slides, backups) and progress for each age group.
+- **Attendance** (teachers): import the club's Excel class list once (only the Name and Class columns are read). **Take attendance** shows the group (with "Class 3 of 16"), the date, a box for the lesson (type it, or pick from the curriculum) and the whole class as tiles: everyone starts present, tap a name to mark them absent, then Save. **Students & history** has the classes so far (open one to change it) and each student's attendance. **Google Sheet** connects a Google Sheet you own as the register, so it is the same on every computer and you can edit it like any spreadsheet; see [attendance-sheet/README.md](attendance-sheet/README.md). Without a sheet, attendance stays in the browser, with a backup file and an Excel export.
 - **Curriculum**: coloured tabs for Foundation, Little Explorers, Junior Makers, Young Innovators and Tech Leaders, plus **Plans & documents**. Tap a presentation to open it full screen. Move with the arrow keys or space, by tapping the sides, or by swiping on a phone. Press F for full screen.
 - **Hardware**: the same coloured tabs plus **This week**. Each activity is a card with its parts and totals.
 - **Age group pages**: activity cards by phase, or the whole track as a **Roadmap**. Filter by topic, level (Starter, Core, Advanced) or a part from the kit. Filters stay in the address, so a filtered page can be shared.
@@ -71,7 +71,7 @@ The lesson sheet shows three extra sections when an activity in `data.js` has th
 
 ## Weekly planning (switched off)
 
-The weekly timetable, "this week" panels, print lists and planned/taught counts are hidden for now, because the portal has no shared database and the club isn't planning weeks here. Nothing was deleted: set `const WEEK = true;` near the top of `app.js` to bring it all back. A shared database (Supabase, for example) could later keep attendance and progress across devices.
+The weekly timetable, "this week" panels, print lists and planned/taught counts are hidden for now, because the portal has no shared database and the club isn't planning weeks here. Nothing was deleted: set `const WEEK = true;` near the top of `app.js` to bring it all back. Attendance can already be kept across devices in a Google Sheet (see above); a shared database could later do the same for progress.
 
 ## Study Buddy (for teachers)
 
@@ -88,7 +88,7 @@ The robot button on every page opens **Study Buddy**, an AI tutor students can a
 
 Your plan is saved **in the browser you use** (local storage, key `rac-lab-planner-v1`), not on GitHub. Use **Settings → Download backup** every Friday. The home page reminds you when a backup is older than a week.
 
-A student's progress (finished lessons, their group, the slide they stopped on, recent searches) and the Student / Teacher choice are kept separately under `rac-progress-v1`, on that device only. Attendance and the student list are under `rac-attendance-v1`, with their own **Download backup** on the Attendance page: student names are never written into the website's files. The light / dark choice is `rac-theme-v1`. Neither is part of the plan backup.
+A student's progress (finished lessons, their group, the slide they stopped on, recent searches) and the Student / Teacher choice are kept separately under `rac-progress-v1`, on that device only. Attendance and the student list are under `rac-attendance-v1` (a copy of the Google Sheet when one is connected; its address and PIN under `rac-attendance-sheet-v1`), with their own **Download backup** on the Attendance page: student names are never written into the website's files. The light / dark choice is `rac-theme-v1`. Neither is part of the plan backup.
 
 **Note:** the repository is public, so anyone with the link can open everything in `library/`, including the INTERNAL plans and the requisitions.
 

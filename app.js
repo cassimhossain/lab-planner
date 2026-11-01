@@ -84,6 +84,7 @@
     map: '<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
     grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
     bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
+    reload: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>',
     copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
     flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
     list: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
@@ -452,7 +453,7 @@
     if (!WEEK) return `<section class="welcome portal">
         <div class="wl-txt"><span class="kicker">${fmt(now, { weekday: "long", day: "numeric", month: "long" })}</span>
           <h1>${hi}, ${esc((S.name || "").split(" ")[0] || "teacher")}</h1>
-          <p>${LIB.decks.length} lessons with slides across 4 age groups · attendance and progress are saved in this browser only</p></div>
+          <p>${LIB.decks.length} lessons with slides across 4 age groups · ${SH.url ? "attendance syncs to your Google Sheet · progress is saved in this browser" : "attendance and progress are saved in this browser only"}</p></div>
         <div class="wl-btns">${roleSwitch()}<a class="btn primary big" href="#attendance">${ic("users")}Take attendance</a><a class="btn big" href="#curriculum">${ic("book")}Lesson library</a></div>
         ${DOODLE}
       </section>
@@ -1248,7 +1249,7 @@
   const HINTS = {
     homeS: "Open a lesson to see its goal, the parts you need and the slides. Tick “I've finished this lesson” and your progress fills up.",
     homeT: "Take attendance from the button at the top. Switch to Student to see the page the way a student does.",
-    attendance: "Import your class list from Excel once. Names stay in this browser only and never go to the website.",
+    attendance: "Import your class list from Excel once. Connect a Google Sheet (the Google Sheet tab) to keep one register on every computer. Names never go into the website.",
     group: "Switch between Cards and Roadmap, or filter the lessons by topic, level or a part you have on the table.",
     curriculum: "Tap a presentation to show it full screen. Use the arrow keys or swipe; it remembers the slide you stopped on.",
     hardware: "Search for a part, like “servo”, to find every lesson that uses it. The copy button puts a list on your clipboard.",
@@ -1262,12 +1263,13 @@
   }
 
   /* ---------- ATTENDANCE ----------
-     Who came to each club class and what was taught. Kept in this browser
-     only, under its own key (rac-attendance-v1), with its own backup file:
-     the club's student list is never written into the website's files,
-     because the site is public. The class list comes from the Excel sheet
-     the club already keeps; only the Name and Class columns are read. */
-  const AKEY = "rac-attendance-v1";
+     Who came to each club class and what was taught. Saved in this browser
+     (rac-attendance-v1) and, once a Google Sheet is connected, in that Sheet
+     too: the Sheet is the register, and this browser keeps a copy so marking
+     still works offline. The club's student list is never written into the
+     website's files, because the site is public. The Sheet's side is
+     attendance-sheet/Code.gs; attendance-sheet/README.md says how to set it up. */
+  const AKEY = "rac-attendance-v1", SKEY = "rac-attendance-sheet-v1";
   const AGROUPS = [
     { code: "G1", name: "Grade 1–5", total: 8, color: "var(--tr-le)", light: "var(--tr-le-tint)" },
     { code: "G2", name: "Grade 6–8", total: 16, color: "var(--tr-jm)", light: "var(--tr-jm-tint)" },
@@ -1277,8 +1279,14 @@
   const AT = (() => { const b = { v: 1, totals: {}, students: [], classes: [], lastBackup: "" };
     try { const x = JSON.parse(localStorage.getItem(AKEY) || "null"); if (x && x.v === 1) return Object.assign(b, x); } catch (e) { } return b; })();
   function saveAt() { try { localStorage.setItem(AKEY, JSON.stringify(AT)); } catch (e) { toast("Could not save attendance in this browser. Download a backup."); } }
+  /* the connected Sheet: its web app address, the teacher PIN, and changes not sent yet */
+  const SH = (() => { const b = { url: "", pin: "", pending: [], synced: "", sheetUrl: "" };
+    try { const x = JSON.parse(localStorage.getItem(SKEY) || "null"); if (x) return Object.assign(b, x); } catch (e) { } return b; })();
+  function saveSh() { try { localStorage.setItem(SKEY, JSON.stringify(SH)); } catch (e) { } }
+  const SYNC = { busy: false, err: "", t: 0 };
   const atTotal = gc => +AT.totals[gc] || AG[gc].total;
   const uid = () => Math.random().toString(36).slice(2, 10);
+  const classes = n => `${n} class${n === 1 ? "" : "es"}`;
   /* the club's three groups, read from the Class column: 1-5, 6-8, and
      everything from 9 up (Matric/SSC, IG, FSc, AS/A level, O level) */
   function groupFromClass(cls) {
@@ -1287,15 +1295,105 @@
     const n = parseInt(c.replace(/^(GRADE|CLASS)/, ""), 10);
     return n >= 1 && n <= 5 ? "G1" : n >= 6 && n <= 8 ? "G2" : n >= 9 ? "G3" : "";
   }
-  const AUI = { g: "", date: "", topics: [], marks: {}, editing: "", tq: "", newName: "", newCls: "" };
+  const AUI = { view: "take", g: "", date: "", lesson: "", marks: {}, editing: "", connecting: false };
   const todayIso = () => iso(new Date());
   const studentsOf = gc => AT.students.filter(s => s.group === gc).sort((a, b) => a.name.localeCompare(b.name));
-  const classesOf = gc => AT.classes.filter(c => c.group === gc).sort((a, b) => a.date.localeCompare(b.date));
+  const classesOf = gc => AT.classes.filter(c => c.group === gc).sort((a, b) => (a.date + a.id).localeCompare(b.date + b.id));
   function startDraft(gc, cls) {
-    AUI.g = gc; AUI.editing = cls ? cls.id : ""; AUI.date = cls ? cls.date : todayIso(); AUI.topics = cls ? cls.topics.slice() : []; AUI.tq = "";
+    AUI.g = gc; AUI.editing = cls ? cls.id : ""; AUI.date = cls ? cls.date : todayIso(); AUI.lesson = cls ? cls.lesson : "";
     AUI.marks = {}; studentsOf(gc).forEach(s => { AUI.marks[s.id] = cls ? (cls.marks[s.id] || "") : "p"; });
   }
   const topicName = c => { const a = BYCODE[c]; return a ? `${lab(a)} · ${a.title}` : c; };
+  /* classes saved before the lesson was typed in kept a list of lesson codes */
+  AT.classes.forEach(c => { if (c.lesson == null) { c.lesson = (c.topics || []).map(topicName).join(" / "); delete c.topics; } });
+
+  /* Every change goes through here, in this browser and in the Sheet's
+     script alike (attendance-sheet/Code.gs has the same rules), so both
+     always end up with the same register. */
+  function applyChange(at, c) {
+    const low = x => String(x || "").toLowerCase();
+    if (c.t === "saveClass") { const x = c.cls, i = at.classes.findIndex(k => k.id === x.id), v = { id: x.id, group: x.group, date: x.date, lesson: x.lesson || "", marks: x.marks || {} }; if (i >= 0) at.classes[i] = v; else at.classes.push(v); }
+    else if (c.t === "delClass") at.classes = at.classes.filter(k => k.id !== c.id);
+    else if (c.t === "addStudents") c.students.forEach(s => { if (!at.students.some(o => o.id === s.id || (low(o.name) === low(s.name) && low(o.cls) === low(s.cls)))) at.students.push({ id: s.id, name: s.name, cls: s.cls || "", group: s.group || "" }); });
+    else if (c.t === "updStudent") { const s = at.students.find(o => o.id === c.id); if (s) ["name", "cls", "group"].forEach(k => { if (c[k] != null) s[k] = c[k]; }); }
+    else if (c.t === "delStudent") at.students = at.students.filter(o => o.id !== c.id);
+    else if (c.t === "setTotal") at.totals[c.group] = c.n;
+    else if (c.t === "replaceAll") { at.students = c.at.students || []; at.classes = c.at.classes || []; at.totals = c.at.totals || {}; }
+  }
+  function change(c) {
+    applyChange(AT, c); saveAt();
+    if (SH.url) { SH.pending.push(c); saveSh(); syncSheet(); }
+  }
+  /* take the Sheet's register as this browser's copy, keeping a class that is being marked */
+  function adopt(at) {
+    AT.students = at.students || []; AT.classes = at.classes || []; AT.totals = at.totals || {}; saveAt();
+    if (AUI.editing && !AT.classes.some(c => c.id === AUI.editing)) AUI.g = "";
+  }
+
+  /* ----- the Google Sheet ----- */
+  const SYNC_ERR = {
+    pin: "The PIN doesn't match the one set in the sheet.",
+    locked: "Too many wrong PINs, so the sheet is locked for 10 minutes.",
+    nopin: "The sheet has no PIN yet. In the sheet, use Club attendance → Set the teacher PIN.",
+    net: "Couldn't reach the sheet. Your marks are kept here and sent next time.",
+    sheet: "The sheet reported a problem. Try again, or use Club attendance → Set up or tidy the sheet.",
+    bad: "The sheet didn't understand the request. Update the script from this site and deploy a new version.",
+  };
+  async function askSheet(url, pin, changes) {
+    try { const r = await fetch(url, { method: "POST", body: JSON.stringify({ pin, changes }) }); return await r.json(); }
+    catch (e) { return { error: "net" }; }
+  }
+  async function syncSheet() {
+    if (!SH.url || SYNC.busy) return;
+    SYNC.busy = true; SYNC.t = Date.now(); paintSync();
+    const send = SH.pending.slice(), j = await askSheet(SH.url, SH.pin, send);
+    SYNC.busy = false;
+    if (j && j.ok && j.at) {
+      SH.pending = SH.pending.slice(send.length); SH.synced = new Date().toISOString(); if (j.url) SH.sheetUrl = j.url; saveSh();
+      SH.pending.forEach(c => applyChange(j.at, c));     // changes made while this one was on its way
+      adopt(j.at); SYNC.err = "";
+      if (SH.pending.length) return syncSheet();
+    } else SYNC.err = (j && j.error) || "net";
+    if (route() === "attendance" || route() === "home") renderKeep(); else paintSync();
+  }
+  /* redraw without taking the cursor out of the box the teacher is typing in */
+  function renderKeep() {
+    const a = document.activeElement, id = a && a.id, pos = a && a.selectionStart;
+    render();
+    const n = id && document.getElementById(id); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) { } }
+  }
+  function syncChip() {
+    const [k, i, t] = !SH.url ? ["", "box", "Saved in this browser only"]
+      : SYNC.busy ? ["busy", "reload", "Syncing with your Google Sheet…"]
+      : SYNC.err ? ["warn", "x", SYNC.err === "net" && SH.pending.length ? `Offline: ${plural(SH.pending.length, "change")} kept here, sent next time` : "Not synced"]
+      : SH.pending.length ? ["warn", "reload", `${plural(SH.pending.length, "change")} waiting`] : ["ok", "check", "Synced with your Google Sheet"];
+    return `<span class="atsync ${k}" id="atSync" role="status">${ic(i)}${t}</span>`;
+  }
+  function paintSync() { const n = $("#atSync"); if (n) n.outerHTML = syncChip(); }
+  async function connectSheet(url, pin) {
+    url = url.trim(); pin = pin.trim();
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url)) return toast("Paste the Web app URL from Apps Script. It starts with https://script.google.com/macros/s/ and ends with /exec");
+    if (pin.length < 4) return toast("Type the PIN you set in the sheet");
+    AUI.connecting = true; render();
+    const j = await askSheet(url, pin, []);
+    AUI.connecting = false;
+    if (!j || !j.ok || !j.at) { render(); return toast(SYNC_ERR[j && j.error] || "Couldn't connect to that sheet"); }
+    const empty = !j.at.students.length && !j.at.classes.length, mine = AT.students.length || AT.classes.length;
+    Object.assign(SH, { url, pin, pending: [], synced: new Date().toISOString(), sheetUrl: j.url || "" }); SYNC.err = "";
+    if (empty && mine && confirm(`Connected. The sheet is empty: send this browser's attendance to it (${plural(AT.students.length, "student")}, ${classes(AT.classes.length)})?`)) {
+      SH.pending = [{ t: "replaceAll", at: { students: AT.students, classes: AT.classes, totals: AT.totals } }]; saveSh();
+      toast("Sending your attendance to the sheet…"); render(); return syncSheet();
+    }
+    if (!empty && mine) { backupAt(); toast("Connected. This browser now shows the sheet's register. Its old copy was downloaded as a backup."); }
+    else toast("Connected to your Google Sheet");
+    saveSh(); adopt(j.at); AUI.g = ""; render();
+  }
+  function backupAt() { AT.lastBackup = new Date().toISOString(); saveAt(); download(`attendance-backup-${iso(new Date())}.json`, JSON.stringify(AT, null, 1), "application/json"); }
+  /* pick up edits made in the Sheet itself: when Attendance or Home opens, and when the tab comes back into view */
+  const freshen = () => { if (SH.url && (route() === "attendance" || route() === "home") && Date.now() - SYNC.t > 15000) syncSheet(); };
+  window.addEventListener("hashchange", freshen);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") freshen(); });
+  if (SH.url) setTimeout(syncSheet, 300);
 
   /* ----- reading the Excel sheet in the browser (an .xlsx is a zip of XML files) ----- */
   async function unzip(buf) {
@@ -1334,63 +1432,75 @@
     const hi = rows.findIndex(r => r && r.some(c => /^\s*(student\s*)?name\s*$/i.test(c || "")));
     if (hi < 0) return toast("No “Name” column found in that sheet.");
     const head = rows[hi].map(c => String(c || "").trim().toLowerCase()), ni = head.findIndex(h => /^(student\s*)?name$/.test(h)), ci = head.findIndex(h => /^(class|grade|section)/.test(h));
-    let added = 0, kept = 0;
+    const add = []; let kept = 0;
     rows.slice(hi + 1).forEach(r => {
       const name = String((r || [])[ni] || "").replace(/\s+/g, " ").trim(), cls = ci >= 0 ? String(r[ci] || "").trim() : "";
       if (!name || /^name$/i.test(name)) return;
-      const have = AT.students.find(s => s.name.toLowerCase() === name.toLowerCase() && s.cls.toLowerCase() === cls.toLowerCase());
-      if (have) { kept++; return; }
-      AT.students.push({ id: uid(), name, cls, group: groupFromClass(cls) }); added++;
+      const same = s => s.name.toLowerCase() === name.toLowerCase() && s.cls.toLowerCase() === cls.toLowerCase();
+      if (AT.students.some(same) || add.some(same)) { kept++; return; }
+      add.push({ id: uid(), name, cls, group: groupFromClass(cls) });
     });
-    saveAt(); if (AUI.g) startDraft(AUI.g); render();
+    if (add.length) change({ t: "addStudents", students: add });
+    if (AUI.g) startDraft(AUI.g); render();
     const unsure = AT.students.filter(s => !s.group).length;
-    toast(`${plural(added, "student")} added${kept ? `, ${kept} already on the list` : ""}${unsure ? `. ${unsure} need a group` : ""}`);
+    toast(`${plural(add.length, "student")} added${kept ? `, ${kept} already on the list` : ""}${unsure ? `. ${unsure} need a group` : ""}`);
   }
 
   /* ----- the page ----- */
   function attendanceHome() {
-    const n = AT.students.length;
+    const n = AT.students.length, where = SH.url ? "synced with your Google Sheet" : "saved in this browser only";
     if (!n) return `<section class="sec t-week"><div class="sec-h"><span class="sec-ic">${ic("users")}</span><div><h2>Attendance</h2><p>Import your class list once, then mark each class in a few taps.</p></div><a class="sec-link" href="#attendance">Set up ${ic("arrow")}</a></div></section>`;
-    return `<section class="sec t-week"><div class="sec-h"><span class="sec-ic">${ic("users")}</span><div><h2>Attendance</h2><p>${plural(n, "student")} · saved in this browser only</p></div><a class="sec-link" href="#attendance">Open ${ic("arrow")}</a></div>
+    return `<section class="sec t-week"><div class="sec-h"><span class="sec-ic">${ic("users")}</span><div><h2>Attendance</h2><p>${plural(n, "student")} · ${where}</p></div><a class="sec-link" href="#attendance">Open ${ic("arrow")}</a></div>
       <div class="atgrid">${AGROUPS.map(g => { const cs = classesOf(g.code), last = cs[cs.length - 1], st = studentsOf(g.code).length;
         return `<a class="atcard" href="#attendance" data-atgo="${g.code}" style="--c:${g.color};--l:${g.light}"><span class="atcard-h"><b>${esc(g.name)}</b><small>${plural(st, "student")}</small></span>
-          <span class="atcount"><b>${cs.length}</b> of ${atTotal(g.code)} classes</span><span class="bar"><i style="width:${Math.min(100, 100 * cs.length / atTotal(g.code))}%"></i></span>
-          <small class="muted">${last ? `Last: ${fmt(new Date(last.date + "T00:00:00"), { day: "numeric", month: "short" })}${last.topics.length ? " · " + esc(topicName(last.topics[0])) : ""}` : "No classes yet"}</small></a>`; }).join("")}</div></section>`;
+          <span class="atcount"><b>${cs.length}</b> of ${classes(atTotal(g.code))}</span><span class="bar"><i style="width:${Math.min(100, 100 * cs.length / atTotal(g.code))}%"></i></span>
+          <small class="muted">${last ? `Last: ${fmt(new Date(last.date + "T00:00:00"), { day: "numeric", month: "short" })}${last.lesson ? " · " + esc(last.lesson) : ""}` : "No classes yet"}</small></a>`; }).join("")}</div></section>`;
   }
   function vAttendance() {
-    const head0 = head("Attendance", "Mark who came and what you taught. Everything here is saved in this browser only.",
-      `<label class="btn file">${ic("down")}Import class list<input type="file" id="atImport" accept=".xlsx,.csv"></label><button class="btn" data-at="export">${ic("sheet")}Register (Excel)</button>`);
-    const bk = AT.lastBackup ? Math.floor((Date.now() - new Date(AT.lastBackup)) / 864e5) : -1;
-    const backupBar = `<div class="atbackup ${AT.classes.length && (bk < 0 || bk > 7) ? "warn" : ""}">${ic("box")}<span>${AT.classes.length && (bk < 0 || bk > 7) ? `<b>${bk < 0 ? "No attendance backup yet." : `Last backup ${bk} days ago.`}</b> ` : ""}Attendance lives in this browser only. Download a backup each week, and load it on another computer.</span>
-      <button class="btn" data-at="backup">Download backup</button><label class="btn file">Load backup<input type="file" id="atRestore" accept=".json,application/json"></label></div>`;
-    if (!AT.students.length) return head0 + `<div class="card atempty">${empty("No students yet. Import the club's Excel sheet: only the Name and Class columns are read, and the names stay in this browser.",
+    const head0 = head("Attendance", "Mark who came and what you taught.",
+      `${syncChip()}<label class="btn file">${ic("down")}Import class list<input type="file" id="atImport" accept=".xlsx,.csv"></label>`);
+    const vtabs = `<div class="tabs atviews" role="tablist" aria-label="Attendance">${[["take", "Take attendance", "check"], ["students", "Students & history", "users"], ["sheet", "Google Sheet", "sheet"]]
+      .map(([k, t, i]) => `<button role="tab" aria-selected="${AUI.view === k}" class="${AUI.view === k ? "on" : ""}" data-atview="${k}">${ic(i)}${t}</button>`).join("")}</div>`;
+    if (AUI.view === "sheet") return head0 + vtabs + vAtSheet();
+    if (!AT.students.length) return head0 + vtabs + `<div class="card atempty">${empty(SH.url ? "No students in the sheet yet. Import the club's Excel sheet here, or add them on the sheet's Students tab." : "No students yet. Import the club's Excel sheet: only the Name and Class columns are read.",
       `<label class="btn primary big file">${ic("down")}Import class list (.xlsx)<input type="file" id="atImport2" accept=".xlsx,.csv"></label>`)}
-      <form class="atadd" data-atform><input id="atNewName" placeholder="Or add one student: name" aria-label="Student name"><input id="atNewCls" placeholder="Class, e.g. 5A or IG II" aria-label="Class"><button class="btn" type="submit">${ic("plus")}Add</button></form></div>` + backupBar;
+      <form class="atadd" data-atform><input id="atNewName" placeholder="Or add one student: name" aria-label="Student name"><input id="atNewCls" placeholder="Class, e.g. 5A or IG II" aria-label="Class"><button class="btn" type="submit">${ic("plus")}Add</button></form></div>`;
     if (!AUI.g || !AG[AUI.g]) startDraft(AT.students.some(s => s.group === "G1") ? "G1" : AT.students.find(s => s.group) ? AT.students.find(s => s.group).group : "G1");
-    const g = AG[AUI.g], list = studentsOf(g.code), cs = classesOf(g.code), unsure = AT.students.filter(s => !s.group);
+    const g = AG[AUI.g], unsure = AT.students.filter(s => !s.group);
     const tabs = `<div class="gtabs attabs">${AGROUPS.map(x => { const n = classesOf(x.code).length;
-      return `<button class="gtab ${x.code === g.code ? "on" : ""}" data-atg="${x.code}" style="--c:${x.color};--l:${x.light}"><span class="gtab-code">${x.code.slice(1)}</span><span class="gtab-txt"><b>${esc(x.name)}</b><small>${n} of ${atTotal(x.code)} classes · ${plural(studentsOf(x.code).length, "student")}</small></span></button>`; }).join("")}</div>`;
-    const presentN = list.filter(s => AUI.marks[s.id] === "p").length, num = AUI.editing ? cs.findIndex(c => c.id === AUI.editing) + 1 : cs.length + 1;
-    const tq = AUI.tq.toLowerCase();
-    const toks = tq.split(/\s+/).filter(Boolean);
-    const sugg = toks.length ? ACTS.filter(a => !AUI.topics.includes(a.code) && toks.every(t => hayOf(a).includes(t))).sort((x, y) => (y.code.toLowerCase().startsWith(tq) - x.code.toLowerCase().startsWith(tq)) || (toks.every(t => y.title.toLowerCase().includes(t)) - toks.every(t => x.title.toLowerCase().includes(t)))).slice(0, 8) : [];
-    const take = `<div class="card attake" style="--c:${g.color};--l:${g.light}">
+      return `<button class="gtab ${x.code === g.code ? "on" : ""}" data-atg="${x.code}" style="--c:${x.color};--l:${x.light}"><span class="gtab-code">${x.code.slice(1)}</span><span class="gtab-txt"><b>${esc(x.name)}</b><small>Class ${Math.min(n + 1, Math.max(n, atTotal(x.code)))} of ${atTotal(x.code)} · ${plural(studentsOf(x.code).length, "student")}</small></span></button>`; }).join("")}</div>`;
+    const fix = unsure.length ? `<div class="warn">${plural(unsure.length, "student")} couldn't be placed from their class: ${unsure.map(s => `${esc(s.name)} <select data-atgroup="${s.id}" aria-label="Group for ${esc(s.name)}"><option value="">Pick a group</option>${AGROUPS.map(x => `<option value="${x.code}">${esc(x.name)}</option>`).join("")}</select>`).join(" · ")}</div>` : "";
+    return head0 + vtabs + fix + tabs + (AUI.view === "students" ? vAtStudents(g) : vAtTake(g));
+  }
+  /* marking one class: the lesson, then everyone in the group as tiles that fit on screen */
+  function vAtTake(g) {
+    const list = studentsOf(g.code), cs = classesOf(g.code);
+    list.forEach(s => { if (!(s.id in AUI.marks)) AUI.marks[s.id] = AUI.editing ? "" : "p"; });
+    const presentN = list.filter(s => AUI.marks[s.id] === "p").length, absentN = list.filter(s => AUI.marks[s.id] === "a").length;
+    const num = AUI.editing ? cs.findIndex(c => c.id === AUI.editing) + 1 : cs.length + 1;
+    const q = AUI.lesson.trim().toLowerCase(), toks = q.split(/\s+/).filter(Boolean);
+    const sugg = q.length > 1 ? ACTS.filter(a => toks.every(t => hayOf(a).includes(t)) && topicName(a.code).toLowerCase() !== q)
+      .sort((x, y) => (y.code.toLowerCase().startsWith(q) - x.code.toLowerCase().startsWith(q)) || (toks.every(t => y.title.toLowerCase().includes(t)) - toks.every(t => x.title.toLowerCase().includes(t)))).slice(0, 6) : [];
+    return `<div class="card attake" style="--c:${g.color};--l:${g.light}">
       <div class="attake-h"><div><span class="acode">${AUI.editing ? "Editing" : "New class"} · ${esc(g.name)}</span><h2>Class ${num} of ${atTotal(g.code)}</h2>${num > atTotal(g.code) ? `<small class="atover">That's more than the ${atTotal(g.code)} planned classes. It still counts.</small>` : ""}</div>
         <label class="atdate"><span>Date</span><input type="date" id="atDate" value="${esc(AUI.date)}"></label></div>
-      <div class="m-sec"><label>Today's topics <i>pick from any age group</i></label>
-        <div class="attopics">${AUI.topics.map(c => `<span class="attopic">${esc(topicName(c))}<button data-atuntopic="${esc(c)}" aria-label="Remove ${esc(c)}">${ic("x")}</button></span>`).join("") || `<small class="muted">No topic yet.</small>`}</div>
-        <label class="search attq">${ic("search")}<input type="search" id="atTopicQ" placeholder="Search lessons: code, title or topic (e.g. JM-04, servo, traffic)" value="${esc(AUI.tq)}" aria-label="Search lessons to add as a topic" autocomplete="off"></label>
-        <div class="atsugg" id="atSugg">${sugg.map(a => `<button class="prow" data-attopic="${esc(a.code)}" style="--c:${GROUPS[a.group].color};--l:${GROUPS[a.group].light}"><span class="acode">${esc(lab(a))}</span><span class="nt">${esc(a.title)}<small>${esc(GROUPS[a.group].name)} · ${esc(a.unit)}</small></span><span class="nplan">Add</span></button>`).join("")}</div></div>
-      <div class="m-sec"><label>Students <i>${presentN} present · ${list.length - presentN} absent</i><span class="atall"><button class="linkbtn navy" data-atall="p">All present</button><button class="linkbtn navy" data-atall="a">All absent</button></span></label>
-        ${list.length ? `<div class="atlist">${list.map(s => { const m = AUI.marks[s.id];
-          return `<div class="atrow"><span class="atname"><b>${esc(s.name)}</b><small>${esc(s.cls)}</small></span><span class="atpa" role="group" aria-label="${esc(s.name)}"><button class="p ${m === "p" ? "on" : ""}" data-atmark="${s.id}" data-v="p" aria-pressed="${m === "p"}">Present</button><button class="a ${m === "a" ? "on" : ""}" data-atmark="${s.id}" data-v="a" aria-pressed="${m === "a"}">Absent</button></span></div>`; }).join("")}</div>`
-          : `<p class="muted">No students in this group yet. Import the class list, or set a student's group below.</p>`}</div>
+      <div class="m-sec"><label for="atLesson">Lesson</label>
+        <input id="atLesson" class="atinput" placeholder="Type the lesson, e.g. Traffic light, or a code like JM-04" value="${esc(AUI.lesson)}" autocomplete="off">
+        ${sugg.length ? `<div class="atsugg">${sugg.map(a => `<button class="prow" data-atlesson="${esc(a.code)}" style="--c:${GROUPS[a.group].color};--l:${GROUPS[a.group].light}"><span class="acode">${esc(lab(a))}</span><span class="nt">${esc(a.title)}<small>${esc(GROUPS[a.group].name)} · ${esc(a.unit)}</small></span><span class="nplan">Use</span></button>`).join("")}</div>` : ""}</div>
+      <div class="m-sec"><label>Students <i>${presentN} present · ${absentN} absent</i><span class="atall"><button class="linkbtn navy" data-atall="p">All present</button><button class="linkbtn navy" data-atall="a">All absent</button></span></label>
+        ${list.length ? `<p class="athelp">${AUI.editing ? "Tap a name to switch between present and absent." : "Everyone starts as present. Tap a name to mark them absent."}</p>
+        <div class="attiles">${list.map(s => { const m = AUI.marks[s.id];
+          return `<button class="attile ${m === "a" ? "off" : m === "p" ? "on" : ""}" data-attog="${s.id}" aria-pressed="${m === "p"}" aria-label="${esc(s.name)}: ${m === "a" ? "absent" : m === "p" ? "present" : "not marked"}"><span class="attick">${ic(m === "a" ? "x" : "check")}</span><span class="attn"><b>${esc(s.name)}</b><small>${esc(s.cls)}</small></span></button>`; }).join("")}</div>`
+          : `<p class="muted">No students in this group yet. Import the class list, or give students this group under Students &amp; history.</p>`}</div>
       <div class="m-foot atfoot">${AUI.editing ? `<button class="btn danger" data-at="delclass">Delete this class</button><button class="btn" data-at="cancel">Cancel</button>` : "<span></span>"}<button class="btn primary big" data-at="save" ${list.length ? "" : "disabled"}>${ic("check")}${AUI.editing ? "Save changes" : "Save attendance"}</button></div></div>`;
-    const held = cs.length;
-    const history = `<div class="card"><div class="panel-h"><h2>Classes so far <small class="muted">${held} of ${atTotal(g.code)}</small></h2>
+  }
+  /* the group's classes so far and its students, kept off the marking screen */
+  function vAtStudents(g) {
+    const list = studentsOf(g.code), cs = classesOf(g.code);
+    const history = `<div class="card"><div class="panel-h"><h2>Classes so far <small class="muted">${cs.length} of ${atTotal(g.code)}</small></h2>
         <label class="attotal">Planned classes <input type="number" min="1" max="60" id="atTotal" value="${atTotal(g.code)}" aria-label="Planned classes for ${esc(g.name)}"></label></div>
-      ${held ? `<div class="athist">${cs.map((c, i) => { const p = Object.values(c.marks).filter(v => v === "p").length, a = Object.values(c.marks).filter(v => v === "a").length;
-        return `<button class="athrow ${c.id === AUI.editing ? "on" : ""}" data-atedit="${c.id}"><span class="athn">${i + 1}</span><span class="atht"><b>${fmt(new Date(c.date + "T00:00:00"), { weekday: "short", day: "numeric", month: "short" })}</b><small>${c.topics.map(t => esc(topicName(t))).join(" · ") || "No topic recorded"}</small></span><span class="athc"><em class="ok">${p}</em><em class="no">${a}</em></span></button>`; }).join("")}</div>` : `<p class="muted">No classes recorded for this group yet.</p>`}</div>`;
+      ${cs.length ? `<div class="athist">${cs.map((c, i) => { const p = Object.values(c.marks).filter(v => v === "p").length, a = Object.values(c.marks).filter(v => v === "a").length;
+        return `<button class="athrow" data-atedit="${c.id}" title="Open to change it"><span class="athn">${i + 1}</span><span class="atht"><b>${c.date ? fmt(new Date(c.date + "T00:00:00"), { weekday: "short", day: "numeric", month: "short" }) : "No date"}</b><small>${esc(c.lesson) || "No lesson recorded"}</small></span><span class="athc"><em class="ok">${p}</em><em class="no">${a}</em></span></button>`; }).join("")}</div>` : `<p class="muted">No classes recorded for this group yet.</p>`}</div>`;
     const roster = `<div class="card"><div class="panel-h"><h2>Students <small class="muted">${list.length}</small></h2></div>
       ${list.length ? `<table class="kt atroster"><thead><tr><th>Name</th><th>Class</th><th class="c">Attended</th><th class="c">%</th><th>Group</th><th></th></tr></thead><tbody>${list.map(s => {
         const mine = cs.filter(c => c.marks[s.id]), here = mine.filter(c => c.marks[s.id] === "p").length, pct = mine.length ? Math.round(100 * here / mine.length) : null;
@@ -1398,23 +1508,44 @@
           <td><select data-atgroup="${s.id}" aria-label="Group for ${esc(s.name)}">${AGROUPS.map(x => `<option value="${x.code}" ${x.code === s.group ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></td>
           <td><button class="kdel" data-atdel="${s.id}" aria-label="Remove ${esc(s.name)}">${ic("x")}</button></td></tr>`; }).join("")}</tbody></table>` : ""}
       <form class="atadd" data-atform><input id="atNewName" placeholder="Add a student: name" aria-label="Student name"><input id="atNewCls" placeholder="Class, e.g. 5A or IG II" aria-label="Class"><button class="btn" type="submit">${ic("plus")}Add</button></form></div>`;
-    const fix = unsure.length ? `<div class="warn">${plural(unsure.length, "student")} couldn't be placed from their class: ${unsure.map(s => `${esc(s.name)} <select data-atgroup="${s.id}" aria-label="Group for ${esc(s.name)}"><option value="">Pick a group</option>${AGROUPS.map(x => `<option value="${x.code}">${esc(x.name)}</option>`).join("")}</select>`).join(" · ")}</div>` : "";
-    return head0 + fix + tabs + `<div class="atlayout"><div>${take}</div><div>${history}${roster}</div></div>` + backupBar;
+    return `<div class="atlayout"><div>${history}</div><div>${roster}</div></div>`;
+  }
+  /* connecting the Google Sheet, and the backups */
+  function vAtSheet() {
+    const bk = AT.lastBackup ? Math.floor((Date.now() - new Date(AT.lastBackup)) / 864e5) : -1, nag = !SH.url && AT.classes.length && (bk < 0 || bk > 7);
+    const files = `<div class="card atfiles"><div class="panel-h"><h2>Files</h2></div>
+      <p class="muted">${SH.url ? "The sheet is the register. A backup file is still handy before big changes." : `<b class="${nag ? "atlow" : ""}">${bk < 0 ? "No backup yet." : `Last backup ${bk} days ago.`}</b> Without a sheet, attendance lives in this browser only: download a backup each week, and load it on another computer.`}</p>
+      <div class="btnrow"><button class="btn" data-at="export">${ic("sheet")}Register (Excel)</button><button class="btn" data-at="backup">${ic("down")}Download backup</button><label class="btn file">Load backup<input type="file" id="atRestore" accept=".json,application/json"></label></div></div>`;
+    if (SH.url) {
+      const ago = SH.synced ? Math.round((Date.now() - new Date(SH.synced)) / 60000) : -1;
+      return `<div class="card atsheet on"><div class="atsheet-h">${ic("sheet")}<div><h2>Connected to your Google Sheet</h2><p>${SYNC.err ? esc(SYNC_ERR[SYNC.err] || "Not synced.") : ago < 0 ? "Not synced yet." : ago < 1 ? "Synced just now." : `Last synced ${ago} min ago.`}${SH.pending.length ? ` ${plural(SH.pending.length, "change")} waiting to be sent.` : ""}</p></div></div>
+        <p class="muted">Mark attendance here, or edit the sheet directly: P or A in a cell, the lesson, the date. Add or move students on its Students tab. This page picks up the sheet's changes whenever you open it.</p>
+        <div class="btnrow">${SH.sheetUrl ? `<a class="btn primary" href="${esc(SH.sheetUrl)}" target="_blank" rel="noopener">${ic("sheet")}Open the Google Sheet</a>` : ""}<button class="btn" data-at="sync" ${SYNC.busy ? "disabled" : ""}>${ic("reload")}${SYNC.busy ? "Syncing…" : "Sync now"}</button><button class="btn" data-at="disconnect">Disconnect</button></div>
+        <p class="athelp">This browser remembers the PIN. On a computer students also use, disconnect when you're done.</p></div>` + files;
+    }
+    return `<div class="card atsheet"><div class="atsheet-h">${ic("sheet")}<div><h2>Keep the register in a Google Sheet</h2><p>One register for the whole club, the same on every computer and phone. Mark attendance here or type straight into the sheet. It's free, and the names stay in your own Google account.</p></div></div>
+      <ol class="atsteps">
+        <li>Make a blank Google Sheet. Open <b>Extensions → Apps Script</b>, delete what's there, paste the script and press Save. <button class="linkbtn navy" data-at="copyscript">${ic("copy")}Copy the script</button></li>
+        <li>Reload the sheet. From the new <b>Club attendance</b> menu, choose <b>Set the teacher PIN</b>, then <b>Set up or tidy the sheet</b>. Google asks you to allow your own script the first time.</li>
+        <li>In Apps Script: <b>Deploy → New deployment → Web app</b>. Execute as <b>Me</b>, who has access <b>Anyone</b>. Copy the Web app URL.</li>
+        <li>Paste it here with your PIN.</li></ol>
+      <form class="atconnect" data-atconnect><input id="atUrl" placeholder="Web app URL, ending in /exec" aria-label="Web app URL" autocomplete="off" spellcheck="false"><input id="atPin" type="password" placeholder="Teacher PIN" aria-label="Teacher PIN" autocomplete="off"><button class="btn primary" type="submit" ${AUI.connecting ? "disabled" : ""}>${AUI.connecting ? "Connecting…" : "Connect"}</button></form>
+      <p class="athelp">Step by step: <a href="https://github.com/cassimhossain/lab-planner/blob/main/attendance-sheet/README.md" target="_blank" rel="noopener">the setup guide</a>.</p></div>` + files;
   }
   function saveClass() {
     const list = studentsOf(AUI.g);
     if (!AUI.date) return toast("Pick the date first");
     const marks = {}; list.forEach(s => { if (AUI.marks[s.id]) marks[s.id] = AUI.marks[s.id]; });
-    if (AUI.editing) { const c = AT.classes.find(x => x.id === AUI.editing); if (c) Object.assign(c, { date: AUI.date, topics: AUI.topics.slice(), marks }); }
-    else AT.classes.push({ id: uid(), group: AUI.g, date: AUI.date, topics: AUI.topics.slice(), marks });
-    saveAt(); const was = !!AUI.editing; startDraft(AUI.g); render();
+    const was = !!AUI.editing;
+    change({ t: "saveClass", cls: { id: AUI.editing || uid(), group: AUI.g, date: AUI.date, lesson: AUI.lesson.trim(), marks } });
+    startDraft(AUI.g); render();
     toast(was ? "Class updated" : `Saved: class ${classesOf(AUI.g).length} of ${atTotal(AUI.g)} for <b>${esc(AG[AUI.g].name)}</b>`);
   }
   function exportRegister() {
     const rows = [["Group", "Name", "Class"].concat(["Attended", "Classes marked", "%"])];
     AGROUPS.forEach(g => {
       const cs = classesOf(g.code); rows.push([]); rows.push([g.name, "", ""].concat(cs.map((c, i) => `Class ${i + 1} ${c.date}`)));
-      rows.push(["", "Topics", ""].concat(cs.map(c => c.topics.map(topicName).join(" / "))));
+      rows.push(["", "Lesson", ""].concat(cs.map(c => c.lesson)));
       studentsOf(g.code).forEach(s => { const mine = cs.filter(c => c.marks[s.id]), here = mine.filter(c => c.marks[s.id] === "p").length;
         rows.push([g.name, s.name, s.cls].concat(cs.map(c => c.marks[s.id] === "p" ? "P" : c.marks[s.id] === "a" ? "A" : ""), [here, mine.length, mine.length ? Math.round(100 * here / mine.length) + "%" : ""])); });
     });
@@ -1423,42 +1554,49 @@
   /* attendance has its own events, kept here so the page reads in one place */
   document.addEventListener("click", e => {
     const t = e.target.closest("button, a"); if (!t || !document.body.contains(t)) return; const d = t.dataset;
-    if (d.atgo) { AUI.g = d.atgo; startDraft(d.atgo); return; }
+    if (d.atgo) { AUI.view = "take"; startDraft(d.atgo); return; }
     if (route() !== "attendance") return;
+    if (d.atview) { AUI.view = d.atview; render(); return; }
     if (d.atg) { startDraft(d.atg); render(); return; }
-    if (d.atmark) { AUI.marks[d.atmark] = d.v; render(); return; }
+    if (d.attog) { AUI.marks[d.attog] = AUI.marks[d.attog] === "p" ? "a" : "p"; renderKeep(); return; }
     if (d.atall) { studentsOf(AUI.g).forEach(s => { AUI.marks[s.id] = d.atall; }); render(); return; }
-    if (d.attopic) { if (!AUI.topics.includes(d.attopic)) AUI.topics.push(d.attopic); AUI.tq = ""; render(); const q = $("#atTopicQ"); if (q) q.focus(); return; }
-    if (d.atuntopic) { AUI.topics = AUI.topics.filter(c => c !== d.atuntopic); render(); return; }
-    if (d.atedit) { const c = AT.classes.find(x => x.id === d.atedit); if (c) { startDraft(c.group, c); render(); window.scrollTo({ top: 0, behavior: "smooth" }); } return; }
-    if (d.atdel) { const s = AT.students.find(x => x.id === d.atdel); if (s && confirm(`Remove ${s.name} from the list? Their past marks are kept in old classes.`)) { AT.students = AT.students.filter(x => x.id !== d.atdel); saveAt(); render(); } return; }
+    if (d.atlesson) { AUI.lesson = topicName(d.atlesson); render(); return; }
+    if (d.atedit) { const c = AT.classes.find(x => x.id === d.atedit); if (c) { startDraft(c.group, c); AUI.view = "take"; render(); window.scrollTo({ top: 0, behavior: "smooth" }); } return; }
+    if (d.atdel) { const s = AT.students.find(x => x.id === d.atdel); if (s && confirm(`Remove ${s.name} from the list?${SH.url ? " Their row leaves the sheet too." : ""}`)) { change({ t: "delStudent", id: d.atdel }); render(); } return; }
     switch (d.at) {
       case "save": saveClass(); break;
       case "cancel": startDraft(AUI.g); render(); break;
-      case "delclass": if (confirm("Delete this class and its attendance?")) { AT.classes = AT.classes.filter(c => c.id !== AUI.editing); saveAt(); startDraft(AUI.g); render(); toast("Class deleted"); } break;
-      case "backup": AT.lastBackup = new Date().toISOString(); saveAt(); download(`attendance-backup-${iso(new Date())}.json`, JSON.stringify(AT, null, 1), "application/json"); render(); break;
+      case "delclass": if (confirm("Delete this class and its attendance?")) { change({ t: "delClass", id: AUI.editing }); startDraft(AUI.g); render(); toast("Class deleted"); } break;
+      case "backup": backupAt(); render(); break;
       case "export": exportRegister(); break;
+      case "sync": syncSheet(); render(); break;
+      case "disconnect": if (confirm("Disconnect this browser from the sheet? The register stays in your Google Sheet, and this browser keeps its copy.")) { Object.assign(SH, { url: "", pin: "", pending: [], synced: "", sheetUrl: "" }); saveSh(); SYNC.err = ""; render(); toast("Disconnected"); } break;
+      case "copyscript": fetch("attendance-sheet/Code.gs", { cache: "no-store" }).then(r => { if (!r.ok) throw 0; return r.text(); }).then(x => navigator.clipboard.writeText(x)).then(() => toast("Script copied. Paste it into Apps Script."), () => toast("Couldn't copy it. Open attendance-sheet/Code.gs in the repo instead.")); break;
     }
   });
   document.addEventListener("submit", e => {
+    if (e.target.matches("[data-atconnect]")) { e.preventDefault(); connectSheet($("#atUrl").value || "", $("#atPin").value || ""); return; }
     if (!e.target.matches("[data-atform]")) return; e.preventDefault();
-    const name = ($("#atNewName").value || "").trim(), cls = ($("#atNewCls").value || "").trim(); if (!name) return toast("Type the student's name");
-    AT.students.push({ id: uid(), name, cls, group: groupFromClass(cls) || AUI.g || "" }); saveAt(); if (AUI.g) startDraft(AUI.g, AUI.editing ? AT.classes.find(c => c.id === AUI.editing) : null); render(); toast(`${esc(name)} added`);
+    const name = ($("#atNewName").value || "").replace(/\s+/g, " ").trim(), cls = ($("#atNewCls").value || "").trim(); if (!name) return toast("Type the student's name");
+    change({ t: "addStudents", students: [{ id: uid(), name, cls, group: groupFromClass(cls) || AUI.g || "" }] });
+    if (AUI.g) startDraft(AUI.g, AUI.editing ? AT.classes.find(c => c.id === AUI.editing) : null); render(); toast(`${esc(name)} added`);
   });
   document.addEventListener("change", e => {
     const t = e.target; if (route() !== "attendance") return;
     if (t.id === "atImport" || t.id === "atImport2") { if (t.files[0]) importStudents(t.files[0]); t.value = ""; return; }
     if (t.id === "atRestore") { const f = t.files[0]; if (!f) return; const r = new FileReader();
-      r.onload = () => { try { const x = JSON.parse(r.result); if (x.v !== 1 || !Array.isArray(x.students)) throw 0; if (confirm("Replace the attendance in this browser with this backup?")) { Object.assign(AT, { totals: {}, students: [], classes: [], lastBackup: "" }, x); saveAt(); AUI.g = ""; render(); toast("Attendance backup loaded"); } } catch (er) { toast("That file is not an attendance backup"); } };
+      r.onload = () => { try { const x = JSON.parse(r.result); if (x.v !== 1 || !Array.isArray(x.students)) throw 0;
+        if (confirm(SH.url ? "Replace the register in your Google Sheet with this backup?" : "Replace the attendance in this browser with this backup?")) {
+          (x.classes || []).forEach(c => { if (c.lesson == null) { c.lesson = (c.topics || []).map(topicName).join(" / "); delete c.topics; } });
+          change({ t: "replaceAll", at: { students: x.students, classes: x.classes || [], totals: x.totals || {} } }); AUI.g = ""; render(); toast("Attendance backup loaded"); } } catch (er) { toast("That file is not an attendance backup"); } };
       r.readAsText(f); t.value = ""; return; }
     if (t.id === "atDate") { AUI.date = t.value; return; }
-    if (t.id === "atTotal") { const n = Math.max(1, Math.min(60, +t.value || AG[AUI.g].total)); AT.totals[AUI.g] = n; saveAt(); render(); return; }
-    if (t.dataset.atgroup) { const s = AT.students.find(x => x.id === t.dataset.atgroup); if (s && t.value) { s.group = t.value; saveAt(); startDraft(AUI.g); render(); } return; }
+    if (t.id === "atTotal") { const n = Math.max(1, Math.min(60, +t.value || AG[AUI.g].total)); change({ t: "setTotal", group: AUI.g, n }); render(); return; }
+    if (t.dataset.atgroup) { if (t.value) { change({ t: "updStudent", id: t.dataset.atgroup, group: t.value }); startDraft(AUI.g); render(); } return; }
   });
   document.addEventListener("input", e => {
-    if (e.target.id !== "atTopicQ") return;
-    AUI.tq = e.target.value; const pos = e.target.selectionStart; render();
-    const n = $("#atTopicQ"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (er) { } }
+    if (e.target.id !== "atLesson") return;
+    AUI.lesson = e.target.value; renderKeep();
   });
 
   /* ---------- STUDY BUDDY ----------

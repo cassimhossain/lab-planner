@@ -9,7 +9,7 @@ If the AI is off, busy, out of its free allowance or unreachable, Study Buddy qu
 
 | | Cloudflare Workers AI (`workers-ai`) | Google Gemini (`gemini`) |
 |---|---|---|
-| Model | Llama 3.3 70B (set `WORKERS_AI_MODEL` to change it) | Gemini 2.5 Flash (or whichever free model you set in `GEMINI_MODEL`) |
+| Model | Llama 3.3 70B (set `WORKERS_AI_MODEL` to change it) | Google's current Flash model (`gemini-flash-latest`), then Flash-Lite and older models if one is busy or retired. Set `GEMINI_MODEL` to pin one. |
 | Key | **None.** Connected inside Cloudflare. | A free key from Google AI Studio, stored as a Worker **secret**. |
 | Quality | Strong general answers. | Also strong, especially for code. |
 | Free limit | A daily allowance (it has been 10,000 "neurons"; with the 70B model that's very roughly 100 full answers a day, with the 8B model several times more). | Per-minute and per-day request limits on the free tier. |
@@ -17,6 +17,8 @@ If the AI is off, busy, out of its free allowance or unreachable, Study Buddy qu
 | For students? | Check Cloudflare's terms and the Llama licence. | **Read Google's Gemini API terms first:** they have required users to be 18+ and restricted apps likely to be used by under-18s, and free-tier prompts may be used to improve Google's products. |
 
 Limits and terms change, so check the current ones before you switch it on.
+
+**Best of both:** set `PROVIDER` to `gemini` and keep the Workers AI binding. Gemini answers first; whenever it is busy or out of free requests, the Cloudflare model answers instead. Each reply carries an `X-Buddy-Model` header (and `X-Buddy-Fallback` with Google's reason when it switched), visible in the browser's Network tab.
 
 ## Set it up in the Cloudflare dashboard (about 10 minutes, no command line)
 

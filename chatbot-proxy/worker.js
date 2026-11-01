@@ -76,12 +76,13 @@ export default {
     try {
       /* Gemini first when chosen; if it is out of free requests or fails, the
          Cloudflare model answers instead, so students aren't left waiting */
-      let stream;
-      if (provider(env) === "gemini") {
+      let stream, used = provider(env), why = "";
+      if (used === "gemini") {
         try { stream = await gemini(env, system, history, message); }
-        catch (e) { if (!env.AI) throw e; stream = await workersAI(env, system, history, message); }
+        catch (e) { if (!env.AI) throw e; why = String(e.message || "").replace(/[^\x20-\x7E]/g, " ").slice(0, 160); used = "workers-ai"; stream = await workersAI(env, system, history, message); }
       } else stream = await workersAI(env, system, history, message);
-      return new Response(stream, { headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-store", ...cors } });
+      /* which model answered (and why Gemini was skipped), for checking in the browser's network tab */
+      return new Response(stream, { headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-store", "X-Buddy-Model": used, ...(why ? { "X-Buddy-Fallback": why } : {}), ...cors } });
     } catch (e) {
       /* most often: the free daily allowance is used up, or the key is missing */
       return json(e.status === 429 ? 429 : 503, { error: "ai", detail: String(e.message || "").slice(0, 120) });
@@ -123,14 +124,22 @@ function reshape(stream, textOf) {
 
 async function gemini(env, system, history, message) {
   if (!env.GEMINI_API_KEY) throw new Error("No GEMINI_API_KEY secret");
-  const model = env.GEMINI_MODEL || "gemini-2.5-flash";
+  /* "gemini-flash-latest" always points at Google's current Flash model. If a
+     name is retired (404) or busy (429/500/503), the next one is tried */
+  const models = env.GEMINI_MODEL ? [env.GEMINI_MODEL] : ["gemini-flash-latest", "gemini-flash-lite-latest", "gemini-2.5-flash-lite", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
   const contents = history.map(m => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })).concat([{ role: "user", parts: [{ text: message }] }]);
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, {
-    method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-    body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { maxOutputTokens: 1500, temperature: 0.3 } }),
-  });
-  if (!r.ok || !r.body) throw Object.assign(new Error("Gemini " + r.status), { status: r.status });
-  return reshape(r.body, j => ((((j.candidates || [])[0] || {}).content || {}).parts || []).map(p => p.text || "").join(""));
+  let last = "";
+  for (const model of models) {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, {
+      method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { maxOutputTokens: 2048, temperature: 0.3 } }),
+    });
+    if (r.ok && r.body) return reshape(r.body, j => ((((j.candidates || [])[0] || {}).content || {}).parts || []).map(p => p.text || "").join(""));
+    let detail = ""; try { detail = ((await r.json()).error || {}).message || ""; } catch (e) { }
+    last = `Gemini ${r.status} (${model}) ${detail}`.slice(0, 160);
+    if (![404, 429, 500, 503].includes(r.status)) throw Object.assign(new Error(last), { status: r.status });
+  }
+  throw Object.assign(new Error(last), { status: 404 });
 }
 
 /* rate limits: exact with a Durable Object, best effort without one */

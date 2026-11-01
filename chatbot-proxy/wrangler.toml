@@ -12,7 +12,7 @@ binding = "AI"
 # Which free AI answers: "workers-ai" (no key; uses the [ai] binding above)
 # or "gemini" (add GEMINI_API_KEY as a secret: npx wrangler secret put GEMINI_API_KEY).
 PROVIDER = "workers-ai"
-GEMINI_MODEL = "gemini-2.5-flash"
+# GEMINI_MODEL = "gemini-flash-latest"   # leave unset to use Google's current Flash model
 # Only these sites may call the Worker (comma-separated, no trailing slash).
 ALLOWED_ORIGIN = "https://cassimhossain.github.io"
 # The teacher-editable prompt, read from the site.

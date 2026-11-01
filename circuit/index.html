@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Circuit Lab · Robotics &amp; AI Club</title>
 <meta name="description" content="Build Arduino and ESP32 circuits, write code and run them in the browser. Ready-made circuits for every lesson.">
-<link rel="icon" type="image/svg+xml" href="chip.svg?v=35">
+<link rel="icon" type="image/svg+xml" href="chip.svg?v=36">
 <link rel="alternate icon" href="icon-192.png">
 <!-- installed-app plumbing: the manifest makes this page installable on its own,
      with its own icon and window, and the service worker keeps it working when
      the connection drops. Compiling still needs the internet. -->
-<link rel="manifest" href="manifest.webmanifest?v=35">
+<link rel="manifest" href="manifest.webmanifest?v=36">
 <meta name="theme-color" content="#1B3A6B">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,10 +28,10 @@
 </script>
 <!-- theme first, so a dark page never flashes white; the fonts are files on
      this site, so they work offline too -->
-<script src="../theme.js?v=35"></script>
-<link rel="stylesheet" href="../tokens.css?v=35">
+<script src="../theme.js?v=36"></script>
+<link rel="stylesheet" href="../tokens.css?v=36">
 <link rel="stylesheet" href="../buddy/buddy.css?v=48">
-<link rel="stylesheet" href="circuit.css?v=35" fetchpriority="high">
+<link rel="stylesheet" href="circuit.css?v=36" fetchpriority="high">
 
 <style>
 /* opened from a shared link (or installed as an app) there is no portal to go
@@ -293,42 +293,42 @@ html:not(.from-portal) .brand { pointer-events: none; }
      CodeMirror is pulled in by app.js once the first screen is up. -->
 <!-- The modules import each other four deep, so the browser would otherwise
      discover them one round trip at a time. Named here, they all start at once. -->
-<link rel="modulepreload" href="app.js?v=35">
-<link rel="modulepreload" href="parts.js?v=35">
-<link rel="modulepreload" href="elements.js?v=35">
-<link rel="modulepreload" href="elements2.js?v=35">
-<link rel="modulepreload" href="elements3.js?v=35">
-<link rel="modulepreload" href="elements4.js?v=35">
-<link rel="modulepreload" href="elements5.js?v=35">
-<link rel="modulepreload" href="parts2.js?v=35">
-<link rel="modulepreload" href="parts3.js?v=35">
-<link rel="modulepreload" href="parts4.js?v=35">
-<link rel="modulepreload" href="parts5.js?v=35">
-<link rel="modulepreload" href="parts6.js?v=35">
-<link rel="modulepreload" href="parts7.js?v=35">
-<link rel="modulepreload" href="parts8.js?v=35">
-<link rel="modulepreload" href="boards.js?v=35">
-<link rel="modulepreload" href="layout.js?v=35">
-<link rel="modulepreload" href="snippets.js?v=35">
-<link rel="modulepreload" href="lessons.js?v=35">
-<link rel="modulepreload" href="lessons-le.js?v=35">
-<link rel="modulepreload" href="lessons-jm.js?v=35">
-<link rel="modulepreload" href="lessons-yi.js?v=35">
-<link rel="modulepreload" href="lessons-tl.js?v=35">
-<link rel="modulepreload" href="tools.js?v=35">
-<link rel="modulepreload" href="home.js?v=35">
-<link rel="modulepreload" href="assist.js?v=35">
-<link rel="modulepreload" href="upload.js?v=35">
+<link rel="modulepreload" href="app.js?v=36">
+<link rel="modulepreload" href="parts.js?v=36">
+<link rel="modulepreload" href="elements.js?v=36">
+<link rel="modulepreload" href="elements2.js?v=36">
+<link rel="modulepreload" href="elements3.js?v=36">
+<link rel="modulepreload" href="elements4.js?v=36">
+<link rel="modulepreload" href="elements5.js?v=36">
+<link rel="modulepreload" href="parts2.js?v=36">
+<link rel="modulepreload" href="parts3.js?v=36">
+<link rel="modulepreload" href="parts4.js?v=36">
+<link rel="modulepreload" href="parts5.js?v=36">
+<link rel="modulepreload" href="parts6.js?v=36">
+<link rel="modulepreload" href="parts7.js?v=36">
+<link rel="modulepreload" href="parts8.js?v=36">
+<link rel="modulepreload" href="boards.js?v=36">
+<link rel="modulepreload" href="layout.js?v=36">
+<link rel="modulepreload" href="snippets.js?v=36">
+<link rel="modulepreload" href="lessons.js?v=36">
+<link rel="modulepreload" href="lessons-le.js?v=36">
+<link rel="modulepreload" href="lessons-jm.js?v=36">
+<link rel="modulepreload" href="lessons-yi.js?v=36">
+<link rel="modulepreload" href="lessons-tl.js?v=36">
+<link rel="modulepreload" href="tools.js?v=36">
+<link rel="modulepreload" href="home.js?v=36">
+<link rel="modulepreload" href="assist.js?v=36">
+<link rel="modulepreload" href="upload.js?v=36">
 <link rel="modulepreload" href="../vendor/avr8js.mjs">
-<script async src="../vendor/wokwi-elements.js?v=35"></script>
-<script type="module" src="app.js?v=35"></script>
+<script async src="../vendor/wokwi-elements.js?v=36"></script>
+<script type="module" src="app.js?v=36"></script>
 <script src="../buddy/config.js?v=48" defer></script>
 <script src="../buddy/buddy.js?v=48" defer></script>
 <script>
   /* Registered after load so it never competes with the editor starting up.
      The worker caches this app only; the portal is left alone. */
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=35").catch(() => {}));
+    addEventListener("load", () => navigator.serviceWorker.register("sw.js?v=36").catch(() => {}));
   }
 </script>
 </body>

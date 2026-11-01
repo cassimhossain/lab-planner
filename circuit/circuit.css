@@ -949,9 +949,9 @@ body.running .run::before { content: ""; }
 
 /* the circuit name and the board chip were overlapping the toolbar: the name
    now shrinks and the chip keeps its size */
-/* the wrapper keeps its automatic minimum, which is now just the board chip,
-   because the name input is allowed to shrink to nothing */
-.pname-wrap { flex: 0 1 auto; min-width: auto; max-width: 320px; }
+/* min-width 0: an automatic minimum would be the input's full 170px, and
+   then a zoomed-in or narrow window pushed Stop simulation off the edge */
+.pname-wrap { flex: 0 1 auto; min-width: 0; max-width: 320px; }
 .pname { flex: 0 1 auto; width: 170px; min-width: 0; }   /* shrinks, never grows */
 .boardchip { flex: none; }
 

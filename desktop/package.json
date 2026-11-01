@@ -1,0 +1,62 @@
+{
+  "name": "robotics-club-lab",
+  "productName": "Robotics Club Lab",
+  "version": "1.0.0",
+  "description": "Robotics & AI Club: the lesson portal, Circuit Lab and Code Lab as a desktop app",
+  "author": "Qasim Mushtaq",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "site": "node copy-site.js",
+    "start": "npm run site && electron .",
+    "mac": "npm run site && electron-builder --mac dmg --arm64 --x64",
+    "win": "npm run site && electron-builder --win nsis --x64"
+  },
+  "build": {
+    "appId": "io.github.cassimhossain.labplanner",
+    "productName": "Robotics Club Lab",
+    "copyright": "Robotics & AI Club · Qasim Mushtaq",
+    "files": [
+      "main.js",
+      "icon.png",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "site",
+        "to": "site"
+      }
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "artifactName": "Robotics-Club-Lab-${version}-${os}-${arch}.${ext}",
+    "mac": {
+      "icon": "icon.png",
+      "category": "public.app-category.education",
+      "identity": "-",
+      "hardenedRuntime": false
+    },
+    "dmg": {
+      "title": "Robotics Club Lab"
+    },
+    "win": {
+      "icon": "icon.png",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Robotics Club Lab",
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico"
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.2.1",
+    "electron-builder": "^26.18.0"
+  }
+}

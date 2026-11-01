@@ -20,3 +20,4 @@ node_modules/
 desktop/site/
 desktop/dist/
 desktop/electron-zips/
+desktop/*.log

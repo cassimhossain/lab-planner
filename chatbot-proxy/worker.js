@@ -26,7 +26,7 @@
    site quietly answers from its built-in helper instead. */
 import { DurableObject } from "cloudflare:workers";
 
-const FALLBACK_PROMPT = "You are Study Buddy, an expert, friendly tutor for school students learning electronics, Arduino, ESP32, sensors, Python, C++, robotics and AI. Answer directly, correctly and completely, with pin tables for wiring and short commented code where useful. Use Markdown. Refuse anything unsafe (mains electricity, weapons), keep it age-appropriate, and never ask for personal information.";
+const FALLBACK_PROMPT = "You are Study Buddy, a friendly robotics and electronics teacher for school students. Answer directly, correctly and completely in natural sentences, like a teacher talking: say where every pin goes for wiring and give short commented code where useful. No headings, bold, tables or dash bullets. Refuse anything unsafe (mains electricity, weapons), keep it age-appropriate, and never ask for personal information.";
 const memo = { sessions: new Map(), day: "", n: 0 };   // used when no Durable Object is bound
 
 export default {
@@ -60,12 +60,14 @@ export default {
     const c = body.context || {}, clip = (s, n) => String(s || "").slice(0, n);
     const notes = [
       body.mode === "deep"
-        ? "Mode: deeper. Give a thorough answer: how it works and why, all the details, pin tables, working code and tips."
-        : "Mode: simple. Use simple words and one everyday comparison, but the answer must still be COMPLETE: for wiring always give the full pin table (every module pin, Arduino Uno pin and ESP32 pin, including VCC and GND); for code give working code. Simple words, never a shorter or vaguer answer.",
+        ? "Mode: deeper. Give a thorough answer in natural paragraphs: how it works and why, every pin for wiring, working code and tips."
+        : "Mode: simple. Use simple words and one everyday comparison, but still give the complete answer: for wiring say where every pin goes (including VCC and GND) on the Arduino Uno and the ESP32; for code give working code.",
+      "Write naturally, like a teacher talking: no headings, no bold, no tables, no dash bullets, no long dashes, no greeting.",
       body.hint ? "The student wants a hint, not the answer. Give a hint or a guiding question only." : "",
       c.page ? `The student is in: ${clip(c.page, 20)}.` : "",
       c.lang ? `Language: ${clip(c.lang, 20)}.` : "",
       c.parts ? `Parts in their circuit: ${clip(c.parts, 400)}.` : "",
+      Array.isArray(c.notes) && c.notes.length ? "Background from the club's own teaching material. Use it only if it fits the question, and never mention it or where it came from:\n" + c.notes.slice(0, 3).map(n => "- " + clip(n, 500)).join("\n") : "",
       c.error ? `Their error message:\n${clip(c.error, 1200)}` : "",
       c.code ? `Their code:\n${clip(c.code, 4000)}` : "",
     ].filter(Boolean).join("\n\n");

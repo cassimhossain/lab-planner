@@ -69,6 +69,8 @@ The robot button on every page opens **Study Buddy**, an AI tutor students can a
 
 - **What it says:** edit `buddy/system-prompt.txt` (teaching style, safety rules, topics) and `buddy/glossary.js` (definitions and the wiring guides for each module). Push, and the change is live.
 - **AI answers (recommended):** set up the free Worker in `chatbot-proxy/`, about 10 minutes in the Cloudflare dashboard. It can use Cloudflare's own AI (no key) or Google Gemini's free tier (key kept as a secret in Cloudflare); its README compares them, including Gemini's age terms. Then set `backend: "worker"` and `workerUrl` in `buddy/config.js`. Check Cloudflare's current free limits first. The Worker limits each tab to 20 questions per 10 minutes and the whole club to 300 a day; when either runs out, or the free AI allowance does, Study Buddy quietly uses its built-in answers instead. The free plan can't create a bill.
+- **Its knowledge library (like NotebookLM):** `buddy/knowledge.js` holds the text of every slide deck plus any PDFs you put in the `knowledge/` folder (datasheets, handouts, notes). With each question, the best-matching passages go to the AI as quiet background, and if neither AI model can be reached, Study Buddy answers from them. Students never see sources mentioned. After adding PDFs, run `python3 tools/build_knowledge.py` (on a Mac) and push. The site is public, so only add documents that are fine to publish.
+- **Answer style:** natural, like a teacher talking (no headings, bold, tables or dash bullets). Change it in `buddy/system-prompt.txt`.
 - **Privacy:** questions are capped at 600 characters, messages that look like a phone number, email, address or password are blocked before sending, and a student's code is only sent when they press "Explain this error" or "Help with my code". The chat is saved only in that browser (`rac-chat-v1`), with a Clear button.
 - **Turn it off:** `enabled: false` in `buddy/config.js` hides it everywhere. To stop only the AI, set `BUDDY_OFF` to `1` in the Worker, or `backend: "local"`.
 
@@ -90,6 +92,7 @@ A student's progress (finished lessons, their group, the slide they stopped on, 
 | `library/slides`, `library/docs`, `library/thumbs` | Presentation PDFs, documents, cover images |
 | `tools/build_library.py` | Syncs `library/` from the Robotics Curriculum folder |
 | `tools/bump_version.py` | Bumps every `?v=` version string together |
+| `tools/build_knowledge.py` | Builds Study Buddy's knowledge library from the slides and `knowledge/` PDFs |
 | `tokens.css`, `theme.js`, `fonts/` | Shared colours, type and light / dark theme for all three apps |
 | `circuit/` | Circuit Lab: the circuit editor and simulator |
 | `codelab/` | Code Lab: the six-language editor |

@@ -43,6 +43,24 @@
     ]).then(buildIndex);
     return ready;
   }
+  /* The club's knowledge library (buddy/knowledge.js, built from the slide
+     decks and any PDFs in knowledge/). It is big, so it loads in the
+     background; the AI never waits for it. It is used quietly: the best
+     passages go to the AI as background, and when no AI is reachable they are
+     the answer. Students never see where an answer came from. */
+  let knowReady = null;
+  function ensureKnowledge() {
+    return knowReady || (knowReady = (window.BUDDY_KNOWLEDGE ? Promise.resolve(true) : load(BASE + "buddy/knowledge.js" + V)).then(() => {
+      IDX.know = (window.BUDDY_KNOWLEDGE || []).map(k => ({ s: k.s, t: k.t, hay: norm(k.s + " " + k.t), title: norm(k.s) }));
+    }));
+  }
+  function searchKnowledge(q, n = 3) {
+    if (!IDX || !IDX.know || !IDX.know.length) return [];
+    const toks = [...new Set(norm(q).trim().split(" ").filter(t => t.length > 2 && !STOP.has(t)))];
+    if (!toks.length) return [];
+    return IDX.know.map(x => { let sc = 0; toks.forEach(t => { if (x.hay.includes(" " + t)) sc += x.title.includes(" " + t) ? 2 : 1; }); return { x, sc: sc / Math.sqrt(toks.length) }; })
+      .filter(r => r.sc >= (toks.length > 2 ? 1.3 : 1)).sort((a, b) => b.sc - a.sc).slice(0, n).map(r => r.x);
+  }
 
   const norm = s => " " + String(s || "").toLowerCase().replace(/[^a-z0-9²+#.\-\s]/g, " ").replace(/\s+/g, " ").trim() + " ";
   const STOP = new Set("a an the is are am was be to of in on for and or with my me i you it this that what how why do does can could should would which when where who make use using get about please tell explain help need want".split(" "));
@@ -146,6 +164,8 @@
       const info = IDX.D.catalog[p.n] || {};
       return `<p><b>${esc(p.n)}</b>${info.cat ? ` is in <i>${esc(info.cat)}</i>` : ""}${info.spec ? `: ${esc(info.spec)}` : ""}.${info.type ? ` It's ${info.type === "Consumable" ? "used up in a project" : "reusable"}.` : ""}</p>${safetyNotes(q)}`;
     }
+    const kn = searchKnowledge(q, 2);
+    if (kn.length) return kn.map(k => `<p>${esc(k.t.replace(new RegExp("^" + k.s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\.\\s*"), ""))}</p>`).join("") + safetyNotes(q);
     return `<p>I can't answer that one without the AI helper, which isn't connected right now. Offline I can explain common parts and words (try <i>"what is PWM"</i>) and give wiring for modules (try <i>"how do I connect an OLED"</i>).</p>`;
   }
   const WIRE_ASK = /\b(connect|connection|connections|wire|wiring|wired|hook|attach|plug|pin|pins|pinout|where (does|do|should)|which pin|goes|sda|scl|vcc|gnd|trig|echo|mosi|miso|sck|tx|rx|din|signal)\b/;
@@ -197,6 +217,7 @@
   async function askWorker(q, o, onText) {
     const c = o.ctx || {};
     const ctx = { page: c.page, lang: c.lang || "", parts: c.parts || "" };
+    ctx.notes = searchKnowledge(q, 3).map(k => k.t.slice(0, 450));
     if (o.action) { ctx.code = (c.code || "").slice(0, 4000); ctx.error = (c.error || "").slice(0, 1200); }
     const history = ST.msgs.slice(-9, -1).map(m => ({ role: m.r === "u" ? "user" : "assistant", content: (m.t || (m.h || "").replace(/<[^>]+>/g, " ")).slice(0, 800) }));
     const r = await fetch(CFG.workerUrl, { method: "POST", headers: { "Content-Type": "application/json" },
@@ -221,7 +242,11 @@
     const parts = String(t).split(/```[a-zA-Z+]*\n?/);
     return parts.map((seg, i) => {
       if (i % 2) return `<pre><code>${esc(seg.replace(/\n$/, ""))}</code></pre>`;
-      /* outside code: give tables and headings their own block so they are recognised */
+      /* outside code: keep it conversational even if the model slips into AI-style
+         formatting: no heading marks, bold, rules, dash bullets or long dashes */
+      seg = seg.replace(/^\s*#{1,6}\s+/gm, "").replace(/\*\*([^*]+)\*\*/g, "$1").replace(/__([^_]+)__/g, "$1").replace(/^\s*([-*_]\s*){3,}$/gm, "")
+        .replace(/^\s*[-*•]\s+/gm, "").replace(/\s*[—–]\s*/g, ", ").replace(/\s+,/g, ",");
+      /* give tables their own block so they are recognised */
       seg = ("\n" + seg + "\n").replace(/([^\n|])\n(\s*\|)/g, "$1\n\n$2").replace(/(\|[ \t]*)\n(?=\s*[^|\s])/g, "$1\n\n").replace(/\n(#{1,4} [^\n]+)\n/g, "\n\n$1\n\n").trim();
       return esc(seg).split(/\n{2,}/).map(p => {
         const lines = p.split("\n");
@@ -233,9 +258,8 @@
         }
         /* headings */
         if (rows.length === 1 && /^#{1,4}\s+/.test(rows[0])) return `<p><b>${rows[0].replace(/^#{1,4}\s+/, "")}</b></p>`;
-        if (lines.every(l => /^\s*([-*]|\d+\.)\s+/.test(l) || !l.trim())) return `<ul>${lines.filter(l => l.trim()).map(l => `<li>${l.replace(/^\s*([-*]|\d+\.)\s+/, "")}</li>`).join("")}</ul>`;
         return `<p>${p.replace(/\n/g, "<br>")}</p>`;
-      }).join("").replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+      }).join("").replace(/`([^`]+)`/g, "<code>$1</code>");
     }).join("");
   }
 
@@ -325,14 +349,14 @@
     const q = String(text || "").trim().slice(0, MAXLEN);
     if (!q || busy) return;
     input.value = ""; input.style.height = "auto";
-    await ensureData();
+    await ensureData(); const know = ensureKnowledge();
     if (PERSONAL.some(re => re.test(q))) {
       ST.msgs.push({ r: "b", h: `<p class="bd-safe">🔒 That looks like personal information (an email, phone number, address or password). Please don't share it here. Ask your question again without it.</p>`, s: "local" });
       persist(); renderLog(); return;
     }
     const ctx = context(), hint = hintOn;
     ST.msgs.push({ r: "u", t: q }); persist(); renderLog();
-    busy = true; panel.classList.add("busy");
+    busy = true; panel.classList.add("bd-busy");
     const tmp = document.createElement("div"); tmp.className = "bd-m b typing"; tmp.innerHTML = `<span class="bd-dots"><i></i><i></i><i></i></span>`; log.appendChild(tmp); log.scrollTop = log.scrollHeight;
     const o = { ctx, hint, action };
     let msg;
@@ -341,11 +365,12 @@
         const t = await askWorker(q, o, partial => { tmp.classList.remove("typing"); tmp.innerHTML = md(partial); log.scrollTop = log.scrollHeight; });
         msg = { r: "b", t, s: "ai" };
       } catch (e) {
-        msg = { r: "b", h: answerLocal(q, o), s: "local", note: e.status === 429 ? "Study Buddy's AI has answered a lot today, so this answer comes from our lessons." : "The AI helper isn't available right now, so this answer comes from our lessons." };
+        /* both AI models are unreachable: answer from what Study Buddy knows, without fuss */
+        await know; msg = { r: "b", h: answerLocal(q, o), s: "local" };
       }
-    } else msg = { r: "b", h: answerLocal(q, o), s: "local" };
+    } else { await know; msg = { r: "b", h: answerLocal(q, o), s: "local" }; }
     tmp.remove(); ST.msgs.push(msg); persist(); renderLog();
-    busy = false; panel.classList.remove("busy"); hintOn = false; quick();
+    busy = false; panel.classList.remove("bd-busy"); hintOn = false; quick();
   }
   function open(opts) {
     if (!panel) build();

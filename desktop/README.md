@@ -12,8 +12,8 @@ Two installable apps built from the same code:
 
 ## Installing
 
-- **Mac:** open `BotBench-1.1.0-mac-arm64.dmg` (Apple Silicon: M1 and later) and drag the app to Applications. The app isn't signed with a paid Apple developer ID, so the first time macOS may refuse to open it: open **System Settings → Privacy & Security**, scroll down and press **Open Anyway**.
-- **Windows:** run `BotBench-Labs-1.1.0-win-x64.exe`. The installer isn't signed, so Windows SmartScreen may say "Windows protected your PC": press **More info → Run anyway**. It adds a desktop and Start menu shortcut, and uninstalls from Settings → Apps.
+- **Mac:** open `BotBench-1.2.0-mac-arm64.dmg` (Apple Silicon: M1 and later) and drag the app to Applications. The app isn't signed with a paid Apple developer ID, so the first time macOS may refuse to open it: open **System Settings → Privacy & Security**, scroll down and press **Open Anyway**.
+- **Windows:** run `BotBench-Labs-1.2.0-win-x64.exe`. The installer isn't signed, so Windows SmartScreen may say "Windows protected your PC": press **More info → Run anyway**. It adds a desktop and Start menu shortcut, and uninstalls from Settings → Apps.
 
 ## Building it again
 
@@ -27,7 +27,7 @@ The build tool's own download of Electron can stall on a slow connection, so dow
 
 ```bash
 npm run site && npx electron-builder --mac dir --arm64 -c.electronDist=electron-zips   # the Mac app in dist/mac-arm64
-npm run win -- -c.electronDist=electron-zips                                           # dist/BotBench-Labs-1.1.0-win-x64.exe
+npm run win -- -c.electronDist=electron-zips                                           # dist/BotBench-Labs-1.2.0-win-x64.exe
 ```
 
 The Mac `.dmg` is made from `dist/mac-arm64` with `hdiutil create` (a folder holding the app and a link to /Applications). `LAB_OFFLINE=1` opens a built app as if there were no internet, to check the packed copy.

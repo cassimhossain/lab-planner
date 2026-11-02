@@ -16,7 +16,8 @@
      arduino-cli --config-file arduino-cli.yaml core update-index
      arduino-cli --config-file arduino-cli.yaml core install arduino:avr
      arduino-cli --config-file arduino-cli.yaml lib install Servo "DHT sensor library" ...
-   then:  node get-compiler.js */
+   then:  node get-compiler.js          (Windows: compiler-src/win)
+          node get-compiler.js --mac    (Mac: compiler-src/mac-pack) */
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
@@ -45,14 +46,28 @@ function unpack(file) {
 if (!fs.existsSync(path.join(MAC, "data", "packages", "arduino", "hardware", "avr"))) {
   console.error("compiler-src/mac has no AVR core yet: see the steps at the top of this file."); process.exit(1);
 }
-fs.mkdirSync(DL, { recursive: true });
-fs.rmSync(WIN, { recursive: true, force: true });
-console.log("Copying the Mac set-up");
-fs.cpSync(MAC, WIN, { recursive: true, filter: s => !/[\\/](staging|tmp)$/.test(s) });
-
 /* library examples, docs and tests are never compiled */
-const LIBS = path.join(WIN, "user", "libraries");
-for (const lib of fs.readdirSync(LIBS)) for (const d of ["examples", "docs", "extras", "test", "tests", "ci", ".github"]) fs.rmSync(path.join(LIBS, lib, d), { recursive: true, force: true });
+const trim = libs => { for (const lib of fs.readdirSync(libs)) for (const d of ["examples", "docs", "extras", "test", "tests", "ci", ".github"]) fs.rmSync(path.join(libs, lib, d), { recursive: true, force: true }); };
+const copySetup = to => { fs.rmSync(to, { recursive: true, force: true }); fs.cpSync(MAC, to, { recursive: true, verbatimSymlinks: true, filter: s => !/[\\/](staging|tmp)$/.test(s) }); trim(path.join(to, "user", "libraries")); };
+
+/* node get-compiler.js --mac: the Mac app's copy, compiler-src/mac-pack, with
+   the arduino-cli Homebrew installed (one self-contained program) */
+if (process.argv.includes("--mac")) {
+  const PACK = path.join(SRC, "mac-pack");
+  console.log("Packing the Mac compiler");
+  copySetup(PACK);
+  const cli = ["/opt/homebrew/bin/arduino-cli", "/usr/local/bin/arduino-cli"].find(f => fs.existsSync(f));
+  if (!cli) { console.error("arduino-cli not found: brew install arduino-cli"); process.exit(1); }
+  fs.mkdirSync(path.join(PACK, "bin"), { recursive: true });
+  fs.copyFileSync(fs.realpathSync(cli), path.join(PACK, "bin", "arduino-cli"));
+  fs.chmodSync(path.join(PACK, "bin", "arduino-cli"), 0o755);
+  console.log("compiler-src/mac-pack ready");
+  process.exit(0);
+}
+
+fs.mkdirSync(DL, { recursive: true });
+console.log("Copying the Mac set-up");
+copySetup(WIN);
 
 /* every installed tool, replaced by the Windows build of the same version */
 const index = JSON.parse(fs.readFileSync(path.join(MAC, "data", "package_index.json")));

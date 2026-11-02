@@ -35,10 +35,24 @@
     },
     "artifactName": "BotBench-${version}-${os}-${arch}.${ext}",
     "mac": {
-      "icon": "icon-mac.png",
+      "icon": "icon-botbench.png",
       "category": "public.app-category.education",
       "identity": "-",
-      "hardenedRuntime": false
+      "hardenedRuntime": false,
+      "extraResources": [
+        {
+          "from": "compiler-src/mac-pack",
+          "to": "compiler"
+        }
+      ],
+      "fileAssociations": [
+        {
+          "ext": "circuit",
+          "name": "Circuit Lab circuit",
+          "description": "Circuit Lab circuit",
+          "role": "Editor"
+        }
+      ]
     },
     "dmg": {
       "title": "BotBench"
@@ -51,6 +65,15 @@
           "from": "compiler-src/win",
           "to": "compiler"
         }
+      ],
+      "fileAssociations": [
+        {
+          "ext": "circuit",
+          "name": "Circuit Lab circuit",
+          "description": "Circuit Lab circuit",
+          "role": "Editor",
+          "icon": "icon-circuit"
+        }
       ]
     },
     "nsis": {
@@ -61,16 +84,7 @@
       "shortcutName": "BotBench",
       "installerIcon": "icon.ico",
       "uninstallerIcon": "icon.ico"
-    },
-    "fileAssociations": [
-      {
-        "ext": "circuit",
-        "name": "Circuit Lab circuit",
-        "description": "Circuit Lab circuit",
-        "role": "Editor",
-        "icon": "icon-circuit"
-      }
-    ]
+    }
   },
   "devDependencies": {
     "electron": "^45.2.1",

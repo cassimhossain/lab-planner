@@ -1,7 +1,7 @@
 {
   "name": "robotics-club-lab",
   "productName": "BotBench",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Robotics & AI Club: the lesson portal, Circuit Lab and Code Lab as a desktop app",
   "author": "Qasim Mushtaq",
   "license": "UNLICENSED",
@@ -16,9 +16,10 @@
   "build": {
     "appId": "io.github.cassimhossain.labplanner",
     "productName": "BotBench",
-    "copyright": "Robotics & AI Club \u00b7 Qasim Mushtaq",
+    "copyright": "Robotics & AI Club · Qasim Mushtaq",
     "files": [
       "main.js",
+      "preload.js",
       "icon.png",
       "icon-circuit.png",
       "package.json"
@@ -44,7 +45,13 @@
     },
     "win": {
       "icon": "icon.ico",
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "extraResources": [
+        {
+          "from": "compiler-src/win",
+          "to": "compiler"
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,
@@ -54,7 +61,16 @@
       "shortcutName": "BotBench",
       "installerIcon": "icon.ico",
       "uninstallerIcon": "icon.ico"
-    }
+    },
+    "fileAssociations": [
+      {
+        "ext": "circuit",
+        "name": "Circuit Lab circuit",
+        "description": "Circuit Lab circuit",
+        "role": "Editor",
+        "icon": "icon-circuit"
+      }
+    ]
   },
   "devDependencies": {
     "electron": "^45.2.1",

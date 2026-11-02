@@ -1,13 +1,13 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=38";
-import { BOARDS, loadHex } from "./boards.js?v=38";
-import { layoutCircuit } from "./layout.js?v=38";
-import { SNIPPETS } from "./snippets.js?v=38";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=38";
-import * as T from "./tools.js?v=38";
-import { initHome, showHome, hideHome, isHome } from "./home.js?v=38";
-import { initUpload, showUpload, doFlash, boardChanged } from "./upload.js?v=38";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=38";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=40";
+import { BOARDS, loadHex } from "./boards.js?v=40";
+import { layoutCircuit } from "./layout.js?v=40";
+import { SNIPPETS } from "./snippets.js?v=40";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=40";
+import * as T from "./tools.js?v=40";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=40";
+import { initUpload, showUpload, doFlash, boardChanged } from "./upload.js?v=40";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=40";
 
 /* The simulator, the Arduino library bundler and the schematic drawer are
    roughly a third of the code and none of it is needed to open the page, so
@@ -19,7 +19,7 @@ let BUILTIN_LIBS = [], EXTRA_LIBS = [], enginePromise = null;
 function loadEngine() {
   if (enginePromise) return enginePromise;
   enginePromise = Promise.all([
-    import("./sim.js?v=38"), import("./libs.js?v=38"), import("./schematic.js?v=38"),
+    import("./sim.js?v=40"), import("./libs.js?v=40"), import("./schematic.js?v=40"),
   ]).then(([s, l, c]) => {
     Netlist = s.Netlist; Sim = s.Sim; Sim.muted = muted;
     prepareSketch = l.prepareSketch; BUILTIN_LIBS = l.BUILTIN_LIBS; EXTRA_LIBS = l.EXTRA_LIBS;
@@ -38,10 +38,10 @@ function loadCodeMirror() {
   if (cmPromise) return cmPromise;
   cmPromise = new Promise((res, rej) => {
     const css = document.createElement("link");
-    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=38";
+    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=40";
     document.head.appendChild(css);
     const sc = document.createElement("script");
-    sc.src = "../vendor/codemirror/codemirror.min.js?v=38";
+    sc.src = "../vendor/codemirror/codemirror.min.js?v=40";
     sc.onload = () => res(window.CodeMirror); sc.onerror = () => rej(new Error("CodeMirror failed to load"));
     document.head.appendChild(sc);
   });
@@ -777,16 +777,18 @@ async function compile(code, board) {
   const prep = prepareSketch(code, board);
   /* The editor itself is cached and runs with no connection, but the sketch is
      compiled by a server. Saying so plainly beats a raw network error. */
-  if (navigator.onLine === false) throw Object.assign(new Error("You are offline. The editor works offline, but compiling needs the internet."), { service: true, offline: true });
+  /* the BotBench app has its own compiler, so it can compile with no internet */
+  const ownCompiler = !!(window.BotBench && window.BotBench.compilesOffline);
+  if (navigator.onLine === false && !ownCompiler) throw Object.assign(new Error("You are offline. The editor works offline, but compiling needs the internet."), { service: true, offline: true });
   /* The compiler is someone else's free service (Wokwi's). If it is slow,
      down or refusing us, say so in plain words and offer a way to carry on. */
   const svc = msg => Object.assign(new Error(msg), { service: true });
-  const ac = new AbortController(), timer = setTimeout(() => ac.abort(), 20000);
+  const ac = new AbortController(), timer = setTimeout(() => ac.abort(), ownCompiler ? 120000 : 20000);   // the app's first offline compile builds the Arduino core
   let res;
   try {
     res = await fetch(BUILD_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sketch: prep.sketch, files: prep.files, board: BOARDS[board].build }), signal: ac.signal });
   } catch (e) {
-    throw svc(e.name === "AbortError" ? "The compiler took more than 20 seconds to answer." : "The compiler could not be reached.");
+    throw svc(e.name === "AbortError" ? `The compiler took more than ${ownCompiler ? "2 minutes" : "20 seconds"} to answer.` : "The compiler could not be reached.");
   } finally { clearTimeout(timer); }
   if (!res.ok) throw svc(res.status === 429 ? "The compiler is busy (too many requests)." : "The compiler answered with an error (" + res.status + ").");
   let r; try { r = await res.json(); } catch (e) { throw svc("The compiler sent back something Circuit Lab could not read."); }
@@ -1191,7 +1193,7 @@ function useCode(code, how) {
   tab("code"); save();
 }
 function download() {
-  project.code = editor.getValue();
+  if (editor) project.code = editor.getValue();   // the editor is only made once the Code tab has been opened
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(project, null, 1)], { type: "application/json" }));
   a.download = (project.name || "circuit").replace(/[^\w-]+/g, "_") + ".circuit.json"; document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 300);
 }

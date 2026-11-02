@@ -27,11 +27,11 @@
   } };
 </script>
 <script src="coi-serviceworker.js"></script>
-<script src="../theme.js?v=17"></script>
-<link rel="stylesheet" href="../tokens.css?v=17">
-<link rel="stylesheet" href="../buddy/buddy.css?v=62">
-<link rel="stylesheet" href="vendor/codemirror.css?v=17">
-<link rel="stylesheet" href="codelab.css?v=17">
+<script src="../theme.js?v=18"></script>
+<link rel="stylesheet" href="../tokens.css?v=18">
+<link rel="stylesheet" href="../buddy/buddy.css?v=63">
+<link rel="stylesheet" href="vendor/codemirror.css?v=18">
+<link rel="stylesheet" href="codelab.css?v=18">
 </head>
 <body>
 <!-- held on screen while the editor and the languages load -->
@@ -45,6 +45,10 @@
 <a class="skip" href="#editor">Skip to the code editor</a>
 <header class="top">
   <a class="brand" href="../index.html#sims" title="Back to the portal"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg><img src="../logo.svg" alt=""><span><b>Code Lab</b><small>Robotics &amp; AI Club</small></span></a>
+  <nav class="labswitch" aria-label="Switch lab">
+    <a href="../circuit/" data-lab="circuit"><svg class="ic" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/></svg><span>Circuit Lab</span></a>
+    <a href="../codelab/" data-lab="codelab" aria-current="page"><svg class="ic" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M13.5 5l-3 14"/></svg><span>Code Lab</span></a>
+  </nav>
   <div class="langs" role="tablist" aria-label="Language">
     <button role="tab" id="tab-python" aria-controls="editor" aria-selected="true" data-lang="python" class="on"><span class="lg py">Py</span>Python</button>
     <button role="tab" id="tab-cpp" aria-controls="editor" aria-selected="false" data-lang="cpp"><span class="lg cpp">C++</span>C++</button>
@@ -121,11 +125,19 @@
 <div id="toast" class="toast"></div>
 <input id="fileup" type="file" accept=".py,.cpp,.cc,.c,.h,.txt,.js,.pde,.html,.htm,.css" hidden>
 
-<script src="vendor/codemirror.min.js?v=17"></script>
+<script src="vendor/codemirror.min.js?v=18"></script>
 <!-- javascript, css, xml and htmlmixed modes for the p5, Processing and Web tabs -->
-<script src="vendor/cm-modes.js?v=17"></script>
-<script type="module" src="app.js?v=17"></script>
-<script src="../buddy/config.js?v=62" defer></script>
-<script src="../buddy/buddy.js?v=62" defer></script>
+<script src="vendor/cm-modes.js?v=18"></script>
+<script type="module" src="app.js?v=18"></script>
+<script src="../buddy/config.js?v=63" defer></script>
+<script src="../buddy/buddy.js?v=63" defer></script>
+<script>
+/* the lab switch: in the BotBench app both labs are already open, so it
+   flips between them instantly; in a browser it is an ordinary link */
+document.querySelectorAll(".labswitch a").forEach(a => a.addEventListener("click", e => {
+  if (a.getAttribute("aria-current") === "page") { e.preventDefault(); return; }
+  if (window.BotBench && window.BotBench.showLab) { e.preventDefault(); window.BotBench.showLab(a.dataset.lab); }
+}));
+</script>
 </body>
 </html>

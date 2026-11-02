@@ -279,3 +279,12 @@ body.cready .cboot.gone { display: none; }
 :root[data-theme="dark"] .cb-l, :root[data-theme="dark"] .cb-s, :root[data-theme="dark"] .cb-r { fill: #9FC0DA; }
 :root[data-theme="dark"] .cb-t { color: #9FC0DA; }
 @media (prefers-reduced-motion: reduce) { .cb-ic, .cb-l, .cb-r, .cb-s { animation: none; } }
+
+/* the switch between Circuit Lab and Code Lab, beside the lab's name */
+.labswitch { display: inline-flex; gap: 2px; padding: 3px; border-radius: 11px; background: rgba(255, 255, 255, .08); flex: none; }
+.labswitch a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 8px; color: rgba(255, 255, 255, .72); text-decoration: none; font-weight: 700; font-size: 13px; white-space: nowrap; transition: background .15s, color .15s; }
+.labswitch a:hover { color: #fff; background: rgba(255, 255, 255, .1); }
+.labswitch a[aria-current="page"] { background: #fff; color: var(--navy); cursor: default; }
+.labswitch .ic { width: 16px; height: 16px; }
+.top .brand > span { display: none; }          /* the switch already says which lab this is */
+@media (max-width: 1180px) { .labswitch span { display: none; } .labswitch a { padding: 6px 9px; } }

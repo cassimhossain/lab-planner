@@ -1,0 +1,12 @@
+{
+  "labs": {
+    "version": "1.3.0",
+    "notes": "Real files (File > Open and Save), instant switching between Circuit Lab and Code Lab, and Arduino compiling with no internet.",
+    "url": "https://github.com/cassimhossain/lab-planner/releases/latest"
+  },
+  "mac": {
+    "version": "1.1.0",
+    "notes": "",
+    "url": "https://github.com/cassimhossain/lab-planner/releases/latest"
+  }
+}

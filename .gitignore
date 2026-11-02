@@ -21,3 +21,7 @@ desktop/site/
 desktop/dist/
 desktop/electron-zips/
 desktop/*.log
+
+# slide generator: build output and node modules
+tools/deckgen/out/
+tools/deckgen/.deck.html

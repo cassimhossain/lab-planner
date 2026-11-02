@@ -13,6 +13,7 @@ const { chromium } = require("playwright");
 const HERE = __dirname;
 const ART = require("./art.js");            // the hand-drawn doodle library
 const { DIAGRAMS } = require("./diagrams.js"); // hand-drawn explanatory figures
+const { CIRCUITS } = require("./circuits.js"); // hand-drawn wiring diagrams
 
 /* ---------- small helpers ---------- */
 const esc = s => String(s == null ? "" : s)
@@ -90,6 +91,31 @@ function block(b) {
     case "steps": return `<div class="box fill c-${b.color || "orange"}" ${style(b)}>${frame(true)}
       <div class="inner">${b.h ? `<h3>${md(b.h)}</h3>` : ""}
       <ol style="margin:2px 0 0 19px">${b.items.map(s => `<li style="margin:3px 0">${md(s)}</li>`).join("")}</ol></div></div>`;
+
+    case "circuit": {
+      const g = CIRCUITS[b.name];
+      if (!g) throw new Error("no circuit called " + b.name);
+      return `<div class="box fill c-${b.color || "blue"}" ${style(b)}>${frame()}
+        <div class="inner">${b.h ? `<h3>${md(b.h)}</h3>` : ""}
+          <figure class="fig-wrap">${g()}${b.cap ? `<figcaption>${md(b.cap)}</figcaption>` : ""}</figure>
+        </div></div>`;
+    }
+
+    /* the wiring table: every row is one wire, with a swatch of its colour */
+    case "conn": {
+      const WIRE = { pwr: "#E0414B", gnd: "#262D47", out: "#2E6BE6", in: "#1DA14E", mot: "#7B3FC4", aux: "#E8591F" };
+      return `<div class="box fill c-${b.color || "teal"}" style="padding:14px 18px;${b.style || ""}">${frame()}
+        <div class="inner">${b.h ? `<h3>${md(b.h)}</h3>` : ""}
+        <table class="conn" style="--accent:var(--${b.color || "teal"})">
+          <tr><th></th><th>${esc(b.from || "From")}</th><th>${esc(b.to || "To")}</th><th>${esc(b.why || "Carries")}</th></tr>
+          ${b.rows.map(r => `<tr>
+            <td class="sw"><span style="background:${WIRE[r.w] || WIRE.out}"></span></td>
+            <td class="a">${md(r.a)}</td><td class="b">${md(r.b)}</td>
+            <td class="c">${md(r.c || "")}</td></tr>`).join("")}
+        </table>
+        ${b.foot ? `<p class="conn-foot">${md(b.foot)}</p>` : ""}
+        </div></div>`;
+    }
 
     case "html": {
       if (b.rows) {

@@ -11,6 +11,7 @@ tools/deckgen/
   lib.js         the title, divider, objectives and check slides
   art.js         54 hand-drawn doodles, shared with the web decks
   diagrams.js    hand-drawn explanatory figures (buses, H-bridges, graphs)
+  circuits.js    hand-drawn wiring diagrams, one per build
   fonts/         Baloo 2, Nunito, Caveat (woff2, embedded in the PDF)
   decks/XX-00.js one file per deck
 ```
@@ -93,6 +94,15 @@ Every block is `{ t: "<type>", ... }`. Text accepts `**bold**` and
 - **stripe** `{l, text, color}` - one-line emphasis bar.
 - **code** `{text}` - dark navy sketch panel, monospace.
 - **art** `{name}` - a doodle from `art.js` on its own.
+- **circuit** `{name, h, cap, color}` - a wiring diagram from
+  `circuits.js`, in a titled box. Pair it with a **conn** table on the same
+  slide: the drawing shows the shape, the table gives the exact pins.
+- **conn** `{h, from, to, why, rows[], foot}` - the connection table. Each
+  row is one wire: `{ w, a, b, c }` where `w` is the wire colour key
+  (`pwr`, `gnd`, `out`, `in`, `mot`, `aux`), `a` is the Arduino side, `b`
+  is the module side and `c` says what it carries. The colour dot in the
+  first column matches the wire in the drawing, so a student can trace one
+  into the other.
 - **fig** / **figbox** `{name, h, cap, color}` - a diagram from
   `diagrams.js`, on its own or inside a titled box. Diagrams are drawn at
   roughly 400×230, so give one a column of about 1.25fr beside a column of
@@ -127,7 +137,58 @@ Every deck in the library follows the same arc. Keep it.
 Aim for 16 to 22 slides. Below 14 the lesson is thin; above 24 it will
 not fit a 60 minute class.
 
-## 5. Drawing a new diagram
+## 5. Every build deck needs a wiring slide
+
+Any deck where students wire something gets a **Wiring** slide, placed
+after the kit slide and before the first build step. It is always the same
+shape: the circuit drawing on the left in a column of about 1.3fr, and the
+connection table on the right.
+
+```js
+{ tag: "MAKE", kicker: "Wiring", title: "The whole robot, on one page",
+  bodyStyle: "display:grid;grid-template-columns:1.3fr 1fr;gap:20px",
+  blocks: [
+    { t: "circuit", name: "robotCar", color: "green",
+      h: "Uno, driver, two motors, one battery", style: "min-height:0" },
+    { t: "conn", color: "blue", h: "Connections",
+      from: "Arduino Uno", to: "L298N", why: "Carries",
+      rows: [
+        { w: "out", a: "7", b: "IN1", c: "left motor, direction A" },
+        { w: "gnd", a: "GND", b: "GND", c: "the shared reference" },
+      ],
+      foot: "Battery + to +12V, battery minus to the same GND." },
+  ] },
+```
+
+A deck with two separate builds, like ROB-06, gets two wiring slides, one
+each. Never make students read wiring out of a paragraph.
+
+## 6. Drawing a new circuit
+
+Components come from `comp(x, y, w, name, sub, colour, { left, right })`.
+It reserves a header band for the name, lays the pins out below it at a
+fixed 20 px pitch, and hands back the exact coordinate of every port as
+`L[i]` and `R[i]`. Wires are then drawn from those coordinates, never from
+numbers typed in by hand, which is what stops a label landing on a title
+when a component changes size. A `null` entry in a pin list leaves a gap,
+which is how the power pins are kept clear of the signal pins.
+
+- Route with `wire([...points], colour)` for a path you control, or
+  `elbow(a, b, x, colour)` to go horizontal, vertical, horizontal between
+  two ports at different heights. **There are no diagonal wires in these
+  drawings.**
+- Colour says what the wire carries: red 5V, black GND, blue a signal the
+  Arduino sends, green one it reads, purple switched motor power, orange a
+  second clock or supply. The `conn` table uses the same keys, so the two
+  always agree.
+- A filled `dot()` means joined. Wires crossing without one are not
+  joined. Say this to the class once; it is the convention on every real
+  schematic they will ever see.
+- Keep the whole drawing inside 560 x 300 and at least 20 units from the
+  edge. `comp()` can grow downward, so check the bottom of the tallest
+  component rather than assuming.
+
+## 7. Drawing a new diagram
 
 `diagrams.js` builds everything from five helpers: `box`, `line`, `poly`,
 `arrow`, `tx` (labels) and `hand` (Caveat annotations). Every figure is
@@ -145,7 +206,7 @@ Rules that keep them readable:
 - A diagram should survive being printed in black and white. Do not let
   colour alone carry the meaning.
 
-## 6. House rules
+## 8. House rules
 
 - The footer is fixed: `Robotics & AI Club · <series> · Curriculum by
   Qasim Mushtaq`, with `n / total` on the right. `render.js` writes it.
@@ -161,7 +222,7 @@ Rules that keep them readable:
   prints `still overflowing: <slide numbers>` if it loses. If you see
   that line, cut words rather than shrink further.
 
-## 7. After the PDF is built
+## 9. After the PDF is built
 
 1. Put it at
    `Documents/Robotics Curriculum/Presentations/<Category>/<CODE>_<Title>_Slides.pdf`
@@ -172,7 +233,7 @@ Rules that keep them readable:
 5. `python3 tools/bump_version.py portal`
 6. Commit
 
-## 8. Knowledge first
+## 10. Knowledge first
 
 These are teaching decks, not summary decks. A slide that only lists what
 is coming is a wasted slide. Every LEARN slide should leave the student
@@ -188,3 +249,6 @@ number, a diagram or a worked example:
   troubleshooting table on the TEST slide is where that lives.
 - Build the lesson so each objective gets one or two slides of teaching
   before the build steps ask for it.
+- Draw it rather than describe it. A bus, a bridge, a response curve or a
+  wiring run is clearer as a picture, and a picture beside a table of exact
+  pins is clearer than either on its own.

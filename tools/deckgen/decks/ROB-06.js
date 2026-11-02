@@ -130,6 +130,35 @@ module.exports = {
           <p>One SG90 on the Arduino's 5 V is fine. <strong>Two or more is not.</strong> They pull current in spikes and reset the board.</p>
           <p style="margin-top:8px">The stepper always takes its own 5 V supply through the ULN2003. Share the ground, never the 5 V rail.</p></div></div></div>` }] },
 
+    { tag: "MAKE", kicker: "Wiring · servo", title: "Three wires, by colour",
+      bodyStyle: "display:grid;grid-template-columns:1.3fr 1fr;gap:20px",
+      blocks: [
+        { t: "circuit", name: "servo", color: "teal", h: "SG90 on a PWM pin", style: "min-height:0" },
+        { t: "conn", color: "teal", h: "Connections", from: "Arduino Uno", to: "SG90 servo", why: "Carries",
+          rows: [
+            { w: "pwr", a: "5V", b: "red", c: "power for the motor inside" },
+            { w: "gnd", a: "GND", b: "brown", c: "the shared reference" },
+            { w: "out", a: "pin 9", b: "orange", c: "the pulse that sets the angle" },
+          ],
+          foot: "Brown is always ground on a hobby servo. If the colours are black, red, yellow, black is ground." },
+      ] },
+
+    { tag: "MAKE", kicker: "Wiring · stepper", title: "Four coils, four pins",
+      bodyStyle: "display:grid;grid-template-columns:1.3fr 1fr;gap:20px",
+      blocks: [
+        { t: "circuit", name: "stepper", color: "purple", h: "28BYJ-48 through a ULN2003", style: "min-height:0" },
+        { t: "conn", color: "purple", h: "Connections", from: "Arduino Uno", to: "ULN2003", why: "Carries",
+          rows: [
+            { w: "out", a: "8", b: "IN1", c: "coil 1" },
+            { w: "out", a: "10", b: "IN2", c: "coil 2" },
+            { w: "out", a: "9", b: "IN3", c: "coil 3" },
+            { w: "out", a: "11", b: "IN4", c: "coil 4" },
+            { w: "pwr", a: "(own 5 V)", b: "5V", c: "coil current, not from the Uno" },
+            { w: "gnd", a: "GND", b: "GND", c: "the shared reference" },
+          ],
+          foot: "The library wants 8, 10, 9, 11 in that order. Wire it in order and it only vibrates." },
+      ] },
+
     { tag: "MAKE", kicker: "Build step 1 of 3", title: "A servo that points",
       blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1fr 1.05fr;gap:22px;height:100%">
         <div class="stack">

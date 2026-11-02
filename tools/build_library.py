@@ -58,6 +58,9 @@ def thumb(src, dst_dir, name, force):
 def banner(src, dst_dir, code, force):
     """Hand-drawn strip for the activity card, cut from the deck's title-slide drawing."""
     jpg = os.path.join(dst_dir, code + ".jpg")
+    # the Robotics & AI decks get their banner from the generator (tools/deckgen, --banner)
+    if code.split("-")[0] in ("EF", "ROB", "AI", "IS") and os.path.exists(jpg):
+        return "library/banners/" + code + ".jpg"
     if force or not os.path.exists(jpg) or os.path.getmtime(jpg) < os.path.getmtime(src):
         try:
             import sys

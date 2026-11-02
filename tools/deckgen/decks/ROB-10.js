@@ -126,6 +126,22 @@ module.exports = {
           <p style="margin-top:8px">This is the broom-versus-pencil question from the start of the lesson, and now it is your design decision.</p>
           <p style="margin-top:8px;color:#8A94A6">Keep fingers away from the wheels. Test over a soft surface.</p></div></div></div>` }] },
 
+    { tag: "MAKE", kicker: "Wiring", title: "Sensor and motors on one board",
+      bodyStyle: "display:grid;grid-template-columns:1.3fr 1fr;gap:20px",
+      blocks: [
+        { t: "circuit", name: "balance", color: "blue", h: "IMU on I2C, motors through the driver", style: "min-height:0" },
+        { t: "conn", color: "purple", h: "Connections", from: "Arduino Uno", to: "Module", why: "Carries",
+          rows: [
+            { w: "pwr", a: "5V", b: "MPU VCC", c: "power for the IMU" },
+            { w: "out", a: "A4", b: "MPU SDA", c: "tilt data" },
+            { w: "aux", a: "A5", b: "MPU SCL", c: "the I2C clock" },
+            { w: "out", a: "7, 8, 9, 11", b: "IN1-IN4", c: "motor directions" },
+            { w: "out", a: "5, 6", b: "ENA, ENB", c: "motor speed (PWM)" },
+            { w: "gnd", a: "GND", b: "all GND", c: "one shared reference" },
+          ],
+          foot: "The 18650 feeds +12V on the driver. Its minus joins the same ground as everything else." },
+      ] },
+
     { tag: "MAKE", kicker: "Build step 1 of 4", title: "Read the angle",
       blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1fr 1.05fr;gap:22px;height:100%">
         <div class="stack">

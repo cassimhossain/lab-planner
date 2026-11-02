@@ -1062,6 +1062,8 @@
      activities that each have slides and a teacher guide (rai/deck.html).
      Activities whose lesson file isn't written yet show their plan. */
   const RAI_TYPE = { H: "Hardware", S: "Software", U: "Unplugged", HS: "Hardware + software", US: "Unplugged + software" };
+  /* category colours are CSS tokens too (tokens.css), so they follow dark mode */
+  if (window.RAI) window.RAI.cats.forEach(c => { const k = c.key.toLowerCase(); c.color = `var(--cat-${k})`; c.light = `var(--cat-${k}-tint)`; });
   const raiCat = a => window.RAI.cats.find(x => a.code.startsWith(x.key + "-"));
   const raiMod = a => window.RAI.modules.find(m => m.key === a.mod);
   /* a curriculum deck is a PDF in the library like every other deck (tools/build_library.py) */
@@ -1110,7 +1112,7 @@
     const words = UI.raiQ.toLowerCase().split(/\s+/).filter(Boolean);
     const hit = a => (!UI.raiCat || a.code.startsWith(UI.raiCat + "-")) && (!UI.raiType || a.type.includes(UI.raiType)) &&
       words.every(w => (a.code + " " + a.title + " " + a.hook + " " + a.concepts.join(" ") + " " + a.kit.join(" ")).toLowerCase().includes(w));
-    const cats = gtabs([{ code: "", icon: "grid", name: "All categories", sub: `${R.activities.length} activities`, color: "#1B3A6B", light: "#E5ECF7" }]
+    const cats = gtabs([{ code: "", icon: "grid", name: "All categories", sub: `${R.activities.length} activities`, color: "var(--tr-f)", light: "var(--tr-f-tint)" }]
       .concat(R.cats.map(c => ({ code: c.key, name: c.name, sub: `${R.activities.filter(a => a.code.startsWith(c.key + "-")).length} activities`, color: c.color, light: c.light }))), UI.raiCat, "data-raicat");
     const types = [["", "All types"], ["H", "Hardware"], ["S", "Software"], ["U", "Unplugged"]];
     const mods = R.modules.filter(m => !UI.raiCat || m.cat === UI.raiCat).map(m => { const list = R.activities.filter(a => a.mod === m.key && hit(a)); if (!list.length) return "";

@@ -8,8 +8,8 @@ window.LIBRARY = {
    "file": "library/slides/EF-10_Talking_Chips_I2C_UART_and_SPI_Slides.pdf",
    "thumb": "library/thumbs/EF-10.jpg",
    "banner": "library/banners/EF-10.jpg",
-   "pages": 20,
-   "kb": 2729
+   "pages": 22,
+   "kb": 3236
   },
   {
    "code": "F-00",
@@ -718,8 +718,8 @@ window.LIBRARY = {
    "file": "library/slides/ROB-05_Build_and_Wire_a_Robot_Car_Slides.pdf",
    "thumb": "library/thumbs/ROB-05.jpg",
    "banner": "library/banners/ROB-05.jpg",
-   "pages": 18,
-   "kb": 2760
+   "pages": 19,
+   "kb": 3064
   },
   {
    "code": "ROB-06",
@@ -728,8 +728,8 @@ window.LIBRARY = {
    "file": "library/slides/ROB-06_Servos_and_Steppers_Moving_Precisely_Slides.pdf",
    "thumb": "library/thumbs/ROB-06.jpg",
    "banner": "library/banners/ROB-06.jpg",
-   "pages": 17,
-   "kb": 2328
+   "pages": 19,
+   "kb": 2862
   },
   {
    "code": "ROB-07",
@@ -738,8 +738,8 @@ window.LIBRARY = {
    "file": "library/slides/ROB-07_Encoders_How_Far_Did_I_Go_Slides.pdf",
    "thumb": "library/thumbs/ROB-07.jpg",
    "banner": "library/banners/ROB-07.jpg",
-   "pages": 16,
-   "kb": 2242
+   "pages": 17,
+   "kb": 2541
   },
   {
    "code": "ROB-10",
@@ -748,8 +748,8 @@ window.LIBRARY = {
    "file": "library/slides/ROB-10_Balancing_Robot_Slides.pdf",
    "thumb": "library/thumbs/ROB-10.jpg",
    "banner": "library/banners/ROB-10.jpg",
-   "pages": 18,
-   "kb": 2683
+   "pages": 19,
+   "kb": 3008
   },
   {
    "code": "TL-01",

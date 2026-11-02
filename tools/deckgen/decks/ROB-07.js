@@ -117,6 +117,19 @@ module.exports = {
           <div class="note"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><b>Remember this</b><span>Wheel slip is why a robot that only counts ticks will still get lost eventually.</span></div></div>
         </div></div>` }] },
 
+    { tag: "MAKE", kicker: "Wiring", title: "One sensor, one interrupt pin",
+      bodyStyle: "display:grid;grid-template-columns:1.3fr 1fr;gap:20px",
+      blocks: [
+        { t: "circuit", name: "encoder", color: "green", h: "LM393 reading a slotted disc", style: "min-height:0" },
+        { t: "conn", color: "green", h: "Connections", from: "Arduino Uno", to: "LM393 module", why: "Carries",
+          rows: [
+            { w: "pwr", a: "5V", b: "VCC", c: "power for the IR LED" },
+            { w: "gnd", a: "GND", b: "GND", c: "the shared reference" },
+            { w: "in", a: "pin 2", b: "OUT", c: "one clean edge per slot" },
+          ],
+          foot: "Pin 2 and pin 3 are the only interrupt pins on an Uno. A second wheel goes on pin 3." },
+      ] },
+
     { tag: "MAKE", kicker: "Build step 1 of 3", title: "Fit the sensor and see a tick",
       blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1fr 1.05fr;gap:22px;height:100%">
         <div class="stack">

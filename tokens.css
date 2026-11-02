@@ -75,6 +75,11 @@
   --tr-jm: #2F6BDE; --tr-jm-tint: #E8EFFD;
   --tr-yi: #7B4DD6; --tr-yi-tint: #F0EAFC;
   --tr-tl: #C9433F; --tr-tl-tint: #FCEAE9;
+  /* Robotics & AI Curriculum categories */
+  --cat-ef: #E0892B; --cat-ef-tint: #FDF1E3;
+  --cat-rob: #2E6BE6; --cat-rob-tint: #E8F0FD;
+  --cat-ai: #7B3FC4; --cat-ai-tint: #F1E9FB;
+  --cat-is: #14967F; --cat-is-tint: #E3F6F2;
 
   /* the background pattern: circuit traces and solder pads, drawn once and
      used as a mask so its colour can follow the theme */
@@ -142,6 +147,10 @@
     --tr-jm: #7FA8F5; --tr-jm-tint: #1A2A4D;
     --tr-yi: #B394F2; --tr-yi-tint: #2A2047;
     --tr-tl: #F2837F; --tr-tl-tint: #3A1C22;
+    --cat-ef: #F2A65A; --cat-ef-tint: #3A2814;
+    --cat-rob: #7FA8F5; --cat-rob-tint: #1A2A4D;
+    --cat-ai: #B394F2; --cat-ai-tint: #2A2047;
+    --cat-is: #4CC9B0; --cat-is-tint: #12302C;
 
     --trace-ink: rgba(143, 176, 232, .06);
 

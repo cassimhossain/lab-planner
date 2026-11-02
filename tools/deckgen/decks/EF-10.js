@@ -164,6 +164,33 @@ module.exports = {
           <p style="margin-top:8px">Both I2C devices go to the <em>same</em> four rails. That is the whole point: you are not giving each one its own pins.</p>
           <p style="margin-top:8px;color:#8A94A6">Check GND first, before power. A missing ground is the single commonest fault in this lesson.</p></div></div></div>` }] },
 
+    { tag: "MAKE", kicker: "Wiring · I2C", title: "Wire it once, wire it right",
+      bodyStyle: "display:grid;grid-template-columns:1.25fr 1fr;gap:20px",
+      blocks: [
+        { t: "circuit", name: "i2c", color: "blue", h: "Two I2C modules on one Arduino", style: "min-height:0" },
+        { t: "conn", color: "teal", h: "Connections", from: "Arduino Uno", to: "Both modules", why: "Carries",
+          rows: [
+            { w: "pwr", a: "5V", b: "VCC", c: "power for both modules" },
+            { w: "gnd", a: "GND", b: "GND", c: "the shared reference" },
+            { w: "out", a: "A4", b: "SDA", c: "data, both directions" },
+            { w: "aux", a: "A5", b: "SCL", c: "the clock, from the Uno" },
+          ],
+          foot: "Four wires total, not eight. Both modules land on the same four rails." },
+      ] },
+
+    { tag: "MAKE", kicker: "Wiring · UART", title: "Two boards, crossed over",
+      bodyStyle: "display:grid;grid-template-columns:1.25fr 1fr;gap:20px",
+      blocks: [
+        { t: "circuit", name: "uart", color: "orange", h: "SoftwareSerial on pins 10 and 11", style: "min-height:0" },
+        { t: "conn", color: "orange", h: "Connections", from: "Board A", to: "Board B", why: "Carries",
+          rows: [
+            { w: "out", a: "pin 11 TX", b: "pin 10 RX", c: "A talking to B" },
+            { w: "in", a: "pin 10 RX", b: "pin 11 TX", c: "B talking to A" },
+            { w: "gnd", a: "GND", b: "GND", c: "the shared reference" },
+          ],
+          foot: "TX to TX is the classic mistake. Both boards shout, neither listens." },
+      ] },
+
     { tag: "MAKE", kicker: "Build step 1 of 3", title: "Who is on the bus?",
       blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1fr 1.05fr;gap:22px;height:100%">
         <div class="stack">

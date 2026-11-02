@@ -126,6 +126,23 @@ module.exports = {
             <li>If the driver smells hot, disconnect at once and tell a teacher.</li>
           </ul></div></div></div>` }] },
 
+    { tag: "MAKE", kicker: "Wiring", title: "The whole robot, on one page",
+      bodyStyle: "display:grid;grid-template-columns:1.3fr 1fr;gap:20px",
+      blocks: [
+        { t: "circuit", name: "robotCar", color: "green", h: "Uno, driver, two motors, one battery", style: "min-height:0" },
+        { t: "conn", color: "blue", h: "Connections", from: "Arduino Uno", to: "L298N", why: "Carries",
+          rows: [
+            { w: "out", a: "7", b: "IN1", c: "left motor, direction A" },
+            { w: "out", a: "8", b: "IN2", c: "left motor, direction B" },
+            { w: "out", a: "9", b: "IN3", c: "right motor, direction A" },
+            { w: "out", a: "11", b: "IN4", c: "right motor, direction B" },
+            { w: "out", a: "5", b: "ENA", c: "left motor speed (PWM)" },
+            { w: "out", a: "6", b: "ENB", c: "right motor speed (PWM)" },
+            { w: "gnd", a: "GND", b: "GND", c: "the shared reference" },
+          ],
+          foot: "Then battery + to +12V and battery minus to the same GND. Remove the ENA and ENB jumpers first." },
+      ] },
+
     { tag: "MAKE", kicker: "Build step 1 of 4", title: "Assemble the chassis",
       blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.1fr 1fr;gap:22px;height:100%">
         <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Do this</h3>

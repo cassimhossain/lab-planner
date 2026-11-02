@@ -64,7 +64,12 @@ async function answer(req) {
   const rel = decodeURIComponent(u.pathname.slice(BASE.length) || "index.html");
   if (req.method === "GET" && net.isOnline() && !FORCE_OFFLINE) {
     try {
-      const r = await withTimeout(net.fetch(req, { bypassCustomProtocolHandlers: true }), WAIT);
+      /* pages are always checked with the site, so a change shows on the next
+         reload instead of after GitHub's 10-minute cache; versioned files
+         (?v=NN) still come from the cache */
+      const page = /\.html$|\/$/.test(u.pathname) || !/\.[a-z0-9]+$/i.test(u.pathname);
+      const fresh = page ? new Request(req, { headers: Object.assign(Object.fromEntries(req.headers), { "cache-control": "no-cache" }) }) : req;
+      const r = await withTimeout(net.fetch(fresh, { bypassCustomProtocolHandlers: true }), WAIT);
       if (r.status < 500) return r;
     } catch (e) { }
   }

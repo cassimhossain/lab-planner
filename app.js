@@ -478,8 +478,7 @@
 
     if (!WEEK) return `<section class="welcome portal">
         <div class="wl-txt"><span class="kicker">${fmt(now, { weekday: "long", day: "numeric", month: "long" })}</span>
-          <h1>${hi}, ${esc((S.name || "").split(" ")[0] || "teacher")}</h1>
-          <p>${LIB.decks.length} lessons with slides across 4 age groups · ${SH.url ? "attendance syncs to your Google Sheet · progress is saved in this browser" : "attendance and progress are saved in this browser only"}</p></div>
+          <h1>${hi}, ${esc((S.name || "").split(" ")[0] || "teacher")}</h1></div>
         <div class="wl-btns"><a class="btn primary big" href="#attendance">${ic("users")}Take attendance</a><a class="btn big" href="#curriculum">${ic("book")}Lesson library</a></div>
         ${DOODLE}
       </section>
@@ -1080,7 +1079,7 @@
     const mods = R.modules.filter(m => !UI.raiCat || m.cat === UI.raiCat).map(m => { const list = R.activities.filter(a => a.mod === m.key && hit(a)); if (!list.length) return "";
       const c = R.cats.find(x => x.key === m.cat);
       return `<section class="raimod"><h2 style="--c:${c.color}"><span>${esc(c.name)}</span>${esc(m.name)}</h2><div class="raigrid">${list.map(card).join("")}</div></section>`; }).join("");
-    return head("Robotics & AI Curriculum", `${R.activities.length} activities in ${R.cats.length} categories. Each one runs at three depths (Starter, Core, Advanced), so you choose what fits the class. ${ready.size} have full slides and a teacher guide so far.`) +
+    return head("Robotics & AI Curriculum", `${R.activities.length} activities in ${R.cats.length} categories. Each one runs at three depths (Starter, Core, Advanced), so you choose what fits the class. ${ready.size} ${ready.size === 1 ? "has" : "have"} full slides and a teacher guide so far.`) +
       cats + `
       <div class="raibar"><label class="search"><input id="raiQ" value="${esc(UI.raiQ)}" placeholder="Search activities, concepts or parts" aria-label="Search the curriculum"></label>
         <div class="seg">${types.map(([k, l]) => `<button class="${UI.raiType === k ? "on" : ""}" data-raitype="${k}">${l}</button>`).join("")}</div></div>

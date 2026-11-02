@@ -264,7 +264,7 @@ CIRCUITS.balance = () => {
     left: [["+12V", W.pwr], ["GND", W.gnd], ["IN1-IN4", W.out], ["ENA ENB", W.out]],
     right: [null, ["OUT1/2", W.mot], ["OUT3/4", W.mot]],
   });
-  const cell = comp(424, 32, 116, "18650", "7.4 V", "#E0414B", { fill: "#FFF3F3", minH: 50 });
+  const cell = comp(424, 32, 116, "18650", "3.7 V", "#E0414B", { fill: "#FFF3F3", minH: 50 });
   return S(`
     ${uno.svg}${imu.svg}${drv.svg}${cell.svg}
     ${elbow(uno.R[0], imu.L[0], 190, W.pwr)}
@@ -272,10 +272,10 @@ CIRCUITS.balance = () => {
     ${elbow(uno.R[3], imu.L[2], 232, W.aux)}
     ${elbow(uno.R[5], drv.L[2], 196, W.out, 2.3)}
     ${elbow(uno.R[6], drv.L[3], 212, W.out, 2.3)}
-    ${wire([uno.R[1], [168, uno.R[1][1]], [168, 280], [228, 280], [228, drv.L[1][1]], drv.L[1]], W.gnd)}
+    ${wire([uno.R[1], [186, uno.R[1][1]], [186, 282], [228, 282], [228, drv.L[1][1]], drv.L[1]], W.gnd)}
     ${wire([[424, 57], [402, 57], [402, 136], [176, 136], [176, 112], [252, 112]], W.pwr)}
-    ${wire([[540, 57], [552, 57], [552, 292], [146, 292], [146, 280], [228, 280]], W.gnd)}
-    ${dot(228, 280, W.gnd)}
+    ${wire([[540, 57], [552, 57], [552, 292], [206, 292], [206, 282], [228, 282]], W.gnd)}
+    ${dot(228, 282, W.gnd)}
     ${wire([drv.L[0], [240, drv.L[0][1]], [240, 112]], W.pwr)}
     ${motor(476, 192)}${motor(476, 258)}
     ${elbow(drv.R[1], [456, 192], 428, W.mot)}
@@ -283,9 +283,9 @@ CIRCUITS.balance = () => {
     ${lbl(476, 164, "left", MUTED, 10.5, "middle", 400)}
     ${lbl(476, 290, "right", MUTED, 10.5, "middle", 400)}
     ${note(300, 20, "the IMU is I2C, exactly as in EF-10", "#E4572E", 16)}
-    ${note(126, 262, "the cell goes high up:", "#E4572E", 15)}
-    ${note(126, 280, "a tall robot balances", "#E4572E", 15)}
-    ${note(126, 297, "more easily", "#E4572E", 15)}`);
+    ${note(90, 264, "the cell goes", "#E4572E", 15)}
+    ${note(90, 280, "high up: a tall robot", "#E4572E", 15)}
+    ${note(90, 296, "balances more easily", "#E4572E", 15)}`);
 };
 
 module.exports = { CIRCUITS, W };

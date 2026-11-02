@@ -119,7 +119,7 @@ module.exports = {
             <li>2WD chassis, rebuilt <strong>tall</strong>: battery at the top</li>
             <li>L298N motor driver</li>
             <li>Arduino Uno + USB cable</li>
-            <li>18650 cell + holder</li>
+            <li>18650 cell + holder, 3.7 V</li>
           </ul></div></div>
         <div class="box fill c-red"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="robot">Build it tall on purpose</h3>
           <p>A short robot falls too fast for an Uno to catch. Put the heavy battery <strong>as high as you can</strong>.</p>
@@ -139,7 +139,7 @@ module.exports = {
             { w: "out", a: "5, 6", b: "ENA, ENB", c: "motor speed (PWM)" },
             { w: "gnd", a: "GND", b: "all GND", c: "one shared reference" },
           ],
-          foot: "The 18650 feeds +12V on the driver. Its minus joins the same ground as everything else." },
+          foot: "The cell feeds +12V on the driver, and its minus joins the same ground as everything else." },
       ] },
 
     { tag: "MAKE", kicker: "Build step 1 of 4", title: "Read the angle",

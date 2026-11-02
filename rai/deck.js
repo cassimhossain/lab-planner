@@ -58,24 +58,34 @@
   /* ================= slides ================= */
   function frame(inner, o = {}) {
     const blobs = o.blobs !== false ? `<i class="blob" style="width:300px;height:300px;right:-90px;top:-110px;background:${cat.light}"></i><i class="blob" style="width:220px;height:220px;left:-80px;bottom:-110px;background:#FFE9B8"></i>` : "";
-    return `<div class="slide ${o.cls || ""}">${blobs}${o.tag ? `<span class="chipt">${esc(act.code)} · ${esc(act.title)}</span><span class="stag">${o.tag}</span>` : ""}
-      ${inner}<div class="foot"><span>BotBench · Robotics &amp; AI Curriculum · ${esc(cat.name)}</span><span class="pg"></span></div></div>`;
+    frame.n = (frame.n || 0) + 1;
+    const edges = o.cls === "divider" || !window.RAI_ART ? "" : RAI_ART.doodles(frame.n);
+    return `<div class="slide ${o.cls || ""}">${blobs}${edges}${o.tag ? `<span class="chipt">${esc(act.code)} · ${esc(act.title)}</span><span class="stag">${o.tag}</span>` : ""}
+      ${inner}<div class="foot"><span>Robotics &amp; AI Club · ${esc(cat.name)} · Curriculum by Qasim Mushtaq</span><span class="pg"></span></div></div>`;
   }
   const head = (kick, title) => `${kick ? `<div class="kick">${md(kick)}</div>` : ""}<h1 class="st">${md(title)}</h1>`;
   const list = (a, cls = "") => a && a.length ? `<ul class="${cls}">${a.map(x => `<li>${md(x)}</li>`).join("")}</ul>` : "";
+  /* pictures are always doodles from rai/art.js, never emoji or downloaded images:
+     "arduino servo" draws two doodles side by side; unknown names draw nothing */
+  const art = (keys, cap) => { const k = String(keys || "").split(/\s+/).filter(x => window.RAI_ART && RAI_ART.has(x));
+    return k.length ? `<div class="art">${k.map(x => RAI_ART.svg(x)).join("")}${cap ? `<small>${md(cap)}</small>` : ""}</div>` : ""; };
+  /* a rough-framed scene: doodles with labels, joined by hand-drawn arrows when flow is true */
+  const scene = sc => sc ? `<div class="frame scene ${sc.flow ? "flow" : ""}">${sc.items.map((it, i) => `${i && sc.flow ? `<span class="harrow">${RAI_ART.svg("arrow")}</span>` : ""}<figure>${art(it.art)}<figcaption style="color:${({ red: "#E0414B", green: "#2E9E5B", blue: "#2E6BE6", purple: "#7B3FC4", amber: "#D9822B", teal: "#14967F" })[it.color] || "var(--c)"}">${md(it.label)}</figcaption></figure>`).join("")}${sc.caption ? `<p class="scap">${md(sc.caption)}</p>` : ""}</div>` : "";
+  /* picture blocks, like ArduinoBlocks / mBlock: [indent, colour, text] */
+  const blocks = b => b ? `<div class="frame blocks">${b.map(([n, c, t]) => `<span class="blk ${c}" style="margin-left:${n * 22}px">${md(t)}</span>`).join("")}</div>` : "";
   const note = n => n ? `<div class="note ${n.blue ? "blue" : ""}"><b class="l">${md(n.l || "Did you know?")}</b>${md(n.text)}</div>` : "";
-  const box = b => `<div class="box ${b.color || ""}">${b.h ? `<h3>${md(b.h)}</h3>` : ""}${b.text ? `<p>${md(b.text)}</p>` : ""}${list(b.points)}${b.steps ? `<ol class="steps">${b.steps.map(x => `<li>${md(x)}</li>`).join("")}</ol>` : ""}</div>`;
+  const box = b => `<div class="box ${b.color || ""}">${b.h ? `<h3>${b.icon && window.RAI_ART && RAI_ART.has(b.icon) ? `<i class="bicon">${RAI_ART.svg(b.icon)}</i>` : ""}${md(b.h)}</h3>` : ""}${b.text ? `<p>${md(b.text)}</p>` : ""}${list(b.points)}${b.steps ? `<ol class="steps">${b.steps.map(x => `<li>${md(x)}</li>`).join("")}</ol>` : ""}</div>`;
 
   function slides(L) {
     const S = [], add = (html, title) => S.push({ html, title });
     const words = act.title.split(" "), cut = Math.ceil(words.length / 2);
     /* 1 · title */
-    add(frame(`<div class="body"><div class="grp">${esc(cat.name)} · ${esc(mod.name)}</div>
+    add(frame(`<div class="tcol"><div class="body"><div class="grp">${esc(cat.name)} · ${esc(mod.name)}</div>
       <h1 class="${act.title.length > 44 ? "vlong" : act.title.length > 28 ? "long" : ""}"><em>${esc(words.slice(0, cut).join(" "))}</em> ${esc(words.slice(cut).join(" "))}</h1>
       <div class="hook">${md(act.hook)}</div>
       <div class="tags">${act.concepts.slice(0, 4).map(c => `<span>${esc(c)}</span>`).join("")}</div>
       ${L && L.fact ? note({ l: "Did you know?", text: L.fact }) : ""}</div>
-      <div class="bigart">${(L && L.think && L.think.art) || ({ EF: "⚡", ROB: "🤖", AI: "🧠", IS: "🛰️" })[cat.key]}</div>`, { cls: "ttl" }), "Title");
+      <div class="bigart">${art((L && L.titleArt) || act.art || ({ EF: "chip", ROB: "robot", AI: "brain", IS: "robotCar" })[cat.key])}</div></div>`, { cls: "ttl" }), "Title");
     if (!L) {
       add(frame(`<div class="body">${head("Coming soon", "Slides for this activity are being written")}<div class="cols even"><div class="stack">${box({ h: "What students will do", points: act.outcomes })}</div><div class="stack">${box({ h: "Starter · Core · Advanced", color: "purple", points: TIERS.map(t => `**${TN[t]}:** ${act.tiers[t]}`) })}</div></div></div>`, { tag: "PLAN" }), "Plan");
       return play(S);
@@ -86,30 +96,32 @@
       <div class="cols"><div class="stack">${T.story ? box({ h: T.story.h, text: T.story.text, color: "red" }) : ""}
         <div class="guess">${(T.guesses || []).map(g => `<button data-pick>${md(g)}</button>`).join("")}</div>
         ${T.today ? `<div class="today"><b>Today:</b> ${md(T.today)}</div>` : ""}</div>
-        <div class="art">${T.art || "🤔"}${T.cap ? `<small>${md(T.cap)}</small>` : ""}</div></div></div>`, { tag: "LEARN" }), "Let's think");
+        ${art(T.art || act.art, T.cap)}</div></div>`, { tag: "LEARN" }), "Let's think");
     /* 3 · objectives */
     if (L.objectives) add(frame(`<div class="body">${head("Learning objectives", "By the end of this activity I can...")}
       <div class="stack">${L.objectives.map((o, i) => `<div class="box ${["blue", "green", "purple", "amber"][i % 4]}"><h3>${i + 1} · ${md(o.t)}</h3><p style="margin:0;color:#5B6578"><b>Proof:</b> ${md(o.proof)}</p></div>`).join("")}</div></div>`, { tag: "LEARN" }), "Objectives");
     /* 4 · video */
     const V = L.video;
     if (V) add(frame(`<div class="body">${head("Watch and think", "Video time!")}
-      <div class="cols"><div class="stack"><div class="box red"><h3>${md(V.title)}</h3><p>About ${V.mins || 5} minutes.</p>
+      <div class="cols"><div class="stack">${art("video")}<div class="box red"><h3>${md(V.title)}</h3><p>About ${V.mins || 5} minutes.</p>
         <a class="simbtn" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=${encodeURIComponent(V.search)}">▶ Find it on YouTube</a>
         <p style="font-size:13px;color:#5B6578;margin-top:6px">Search: “${esc(V.search)}”. Teacher: check the video before class.</p></div></div>
         <div class="stack"><div class="box amber"><h3>Watch for...</h3><ol class="steps">${V.watch.map(w => `<li>${md(w)}</li>`).join("")}</ol></div></div></div></div>`, { tag: "LEARN" }), "Video");
     /* 5 · ideas */
-    (L.learn || []).filter(shown).forEach(x => add(frame(`<div class="body">${head(x.kicker, x.title)}
+    const objK = x => x.obj && L.objectives && L.objectives[x.obj - 1] ? `Objective ${x.obj} · ${L.objectives[x.obj - 1].short || L.objectives[x.obj - 1].t}` + (x.kicker ? " · " + x.kicker : "") : x.kicker;
+    (L.learn || []).filter(shown).forEach(x => add(frame(`<div class="body">${head(objK(x), x.title)}${scene(x.scene)}
       <div class="cols ${x.layout || ""}"><div class="stack">${x.text ? `<div class="box"><p>${md(x.text)}</p>${list(x.points)}</div>` : ""}${(x.boxes || []).map(box).join("")}
         ${x.code ? `<pre class="code">${esc(x.code)}</pre>` : ""}
-        ${x.reveal ? `<div class="box purple reveal"><h3>${md(x.reveal.q)}</h3><span class="tap">Tap to reveal</span><p class="ans">${md(x.reveal.a)}</p></div>` : ""}</div>
-        <div class="stack">${x.art ? `<div class="art">${x.art}${x.cap ? `<small>${md(x.cap)}</small>` : ""}</div>` : ""}${(x.side || []).map(box).join("")}${note(x.note)}</div></div></div>`, { tag: "LEARN" }), x.title));
+        ${x.reveal ? `<div class="box purple reveal"><h3>${md(x.reveal.q)}</h3><span class="tap">Tap to reveal</span><p class="ans">${md(x.reveal.a)}</p></div>` : ""}
+        ${blocks(x.blocks)}</div>
+        <div class="stack">${art(x.art, x.cap)}${(x.side || []).map(box).join("")}${note(x.note)}</div></div></div>`, { tag: "LEARN" }), x.title));
     /* 6 · quiz */
     (L.quiz || []).filter(shown).forEach((z, i) => add(frame(`<div class="body">${head("Quick check " + (i + 1), z.q)}
       <div class="quiz" data-answer="${z.answer}">${z.options.map((o, j) => `<button data-opt="${j}">${String.fromCharCode(65 + j)} · ${md(o)}</button>`).join("")}</div>
       <div class="why" data-why="${esc(z.why || "")}"></div></div>`, { tag: "LEARN" }), "Quick check"));
     /* 7 · real world */
     if (L.real) add(frame(`<div class="body">${head("Real world", L.realTitle || "Where is this used?")}
-      <div class="cols three">${L.real.map((r, i) => `<div class="box ${["blue", "green", "purple"][i % 3]}" style="text-align:center"><div style="font-size:54px">${r.art}</div><h3>${md(r.name)}</h3><p style="text-align:left">${md(r.text)}</p></div>`).join("")}</div></div>`, { tag: "LEARN" }), "Real world");
+      <div class="cols three">${L.real.map((r, i) => `<div class="box ${["blue", "green", "purple"][i % 3]}" style="text-align:center">${art(r.art)}<h3>${md(r.name)}</h3><p style="text-align:left">${md(r.text)}</p></div>`).join("")}</div></div>`, { tag: "LEARN" }), "Real world");
     /* 8 · divider */
     const builds = (L.builds || []).filter(shown);
     const makeList = [L.game && L.game.title, "Our kit", ...builds.map(b => b.title), L.test && L.test.title, "Level up!"].filter(Boolean);
@@ -127,10 +139,10 @@
         <div class="stack"><div class="box purple"><h3>Try it on screen first</h3>${sims.length ? sims.map((x, i) => `<a class="simbtn ${i ? "ghost" : ""}" target="_blank" rel="noopener" href="${esc(x.href)}">${esc(x.s.name)} ↗</a>`).join("") + `<p style="font-size:13.5px;margin-top:8px">${md((L.simWhy) || sims.map(x => `**${x.s.name}:** ${x.s.good}`).join(". "))}</p>` : "<p>No simulator needed: this one is hands-on.</p>"}</div></div></div></div>`, { tag: "MAKE" }), "Kit and tools");
     /* 11 · builds */
     builds.forEach((b, i) => { const sl = b.sim && simLink(b.sim);
-      add(frame(`<div class="body">${head(b.kicker || `Build step ${i + 1} of ${builds.length}`, b.title)}
+      add(frame(`<div class="body">${head((b.obj ? `Objective ${b.obj} · ` : "") + (b.kicker || `Build step ${i + 1} of ${builds.length}`), b.title)}${scene(b.scene)}
       <div class="cols ${b.code ? "" : "even"}"><div class="stack"><div class="box"><ol class="steps">${b.steps.map(x => `<li>${md(x)}</li>`).join("")}</ol></div>
         ${sl ? `<a class="simbtn" target="_blank" rel="noopener" href="${esc(sl.href)}">Open ${esc(sl.s.name)} ↗</a>` : ""}${b.mins ? `<button class="tbtn" data-timer="${b.mins}">⏱ ${b.mins}-minute timer</button>` : ""}</div>
-        <div class="stack">${b.code ? `<pre class="code">${esc(b.code)}</pre>` : ""}${(b.side || []).map(box).join("")}${note(b.note)}${b.art ? `<div class="art">${b.art}</div>` : ""}</div></div></div>`, { tag: "MAKE" }), b.title); });
+        <div class="stack">${b.code ? `<pre class="code">${esc(b.code)}</pre>` : ""}${blocks(b.blocks)}${(b.side || []).map(box).join("")}${note(b.note)}${art(b.art)}</div></div></div>`, { tag: "MAKE" }), b.title); });
     /* 12 · test */
     const X = L.test;
     if (X) add(frame(`<div class="body">${head("Test like an engineer", X.title)}${X.intro ? `<p style="margin:0 0 10px;font-size:16px">${md(X.intro)}</p>` : ""}
@@ -170,7 +182,7 @@
     const fit = () => { const el = stage.firstElementChild; if (!el) return; const k = Math.min(stage.clientWidth / 980, stage.clientHeight / 560); el.style.transform = `scale(${k})`; };
     const go = n => { i = Math.max(0, Math.min(S.length - 1, n)); stage.innerHTML = S[i].html; stage.querySelector(".pg").textContent = (i + 1) + " / " + S.length;
       $("#cnt").textContent = `Slide ${i + 1} of ${S.length} · ${TN[tier]}`; $("#prog").style.width = (100 * (i + 1) / S.length) + "%"; fit();
-      try { sessionStorage.setItem("rai." + code, i); } catch (e) { } };
+      try { sessionStorage.setItem("rai." + code, i); } catch (e) { } rough(stage); };
     $("#prev").onclick = () => go(i - 1); $("#next").onclick = () => go(i + 1);
     $("#tier").onchange = e => { const u = new URL(location.href); u.searchParams.set("tier", e.target.value); location.href = u; };
     $("#fs").onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => { });
@@ -198,6 +210,21 @@
       show(); tm = setInterval(() => { left--; show(); if (left <= 0) { clearInterval(tm); box.textContent = "Time!"; box.classList.add("done"); } }, 1000);
       box.onclick = () => { clearInterval(tm); box.className = "timer"; }; }
     go(i);
+  }
+
+  /* hand-drawn outlines: two slightly wobbly rectangles over every box and frame,
+     the same on every visit because the wobble is seeded by the box's position */
+  function rough(root) {
+    root.querySelectorAll(".box, .frame, .today").forEach((el, n) => {
+      if (el.querySelector(":scope > svg.rough")) return;
+      const w = el.offsetWidth, h = el.offsetHeight; if (!w || !h) return;
+      let s = n * 97 + w * 13 + h * 7; const r = () => ((s = (s * 9301 + 49297) % 233280) / 233280 - 0.5) * 5;
+      /* each side bows a little in the middle, like a line drawn by hand */
+      const side = (x1, y1, x2, y2) => `Q${(x1 + x2) / 2 + r()} ${(y1 + y2) / 2 + r()} ${x2} ${y2}`;
+      const path = o => { const p = [[2 + r() + o, 2 + r()], [w - 2 + r(), 2 + r() + o], [w - 2 + r() - o, h - 2 + r()], [2 + r(), h - 2 + r() - o]];
+        return `M${p[0][0]} ${p[0][1]} ${side(...p[0], ...p[1])} ${side(...p[1], ...p[2])} ${side(...p[2], ...p[3])} ${side(...p[3], ...p[0])}`; };
+      el.insertAdjacentHTML("afterbegin", `<svg class="rough" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${path(0)}"/><path d="${path(2.4)}" opacity=".6"/></svg>`);
+    });
   }
 
   /* ================= teacher guide ================= */

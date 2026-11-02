@@ -1,6 +1,6 @@
 window.RAI_LESSONS["EF-09"] = {
   fact: "The ESP32 has Wi-Fi and Bluetooth built in and costs less than a school lunch.",
-  think: { q: "What's the best remote control you'll ever own?", art: "📱🤖", cap: "it's already in your pocket",
+  think: { q: "What's the best remote control you'll ever own?", art: "phone robot", cap: "it's already in your pocket",
     guesses: ["A games controller", "A TV remote", "Your phone!"],
     story: { h: "No wires, no app store", text: "An ESP32 can host its own little website. Open it on any phone, tap a button, and the robot moves. No app to install, no cables." },
     today: "we compare **Bluetooth** and **Wi-Fi**, then make the ESP32 serve a **web remote** that controls an LED and a motor." },
@@ -8,14 +8,14 @@ window.RAI_LESSONS["EF-09"] = {
   video: { title: "ESP32 web server explained", search: "ESP32 web server control LED explained", mins: 6, watch: ["What is an IP address?", "What happens when you tap a button on the page?", "Access point versus station mode?"] },
   learn: [
     { kicker: "Two radios", title: "Bluetooth or Wi-Fi?",
-      boxes: [{ h: "Bluetooth", points: ["Short range (about 10 m)", "Pairs one device directly", "Low power", "Needs an app or Bluetooth terminal"], color: "blue" }, { h: "Wi-Fi", points: ["Longer range", "Many devices at once", "Uses more power", "Works with any web browser"], color: "green" }], art: "📶" },
+      boxes: [{ h: "Bluetooth", points: ["Short range (about 10 m)", "Pairs one device directly", "Low power", "Needs an app or Bluetooth terminal"], color: "blue" }, { h: "Wi-Fi", points: ["Longer range", "Many devices at once", "Uses more power", "Works with any web browser"], color: "green" }], art: "wifi" },
     { kicker: "The web remote", title: "How a tap moves a robot",
       points: ["The ESP32 makes its own Wi-Fi network (access point)", "Your phone joins it and opens 192.168.4.1", "Each button is a link like /forward", "The ESP32 sees /forward and runs forward()"], code: "server.on(\"/on\",  [](){ digitalWrite(2, HIGH); page(); });\nserver.on(\"/off\", [](){ digitalWrite(2, LOW);  page(); });",
       reveal: { q: "Why doesn't this need the internet?", a: "The phone talks directly to the ESP32's own network. It's a tiny private website that lives on the robot." } },
     { kicker: "Safety first", title: "Remote robots need a failsafe", boxes: [{ h: "If the signal drops...", text: "The robot must stop, not keep driving. Stop if no command arrives for 1 second.", color: "red" }], note: { l: "Real world", text: "Drones return home and cars brake when they lose their link: same idea." } }
   ],
   quiz: [{ q: "To control one robot from one phone with no router and no app, the simplest choice is...", options: ["ESP32 Wi-Fi access point + web page", "Infrared remote", "USB cable", "SMS"], answer: 0, why: "Any phone browser can open the ESP32's page." }, { q: "A failsafe should make the robot...", options: ["Speed up", "Stop when the signal is lost", "Turn on its lights", "Restart Wi-Fi"], answer: 1, why: "Stopping is the safe default." }],
-  real: [{ art: "🏠", name: "Smart homes", text: "Lights, plugs and cameras are tiny Wi-Fi web servers." }, { art: "🚁", name: "Drones", text: "Radio links with failsafes that bring the drone home." }, { art: "⌚", name: "Wearables", text: "Bluetooth Low Energy sends heart rate to your phone all day." }],
+  real: [{ art: "wifi", name: "Smart homes", text: "Lights, plugs and cameras are tiny Wi-Fi web servers." }, { art: "drone", name: "Drones", text: "Radio links with failsafes that bring the drone home." }, { art: "phone", name: "Wearables", text: "Bluetooth Low Energy sends heart rate to your phone all day." }],
   game: { title: "Packet relay", mins: 5, big: "Commands are messages; if they stop arriving, the robot must stop.", steps: ["The 'phone' writes commands on cards: F, B, L, R, S.", "'Wi-Fi' students pass cards to the 'robot' student, who acts them out.", "Secretly drop a card: the robot must STOP if no card arrives in 3 seconds."] },
   simWhy: "**Wokwi** simulates an ESP32 with Wi-Fi, so you can test the web server code before using a real board.",
   builds: [

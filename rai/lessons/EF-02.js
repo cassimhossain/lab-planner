@@ -1,6 +1,6 @@
 window.RAI_LESSONS["EF-02"] = {
   fact: "An LED connected straight to a 9 V battery can burn out in less than a second.",
-  think: { q: "Why does an LED burn out in a flash without a tiny resistor?", art: "💡💥", cap: "too much current!",
+  think: { q: "Why does an LED burn out in a flash without a tiny resistor?", art: "bulb bolt", cap: "too much current!",
     guesses: ["The battery is too big", "The LED is cheap", "Nothing slows the current"],
     story: { h: "The pop", text: "Plug an LED straight into a battery and it glows bright for a moment, then goes dark forever. Add a resistor the size of a grain of rice and it glows happily for years." },
     today: "we meet **voltage, current and resistance**, predict with **V = I × R**, then check with a real multimeter." },
@@ -14,14 +14,14 @@ window.RAI_LESSONS["EF-02"] = {
   learn: [
     { kicker: "The water model", title: "Three words, one picture",
       boxes: [{ h: "Voltage (V, volts)", text: "The push. Like water pressure from a tank up high.", color: "blue" }, { h: "Current (I, amps)", text: "The flow. How much charge goes past each second.", color: "green" }, { h: "Resistance (R, ohms Ω)", text: "The squeeze. A thin pipe lets less water through.", color: "red" }],
-      art: "🚰", cap: "push · flow · squeeze" },
+      art: "", cap: "push · flow · squeeze" },
     { kicker: "The law", title: "Ohm's law: V = I × R",
       text: "Know two, find the third.", points: ["I = V ÷ R: more push or less squeeze → more flow", "R = V ÷ I: to limit the flow, choose R", "Arduino pins: about 20 mA (0.02 A) is safe"],
       code: "I = V / R\n5 V / 220 Ω  = 0.023 A = 23 mA\n5 V / 1000 Ω = 0.005 A = 5 mA",
       reveal: { q: "Same battery, double the resistance. What happens to the current?", a: "It halves. I = V ÷ R, so twice the R means half the I." } },
     { kicker: "LED maths", title: "Choosing the resistor",
       text: "An LED 'uses up' about 2 V. The resistor gets the rest.", points: ["Resistor voltage = supply − LED voltage", "R = (5 − 2) ÷ 0.015 = 200 Ω → pick 220 Ω", "Bigger R = dimmer but safer"],
-      side: [{ h: "Rule of thumb", text: "5 V board: 220 Ω to 1 kΩ.\n3.3 V board (ESP32): 100 Ω to 470 Ω.", color: "amber" }], art: "🔴" },
+      side: [{ h: "Rule of thumb", text: "5 V board: 220 Ω to 1 kΩ.\n3.3 V board (ESP32): 100 Ω to 470 Ω.", color: "amber" }], art: "led" },
     { kicker: "Deeper", title: "Power: why resistors get hot", only: ["advanced"], text: "Power P = V × I (watts).",
       points: ["A 1/4 W resistor must stay under 0.25 W", "A motor's current through a small resistor would burn it", "Batteries lose voltage when current is high: internal resistance"], code: "P = V × I = 3 V × 0.015 A = 0.045 W  ✓" }
   ],
@@ -29,7 +29,7 @@ window.RAI_LESSONS["EF-02"] = {
     { q: "Which is the 'push' in a circuit?", options: ["Current", "Voltage", "Resistance", "The LED"], answer: 1, why: "Voltage pushes the charge around the circuit." },
     { q: "5 V across 500 Ω. What is the current?", options: ["0.01 A", "100 A", "2500 A", "0.1 A"], answer: 0, why: "I = 5 ÷ 500 = 0.01 A = 10 mA." }
   ],
-  real: [{ art: "🔌", name: "Phone chargers", text: "Control voltage and current so the battery charges fast but safely." }, { art: "🏠", name: "House fuses", text: "Break the circuit if the current gets dangerously high." }, { art: "🤖", name: "Robots", text: "Every sensor and LED on a robot needs the right voltage and limited current." }],
+  real: [{ art: "arduino", name: "Phone chargers", text: "Control voltage and current so the battery charges fast but safely." }, { art: "wifi", name: "House fuses", text: "Break the circuit if the current gets dangerously high." }, { art: "robot", name: "Robots", text: "Every sensor and LED on a robot needs the right voltage and limited current." }],
   game: { title: "Be the circuit", mins: 6, big: "Voltage pushes, current flows, resistance squeezes.",
     steps: ["Students stand in a loop holding a rope (the current).", "One student is the battery and gently pulls the rope round (voltage).", "One student squeezes the rope in their hands (resistance). Feel the flow slow down.", "Squeeze harder: what happens to the speed?"] },
   simWhy: "**PhET Ohm's Law** shows V = I × R with sliders. **Circuit Construction Kit** lets you build and measure. **Falstad** animates the current flowing.",
@@ -37,7 +37,7 @@ window.RAI_LESSONS["EF-02"] = {
     { title: "Explore in PhET", mins: 10, sim: "ohms-law", steps: ["Open Ohm's Law. Raise V: what happens to I?", "Raise R: what happens to I?", "Fill in: 'Current goes up when...'", "Open Circuit Construction Kit DC and build battery + bulb + resistor."] },
     { title: "Predict, then measure", mins: 15, steps: ["Build: 2×AA (3 V) → 220 Ω → LED → back to battery.", "Predict the current: I = (3 − 2) ÷ 220.", "Set the multimeter to mA and put it **in series** (break the loop, meter in the gap).", "Swap to 1 kΩ. Predict, then measure again.", "Measure the voltage across the LED (meter on V, **across** the LED)."],
       side: [{ h: "Meter rules", text: "Current: in series (in the loop).\nVoltage: across (side by side).\nNever measure current across a battery!", color: "red" }] },
-    { title: "Resistor detective", only: ["core", "advanced"], mins: 10, steps: ["Read the colour bands of three resistors.", "Check each with the meter on Ω.", "Which colour code means 220? 1k? 10k?"], art: "🟫🟥🟫" }
+    { title: "Resistor detective", only: ["core", "advanced"], mins: 10, steps: ["Read the colour bands of three resistors.", "Check each with the meter on Ω.", "Which colour code means 220? 1k? 10k?"], art: "resistor" }
   ],
   test: { title: "Prediction versus measurement", cols: ["Resistor", "Predicted current", "Measured current", "LED brightness"],
     rows: [["220 Ω", "", "", ""], ["1 kΩ", "", "", ""], ["10 kΩ", "", "", ""]] },

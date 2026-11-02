@@ -1,6 +1,6 @@
 window.RAI_LESSONS["AI-11"] = {
   fact: "Large language models are trained on so much text that a person reading non-stop would need thousands of years to finish it.",
-  think: { q: "ChatGPT has never been to school. So how does it write essays?", art: "💬🧠", cap: "one word at a time",
+  think: { q: "ChatGPT has never been to school. So how does it write essays?", art: "chat brain", cap: "one word at a time",
     guesses: ["A person types the answers", "It copies from websites", "It predicts the next word!"],
     story: { h: "Finish the sentence", text: "\"The cat sat on the ___.\" You said 'mat' without thinking. You've read that pattern many times. A language model does the same thing, billions of times, very fast." },
     today: "we discover that chatbots work by **predicting the next word**, and build a tiny text generator ourselves." },
@@ -15,7 +15,7 @@ window.RAI_LESSONS["AI-11"] = {
     { kicker: "Big idea", title: "A very well-read guesser",
       text: "A language model has one job: **given some words, guess the next one**. Repeat that, and you get sentences, essays, even code.",
       points: ["It learned by reading huge amounts of text", "It stores patterns, not a list of facts", "It writes one word (token) at a time"],
-      art: "📚➡️💬" },
+      art: "book chat" },
     { kicker: "Probabilities", title: "Picking the next word",
       boxes: [{ h: "\"The robot picked up the ...\"", text: "box   41%\nball  22%\ncup   18%\nelephant  0.1%", color: "blue" }],
       side: [{ h: "Temperature", text: "Low (0.2): always picks the top word. Safe, boring.\nHigh (1.2): picks unlikely words more often. Creative, sometimes nonsense.", color: "amber" }],
@@ -33,9 +33,9 @@ window.RAI_LESSONS["AI-11"] = {
     { q: "Raising the temperature makes answers...", options: ["More random and creative", "Always correct", "Shorter", "In a different language"], answer: 0, why: "Higher temperature picks less likely words more often." }
   ],
   real: [
-    { art: "🤖", name: "Chatbots", text: "Study Buddy, ChatGPT and Gemini all generate replies token by token." },
-    { art: "⌨️", name: "Phone keyboards", text: "The word suggestions above your keyboard are a small next-word model." },
-    { art: "🌍", name: "Translation", text: "Modern translators predict the next word in the other language." }
+    { art: "robot", name: "Chatbots", text: "Study Buddy, ChatGPT and Gemini all generate replies token by token." },
+    { art: "laptop", name: "Phone keyboards", text: "The word suggestions above your keyboard are a small next-word model." },
+    { art: "cloud", name: "Translation", text: "Modern translators predict the next word in the other language." }
   ],
   game: { title: "Human language model", mins: 8, big: "Each word is chosen from what usually comes next. Different choices give different stories.",
     steps: ["Sit in a circle. The teacher says: 'Once upon a time, a robot'.", "Each student adds ONE word that could come next.", "Round 2: before choosing, roll a die. On a 6 you must pick a surprising word (high temperature!).", "Compare the two stories. Which was more sensible? Which was more fun?"] },

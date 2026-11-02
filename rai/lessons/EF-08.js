@@ -1,6 +1,6 @@
 window.RAI_LESSONS["EF-08"] = {
   fact: "The software in a modern car has around 100 million lines of code, organised into thousands of functions.",
-  think: { q: "Good robot code reads like a recipe. Bad robot code reads like a phone book. What's the difference?", art: "📖🍲", cap: "organise your code",
+  think: { q: "Good robot code reads like a recipe. Bad robot code reads like a phone book. What's the difference?", art: "book", cap: "organise your code",
     guesses: ["Fewer lines", "Better names", "Functions and loops!"],
     story: { h: "The 300-line robot", text: "A team's robot code was one long list: forward, delay, turn, delay... 300 lines. When they needed to change the turning speed, they had to edit 40 places. They missed 3." },
     today: "we turn messy robot code into **functions**, use **loops**, and replace delay() with **events** using millis()." },
@@ -15,10 +15,10 @@ window.RAI_LESSONS["EF-08"] = {
       code: "unsigned long last = 0;\nvoid loop() {\n  if (millis() - last >= 500) {   // every 500 ms\n    last = millis();\n    toggleLED();\n  }\n  checkBumper();                  // runs all the time!\n}",
       reveal: { q: "Why does millis() let two jobs run at once?", a: "loop() keeps running very fast; each job checks 'is it my time yet?' and does a tiny bit. Nothing ever waits." } },
     { kicker: "Events", title: "React when something happens",
-      points: ["**Polling:** keep checking 'is the button pressed?' in loop()", "**Edge detection:** act only when it changes from up to down", "**Interrupts:** the hardware calls your function instantly (encoders, emergency stop)"], art: "🔔" }
+      points: ["**Polling:** keep checking 'is the button pressed?' in loop()", "**Edge detection:** act only when it changes from up to down", "**Interrupts:** the hardware calls your function instantly (encoders, emergency stop)"], art: "bulb" }
   ],
   quiz: [{ q: "What does delay(2000) do?", options: ["Runs other code for 2 s", "Pauses everything for 2 s", "Speeds up the loop", "Turns off the board"], answer: 1, why: "delay blocks everything, which is why we use millis()." }, { q: "The main benefit of a function is...", options: ["It makes the robot faster", "Code is written once and reused", "It uses less battery", "It's required by Arduino"], answer: 1, why: "Write once, fix once, reuse everywhere." }],
-  real: [{ art: "🚗", name: "Car software", text: "Thousands of functions run on timers: check brakes every 10 ms, update the dashboard every 100 ms." }, { art: "🎮", name: "Games", text: "A game loop updates characters, reads controls and draws the screen, never waiting." }, { art: "🤖", name: "Robot firmware", text: "Motor control, sensors and radio all run 'at once' using timers and interrupts." }],
+  real: [{ art: "robotCar", name: "Car software", text: "Thousands of functions run on timers: check brakes every 10 ms, update the dashboard every 100 ms." }, { art: "laptop", name: "Games", text: "A game loop updates characters, reads controls and draws the screen, never waiting." }, { art: "robot", name: "Robot firmware", text: "Motor control, sensors and radio all run 'at once' using timers and interrupts." }],
   game: { title: "The juggling chef", mins: 5, big: "Don't wait: check the clock and do a little of each job.", steps: ["One student is a chef with 3 tasks: stir every 5 s, flip every 10 s, answer the phone when it 'rings'.", "Round 1 ('delay chef'): they must wait out each timer, eyes closed. The phone rings and they miss it!", "Round 2 ('millis chef'): they glance at a clock and switch tasks. Nothing is missed."] },
   simWhy: "**Code Lab** for practising functions in Python first. **Circuit Lab** to see delay() and millis() behave differently with real buttons. **GearsBot** for robot functions in a simulator.",
   builds: [

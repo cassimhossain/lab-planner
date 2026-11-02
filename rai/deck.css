@@ -28,21 +28,22 @@ button { font: inherit; }
 .stag { position: absolute; top: 16px; right: 22px; border: 2px solid var(--c); color: var(--c); font: 800 11px "Bricolage Grotesque", sans-serif; padding: 3px 10px; border-radius: 99px; letter-spacing: .06em; background: #fff; }
 .foot { position: absolute; left: 26px; right: 26px; bottom: 12px; display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); }
 .body { position: absolute; inset: 52px 34px 34px 34px; display: flex; flex-direction: column; }
-.kick { font: 700 24px "Caveat", cursive; color: var(--c); line-height: 1; }
+.kick { font: 700 25px "Caveat", cursive; color: #E4572E; line-height: 1; }
 h1.st { font: 800 34px/1.08 "Bricolage Grotesque", sans-serif; margin: 2px 0 14px; letter-spacing: -.01em; }
 .cols { display: grid; grid-template-columns: 1.25fr 1fr; gap: 18px; flex: 1; min-height: 0; }
 .cols.even { grid-template-columns: 1fr 1fr; } .cols.three { grid-template-columns: 1fr 1fr 1fr; }
-.box { border: 2.5px solid var(--c); border-radius: 12px; padding: 10px 14px; background: #fff; font-size: 16px; line-height: 1.38; position: relative; }
+.box { border: 0; border-radius: 4px; padding: 10px 14px; background: #fff; font-size: 16px; line-height: 1.38; position: relative; }
 .box h3 { margin: 0 0 4px; font: 800 15.5px "Bricolage Grotesque", sans-serif; color: var(--c); }
 .box p { margin: 0 0 6px; white-space: pre-line; } .box ul, .box ol { margin: 4px 0; padding-left: 20px; } .box li { margin: 3px 0; }
 .box.red { --c: var(--red); } .box.green { --c: var(--green); } .box.amber { --c: var(--amber); } .box.purple { --c: var(--purple); } .box.blue { --c: var(--blue); } .box.teal { --c: var(--teal); }
-.note { background: #FFF1B8; border: 2px solid #E5C34A; border-radius: 6px; padding: 8px 12px; font: 600 15px/1.3 "Atkinson Hyperlegible Next"; transform: rotate(-1.2deg); box-shadow: 2px 3px 0 rgba(0,0,0,.06); }
-.note b.l { display: block; font: 700 18px "Caveat", cursive; color: #8A5A00; }
+.note { background: #FFF1B8; border: 2px solid #E5C34A; border-radius: 3px; padding: 8px 12px; font: 600 19px/1.15 "Caveat", cursive; transform: rotate(-1.2deg); box-shadow: 2px 3px 0 rgba(0,0,0,.06); }
+.note b.l { display: block; font: 700 19px "Caveat", cursive; color: #C2531B; }
 .note.blue { background: #E3EEFF; border-color: #8FB2F0; } .note.blue b.l { color: #1F55C8; }
 .stack { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
-.art { display: grid; place-items: center; font-size: 110px; line-height: 1; text-align: center; }
+.art { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; text-align: center; }
+.art svg { width: 150px; height: auto; max-height: 150px; } .art small { width: 100%; }
 .art small { display: block; font: 700 20px "Caveat", cursive; color: var(--c); margin-top: 8px; }
-.today { border: 2.5px solid var(--purple); background: #F5EEFF; border-radius: 12px; padding: 10px 14px; font-size: 16px; margin-top: auto; }
+.today { --c: var(--purple); position: relative; background: #F5EEFF; border-radius: 4px; padding: 10px 14px; font-size: 16px; margin-top: auto; }
 .today b { color: var(--purple); }
 code, pre { font-family: "JetBrains Mono", monospace; }
 pre.code { margin: 0; background: #16213A; color: #E6EDF7; border-radius: 10px; padding: 10px 12px; font-size: 12.5px; line-height: 1.45; overflow: hidden; white-space: pre; }
@@ -77,14 +78,16 @@ table.tt td.blank { color: #B3BCCB; }
 .ticks li::before { content: "✓"; position: absolute; left: 0; top: -2px; width: 22px; height: 22px; border: 2px solid var(--green); color: var(--green); border-radius: 4px; text-align: center; font-weight: 800; line-height: 20px; }
 
 /* title slide */
-.ttl .body { inset: 60px 50px 40px 56px; justify-content: center; }
+.ttl .tcol { position: absolute; inset: 40px 40px 40px 56px; display: grid; grid-template-columns: 1.25fr 1fr; gap: 24px; align-items: center; }
+.ttl .body { position: static; inset: auto; justify-content: center; }
+.ttl .bigart .art svg { width: 100%; max-height: 300px; }
 .ttl .grp { font: 700 26px "Caveat", cursive; color: var(--c); }
 .ttl h1 { font: 800 50px/1.02 "Bricolage Grotesque", sans-serif; margin: 6px 0 12px; max-width: 610px; }
 .ttl h1 em { font-style: normal; color: var(--c); }
 .ttl .hook { font: 700 19px/1.35 "Atkinson Hyperlegible Next"; color: var(--blue); max-width: 540px; }
 .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; } .tags span { background: var(--c); color: #fff; border-radius: 99px; padding: 5px 12px; font: 800 12.5px "Bricolage Grotesque"; }
 .tags span:nth-child(2) { background: var(--purple); } .tags span:nth-child(3) { background: var(--blue); } .tags span:nth-child(4) { background: var(--teal); }
-.ttl .bigart { position: absolute; right: 44px; top: 130px; font-size: 130px; }
+
 .ttl .note { margin-top: 22px; max-width: 440px; align-self: flex-start; }
 .ttl h1.long { font-size: 40px; } .ttl h1.vlong { font-size: 34px; }
 .divider { background: var(--c); color: #fff; } .divider .body { justify-content: center; }
@@ -114,3 +117,28 @@ body.guide { background: #F4F6FA; }
 }
 @page deck { size: 960px 540px; margin: 0; }
 body.printdeck .stage { page: deck; }
+
+/* hand-drawn look */
+.box, .frame, .today { position: relative; }
+svg.rough { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+svg.rough path { fill: none; stroke: var(--c); stroke-width: 2.2; stroke-linejoin: round; }
+.box h3 { display: flex; align-items: center; gap: 8px; } .bicon svg { width: 28px; height: 24px; display: block; }
+.edge { position: absolute; opacity: .5; pointer-events: none; } .edge svg { width: 100%; height: auto; display: block; }
+.frame { --c: var(--blue); background: #fff; border-radius: 4px; padding: 12px; }
+.scene { display: flex; align-items: center; justify-content: space-around; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.scene figure { margin: 0; text-align: center; } .scene .art svg { width: 130px; max-height: 110px; }
+.scene figcaption { font: 800 15px "Bricolage Grotesque", sans-serif; margin-top: 4px; }
+.scene .harrow svg { width: 54px; color: #E4572E; } .scene .harrow svg g { stroke: #E4572E; }
+.scap { width: 100%; margin: 6px 0 0; font-size: 14px; color: var(--muted); text-align: left; }
+.blocks { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+.blk { color: #fff; font: 800 13.5px "Atkinson Hyperlegible Next"; padding: 6px 12px; border-radius: 8px 8px 8px 2px; box-shadow: 0 2px 0 rgba(0,0,0,.18); }
+.blk.amber { background: #D9822B; } .blk.green { background: #2E9E5B; } .blk.purple { background: #7B3FC4; } .blk.red { background: #E0414B; } .blk.blue { background: #2E6BE6; } .blk.grey { background: #7A8396; } .blk.dark { background: #1B2333; }
+.doodle { overflow: visible; }
+.ttl .doodle g, .art svg g { stroke-width: 2; } .scene .doodle g { stroke-width: 2.2; }
+/* layout: "row" puts an idea slide's boxes side by side under its scene */
+.cols.row { display: block; flex: none; } .cols.row > .stack:first-child { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; } .cols.row > .stack:empty { display: none; }
+.scene .harrow svg { width: 60px; }
+.slide .body > .scene { flex: none; } .scene .art svg { width: 120px; max-height: 96px; }
+/* a build slide shares its height with steps, so its scene is shorter */
+.slide:has(.steps) .scene { padding: 6px 12px; margin-bottom: 8px; } .slide:has(.steps) .scene .art svg { max-height: 62px; width: 90px; }
+.slide:has(.steps) .scene figcaption { font-size: 13px; }

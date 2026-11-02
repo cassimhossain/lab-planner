@@ -1247,9 +1247,9 @@ table.kt td.box::after { content: ""; display: block; width: 16px; height: 16px;
 
 /* curriculum tiles and sheets: a big emoji on the category's tint stands in for the banner picture */
 .abanner.rai { display: grid; place-items: center; background: radial-gradient(circle at 75% 20%, color-mix(in srgb, var(--c) 22%, transparent), transparent 55%), var(--l); }
-.abanner.rai span { font-size: 54px; line-height: 1; transition: transform var(--dur-slow); }
-.acard:hover .abanner.rai span { transform: scale(1.12) rotate(-4deg); }
+.abanner.rai svg { width: 34%; height: auto; max-height: 82%; transition: transform var(--dur-slow); }
+.acard:hover .abanner.rai svg { transform: scale(1.08) rotate(-3deg); }
 .mdeck.raihero { display: grid; place-items: center; background: radial-gradient(circle at 75% 20%, color-mix(in srgb, var(--c) 25%, transparent), transparent 55%), var(--l); text-decoration: none; }
-.raiart { font-size: 110px; line-height: 1; }
-.raidepth { display: grid; gap: 8px; } .raidepth a { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; background: var(--surface-2, var(--bg)); color: var(--ink); text-decoration: none; }
-.raidepth a:hover { outline: 2px solid var(--c); } .raidepth .lvl { justify-self: start; }
+.raiart svg { width: 230px; height: auto; }
+.raidepth { display: grid; gap: 8px; } .raidepth > div { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; background: var(--surface-2, var(--bg)); color: var(--ink); text-decoration: none; }
+.raidepth .lvl { justify-self: start; }

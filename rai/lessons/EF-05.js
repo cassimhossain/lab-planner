@@ -1,6 +1,6 @@
 window.RAI_LESSONS["EF-05"] = {
   fact: "The transistor was invented in 1947. Your phone has about 15 billion of them.",
-  think: { q: "An Arduino pin gives 20 mA. A motor wants 500 mA. How can a tiny pin boss a big motor?", art: "🐜🐘", cap: "small signal, big load",
+  think: { q: "An Arduino pin gives 20 mA. A motor wants 500 mA. How can a tiny pin boss a big motor?", art: "chip motor", cap: "small signal, big load",
     guesses: ["Use a bigger Arduino", "Connect the motor directly", "Use an electronic switch!"],
     story: { h: "Burnt pins", text: "Plug a motor straight into an Arduino pin and the pin can be damaged for ever. Robots always put a 'muscle' between the brain and the motor." },
     today: "we use a **transistor** and a **relay** as electronic switches so a small signal controls a big load safely." },
@@ -8,16 +8,16 @@ window.RAI_LESSONS["EF-05"] = {
   video: { title: "How a transistor works as a switch", search: "transistor as a switch explained arduino motor", mins: 6, watch: ["Which leg is the 'control'?", "Why can a small current control a big one?", "What is a relay inside?"] },
   learn: [
     { kicker: "Electronic switches", title: "Two ways to switch big things",
-      boxes: [{ h: "Transistor", text: "No moving parts. A tiny current into the base lets a big current flow from collector to emitter. Fast and silent.", color: "blue" }, { h: "Relay", text: "A tiny electromagnet pulls a real metal switch closed. Click! Can switch mains-powered things, but slowly.", color: "amber" }], art: "🔘⚡" },
+      boxes: [{ h: "Transistor", text: "No moving parts. A tiny current into the base lets a big current flow from collector to emitter. Fast and silent.", color: "blue" }, { h: "Relay", text: "A tiny electromagnet pulls a real metal switch closed. Click! Can switch mains-powered things, but slowly.", color: "amber" }], art: "button bolt" },
     { kicker: "The transistor", title: "Base, collector, emitter",
       points: ["**Base:** the control. Arduino pin → 1 kΩ resistor → base", "**Collector:** connects to the motor's − side", "**Emitter:** to ground", "Base on → current flows through the motor"],
       code: "Arduino pin 9 ─1kΩ─ Base\n Motor + ─ battery +\n Motor − ─ Collector\n Emitter ─ GND (shared!)", reveal: { q: "Why must the motor battery and the Arduino share GND?", a: "The base current needs a return path. Without a common ground the transistor never sees the Arduino's signal." } },
     { kicker: "Protection", title: "The flyback diode",
-      text: "When a motor or relay coil switches off, it kicks back a voltage spike.", points: ["The spike can kill the transistor", "A diode across the motor (stripe to +) lets the spike circle safely", "Relay modules have one built in"], art: "⚡↩️", note: { l: "Remember", text: "Motor, relay, solenoid, pump: anything with a coil needs a flyback diode." } },
+      text: "When a motor or relay coil switches off, it kicks back a voltage spike.", points: ["The spike can kill the transistor", "A diode across the motor (stripe to +) lets the spike circle safely", "Relay modules have one built in"], art: "bolt squiggle", note: { l: "Remember", text: "Motor, relay, solenoid, pump: anything with a coil needs a flyback diode." } },
     { kicker: "Deeper", title: "Choosing a transistor", only: ["advanced"], points: ["2N2222: up to ~0.6 A, small motors", "TIP120 (Darlington): up to ~5 A, bigger motors, gets warm", "MOSFET (logic-level): best efficiency, cool running", "Check the current with the INA219 and pick with a margin"] }
   ],
   quiz: [{ q: "Which transistor leg does the Arduino connect to (through a resistor)?", options: ["Collector", "Emitter", "Base", "None"], answer: 2, why: "The base is the control input." }, { q: "Why put a diode across a motor?", options: ["To make it faster", "To absorb the voltage spike when it switches off", "To change direction", "To light up"], answer: 1, why: "Coils kick back a spike that can damage the transistor." }],
-  real: [{ art: "🚗", name: "Car electronics", text: "A tiny computer signal switches big headlights and fans through relays and transistors." }, { art: "🏠", name: "Smart plugs", text: "A relay inside lets a Wi-Fi chip switch a heater or lamp." }, { art: "🤖", name: "Motor drivers", text: "The L298N is four transistors in a chip: an H-bridge." }],
+  real: [{ art: "robotCar", name: "Car electronics", text: "A tiny computer signal switches big headlights and fans through relays and transistors." }, { art: "wifi", name: "Smart plugs", text: "A relay inside lets a Wi-Fi chip switch a heater or lamp." }, { art: "robot", name: "Motor drivers", text: "The L298N is four transistors in a chip: an H-bridge." }],
   game: { title: "The tap and the pipe", mins: 4, big: "A small effort on the control can open a big flow.", steps: ["One student holds a garden hose (the big current).", "Another, the 'Arduino', can only tap a shoulder (tiny signal).", "Tap = open the tap; no tap = close it.", "The Arduino never carries the water itself. That's a transistor!"] },
   simWhy: "**Falstad** animates current through a transistor switch: open its Examples → Transistors. **Circuit Lab** lets you test the relay module safely.",
   builds: [

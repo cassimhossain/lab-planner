@@ -1,6 +1,6 @@
 window.RAI_LESSONS["ROB-08"] = {
   fact: "The first feedback controller was a spinning-ball governor on steam engines, over 230 years ago.",
-  think: { q: "Why does one line follower wiggle like a snake while another glides like a train?", art: "🐍🚆", cap: "same robot, different brain",
+  think: { q: "Why does one line follower wiggle like a snake while another glides like a train?", art: "line robotCar", cap: "same robot, different brain",
     guesses: ["Better motors?", "A faster Arduino?", "Smarter steering!"],
     story: { h: "Two robots, one track", text: "Both robots have the same motors, the same sensor and the same battery. One zig-zags and is slow. The other glides and wins the race. The only difference is a few lines of code." },
     today: "we build a line follower, watch it wiggle, then teach it to steer **in proportion** to how far off the line it is." },
@@ -15,7 +15,7 @@ window.RAI_LESSONS["ROB-08"] = {
     { kicker: "Big idea", title: "Open loop versus closed loop",
       boxes: [{ h: "Open loop: no checking", text: "A toaster runs for 2 minutes whatever the bread looks like. A robot told 'drive 3 seconds' never checks where it ended up.", color: "red" },
               { h: "Closed loop: measure and correct", text: "Measure → compare with the goal → correct → measure again. Your hand on a hot tap does this without thinking.", color: "green" }],
-      art: "🔁", cap: "sense → decide → act → sense...", note: { l: "Key word", text: "**Feedback** means the output is measured and fed back to change what happens next." } },
+      art: "gears", cap: "sense → decide → act → sense...", note: { l: "Key word", text: "**Feedback** means the output is measured and fed back to change what happens next." } },
     { kicker: "The error", title: "How far off am I?",
       text: "Every controller starts with one number: the **error**.", points: ["error = goal − what I measure", "Error 0: perfect. Big error: big problem.", "The sign tells the direction: left of the line or right of it."],
       code: "error = target - reading;\n// on the line:      error = 0\n// drifted left:     error > 0\n// drifted right:    error < 0",
@@ -23,14 +23,14 @@ window.RAI_LESSONS["ROB-08"] = {
     { kicker: "Controller 1", title: "Bang-bang: full left or full right",
       boxes: [{ h: "The rule", text: "If the sensor sees black, turn one way. If it sees white, turn the other way. Only two choices, always at full strength.", color: "blue" },
               { h: "What you'll see", points: ["It works!", "But it zig-zags across the edge of the line", "It is slow on curves and can fly off at speed"], color: "amber" }],
-      art: "↔️", cap: "like a light switch: on or off" },
+      art: "line", cap: "like a light switch: on or off" },
     { kicker: "Controller 2", title: "Proportional: steer as much as you're off",
       text: "Correction = **Kp × error**. Small error, gentle turn. Big error, sharp turn.", points: ["**Kp** is the gain: how strongly we react", "Kp too small: lazy, drifts off on curves", "Kp too big: wobbles like bang-bang again", "Just right: smooth and fast"],
       side: [{ h: "Two motors, one formula", text: "left speed = base + correction\nright speed = base − correction", color: "purple" }],
       note: { l: "Engineers say", text: "Tuning Kp is the first job on almost every real robot." } },
     { kicker: "Deeper", title: "Reading a response graph", only: ["advanced"],
       text: "Plot the error over time from the Serial Plotter.", points: ["**Overshoot:** it shoots past the line", "**Oscillation:** it keeps swinging side to side", "**Steady-state error:** it settles, but not on the line", "These three words describe every control system: drones, ovens, cruise control."],
-      art: "📈" }
+      art: "graph" }
   ],
   quiz: [
     { q: "A robot vacuum drives forward for 5 seconds and turns, without sensors. That is...", options: ["Closed-loop control", "Open-loop control", "Proportional control", "Artificial intelligence"], answer: 1, why: "Nothing is measured, so nothing is corrected." },
@@ -38,9 +38,9 @@ window.RAI_LESSONS["ROB-08"] = {
   ],
   realTitle: "Feedback is everywhere",
   real: [
-    { art: "🚗", name: "Cruise control", text: "Measures speed 50 times a second and adjusts the engine so you stay at 100 km/h uphill and down." },
-    { art: "🚁", name: "Drones", text: "Gyros measure tilt hundreds of times a second; the motors correct before you even see a wobble." },
-    { art: "🏭", name: "Factory lines", text: "Warehouse robots follow lines and floor codes with exactly this kind of steering." }
+    { art: "robotCar", name: "Cruise control", text: "Measures speed 50 times a second and adjusts the engine so you stay at 100 km/h uphill and down." },
+    { art: "drone", name: "Drones", text: "Gyros measure tilt hundreds of times a second; the motors correct before you even see a wobble." },
+    { art: "robotArm", name: "Factory lines", text: "Warehouse robots follow lines and floor codes with exactly this kind of steering." }
   ],
   game: { title: "Human line follower", mins: 6, big: "Big corrections for big mistakes, small ones for small mistakes. That's proportional control.",
     steps: ["One student is the robot, eyes closed. One is the sensor, one is the controller.", "Lay a curved tape line on the floor.", "Round 1 (bang-bang): the controller may only say 'LEFT!' or 'RIGHT!'.", "Round 2 (proportional): the controller says 'a tiny bit left', 'more left', 'sharp left'.", "Time both rounds. Which was faster and smoother?"] },

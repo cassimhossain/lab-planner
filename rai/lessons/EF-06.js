@@ -1,6 +1,6 @@
 window.RAI_LESSONS["EF-06"] = {
   fact: "Many competition robots lose because the battery voltage dropped and the brain reset mid-run: a 'brownout'.",
-  think: { q: "Your robot works on the desk but resets when the motors start. Why?", art: "🔋⚡", cap: "power problems",
+  think: { q: "Your robot works on the desk but resets when the motors start. Why?", art: "battery bolt", cap: "power problems",
     guesses: ["Bad code", "Broken motor", "The battery can't keep up!"],
     story: { h: "The mystery reset", text: "The robot drives for half a second, then the Arduino restarts. Again. And again. The code is perfect. The problem is power." },
     today: "we learn to choose batteries, make a steady 5 V with a **buck converter**, and work out **how long a robot will run**." },
@@ -8,7 +8,7 @@ window.RAI_LESSONS["EF-06"] = {
   video: { title: "Batteries for robots: mAh, voltage and current", search: "battery capacity mAh explained robotics", mins: 6, watch: ["What does mAh mean?", "Why do lithium batteries need care?", "What is a voltage regulator for?"] },
   learn: [
     { kicker: "Battery numbers", title: "Volts, mAh and amps",
-      boxes: [{ h: "Voltage (V)", text: "How hard it pushes. AA = 1.5 V, 18650 = 3.7 V.", color: "blue" }, { h: "Capacity (mAh)", text: "How much it holds. 2000 mAh = 2000 mA for 1 hour, or 200 mA for 10 hours.", color: "green" }, { h: "Max current (A)", text: "How fast it can give it. Motors need lots at once.", color: "red" }], art: "🔋" },
+      boxes: [{ h: "Voltage (V)", text: "How hard it pushes. AA = 1.5 V, 18650 = 3.7 V.", color: "blue" }, { h: "Capacity (mAh)", text: "How much it holds. 2000 mAh = 2000 mA for 1 hour, or 200 mA for 10 hours.", color: "green" }, { h: "Max current (A)", text: "How fast it can give it. Motors need lots at once.", color: "red" }], art: "battery" },
     { kicker: "Steady power", title: "Regulators and buck converters",
       text: "Battery voltage drops as it empties. Electronics want a steady voltage.", points: ["**Buck converter (LM2596):** turns 7–12 V into a steady 5 V efficiently", "Set it with the little screw while measuring with a meter", "Power motors from the battery, brains from the regulator"],
       reveal: { q: "Why not power the motors from the Arduino's 5V pin?", a: "That pin can only give a few hundred mA. Motors can need over an amp when starting: the voltage collapses and the Arduino resets (a brownout)." } },
@@ -18,7 +18,7 @@ window.RAI_LESSONS["EF-06"] = {
       boxes: [{ h: "Do", points: ["Charge with a proper charger (TP4056)", "Store at room temperature", "Check for swelling"], color: "green" }, { h: "Never", points: ["Short the terminals", "Puncture, crush or heat", "Leave charging unattended"], color: "red" }], note: { l: "If it swells", text: "Stop using it, put it in a metal tin or sand and tell the teacher." } }
   ],
   quiz: [{ q: "A robot draws 500 mA from a 2500 mAh battery. Ideal run time?", options: ["0.2 h", "5 h", "50 h", "2500 h"], answer: 1, why: "2500 ÷ 500 = 5 hours (a bit less in practice)." }, { q: "A buck converter is used to...", options: ["Charge the battery", "Make a steady lower voltage", "Make the motor reverse", "Measure current"], answer: 1, why: "It steps a higher voltage down to a steady one." }],
-  real: [{ art: "📱", name: "Phones", text: "A charging chip and regulators keep the battery safe and the voltage steady." }, { art: "🚁", name: "Drones", text: "Flight time is all about battery capacity versus motor current." }, { art: "🚀", name: "Mars rovers", text: "Perseverance uses a nuclear power source because sunlight isn't enough." }],
+  real: [{ art: "phone", name: "Phones", text: "A charging chip and regulators keep the battery safe and the voltage steady." }, { art: "drone", name: "Drones", text: "Flight time is all about battery capacity versus motor current." }, { art: "robotCar", name: "Mars rovers", text: "Perseverance uses a nuclear power source because sunlight isn't enough." }],
   game: { title: "Battery budget", mins: 6, big: "Every part spends current; capacity is your budget.", steps: ["Each team gets a 'battery' of 2000 points (mAh).", "Cards list parts with their current: motor 400, Arduino 50, LEDs 20, servo 150...", "Build a robot from cards. Divide to find run time.", "Which team's robot runs longest while still doing its job?"] },
   simWhy: "**PhET Circuit Construction Kit** shows how internal resistance makes battery voltage drop under load.",
   builds: [

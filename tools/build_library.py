@@ -12,7 +12,9 @@ Without it the site still works; new cards just show a plain cover.
 import argparse, glob, json, os, re, shutil, subprocess
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-GMAP = {"Foundation": "F", "Little Explorers": "LE", "Junior Makers": "JM", "Young Innovators": "YI", "Tech Leaders": "TL"}
+GMAP = {"Foundation": "F", "Little Explorers": "LE", "Junior Makers": "JM", "Young Innovators": "YI", "Tech Leaders": "TL",
+        # the Robotics & AI Curriculum (rai/catalog.js): one folder per category
+        "Engineering Foundations": "EF", "Robotics": "ROB", "Artificial Intelligence": "AI", "Intelligent Systems": "IS"}
 DOCS = [
     ("Curriculum/Robotics_AI_Club_16-Class_Curriculum_Plan_INTERNAL.pdf", "Phase 1 Curriculum Plan", "plan", "Internal 16-class plan for all four age groups"),
     ("Curriculum/Robotics_AI_Club_Phase2_Curriculum_Plan_INTERNAL.pdf", "Phase 2 Curriculum Plan", "plan", "Internal plan for Phase 2"),

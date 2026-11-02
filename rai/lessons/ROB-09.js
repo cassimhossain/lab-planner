@@ -1,6 +1,6 @@
 window.RAI_LESSONS["ROB-09"] = {
   fact: "A quadcopter's flight controller runs its PID loops about 1,000 times every second.",
-  think: { q: "What do a drone, an oven and cruise control have in common?", art: "🚁🔥🚗", cap: "the same 3 letters inside",
+  think: { q: "What do a drone, an oven and cruise control have in common?", art: "drone bolt robotCar", cap: "the same 3 letters inside",
     guesses: ["The same battery", "The same chip", "The same idea: PID!"],
     story: { h: "One idea everywhere", text: "A drone holds level in the wind. An oven holds 180 °C. A car holds 100 km/h uphill. Each one measures, compares and corrects using a recipe called PID." },
     today: "we learn the three ingredients, **P**, **I** and **D**, tune them in the PID Lab, then tune a real motor." },
@@ -14,7 +14,7 @@ window.RAI_LESSONS["ROB-09"] = {
   learn: [
     { kicker: "Recap", title: "Control starts with the error",
       text: "error = target − measurement. The controller turns the error into an action (motor power).", points: ["Big error → big action", "Error crosses zero → we've arrived (or passed it!)"],
-      art: "🎯", cap: "how far from the goal?" },
+      art: "map", cap: "how far from the goal?" },
     { kicker: "The three ingredients", title: "P, I and D in plain words",
       boxes: [{ h: "P · Present", text: "Push in proportion to the error now. Fast, but often stops short or wobbles.", color: "blue" },
               { h: "I · Past", text: "Add up errors over time. If the error won't go away, I slowly pushes harder.", color: "amber" },
@@ -32,16 +32,16 @@ window.RAI_LESSONS["ROB-09"] = {
     { q: "The system shoots past the target and swings back and forth. A good first fix is...", options: ["More I", "More D", "Remove the sensor", "Raise the target"], answer: 1, why: "D reacts to how fast the error changes and brakes the swing." }
   ],
   real: [
-    { art: "🚁", name: "Drones", text: "Three PID loops (roll, pitch, yaw) keep a drone level many hundreds of times a second." },
-    { art: "🌡️", name: "3D printers", text: "PID holds the hot end at exactly 200 °C so the plastic flows evenly." },
-    { art: "🤖", name: "Robot arms", text: "Every joint motor has a PID loop to reach and hold its angle precisely." }
+    { art: "drone", name: "Drones", text: "Three PID loops (roll, pitch, yaw) keep a drone level many hundreds of times a second." },
+    { art: "graph", name: "3D printers", text: "PID holds the hot end at exactly 200 °C so the plastic flows evenly." },
+    { art: "robot", name: "Robot arms", text: "Every joint motor has a PID loop to reach and hold its angle precisely." }
   ],
   game: { title: "Be the controller", mins: 6, big: "P reacts to now, I remembers the past, D predicts the future.",
     steps: ["Balance a ruler upright on your fingertip. You are a PID controller!", "Notice: you move more when it leans more (P).", "You move faster when it starts falling fast (D).", "Try with eyes closed for one second: no sensor, no control!"] },
   kitNote: "Mount an encoder disc on one motor of a 2WD chassis held off the ground, or use a fan with the IR speed sensor. Spinning freely is easiest to tune first.",
   simWhy: "The **PID Lab** shows the response graph live while you move the sliders. **Code Lab** runs the same controller in Python to plot a response.",
   builds: [
-    { title: "Tune in the PID Lab", mins: 15, sim: "pid-sim", steps: ["Motor speed: start with P only. Press 'Change the target'. Does it reach it?", "Add I a little at a time until the error disappears.", "Switch to Balancing robot. P only: what happens?", "Add D until it stands still. Press 'Push it!'", "Record your best values in the table."], art: "🎛️" },
+    { title: "Tune in the PID Lab", mins: 15, sim: "pid-sim", steps: ["Motor speed: start with P only. Press 'Change the target'. Does it reach it?", "Add I a little at a time until the error disappears.", "Switch to Balancing robot. P only: what happens?", "Add D until it stands still. Press 'Push it!'", "Record your best values in the table."], art: "pot" },
     { title: "PID on the real motor", mins: 20, steps: ["Measure speed from encoder ticks every 100 ms.", "Start with Kp only. Change the target from 60 to 120 rpm with the Serial Monitor.", "Watch the Serial Plotter: target and speed.", "Add Ki, then Kd, following the tuning recipe."],
       code: "float Kp=1.0, Ki=0.2, Kd=0.05, sum=0, last=0;\nint target = 60;           // rpm\nvoid loop() {\n  float rpm = readRPM();     // from encoder ticks\n  float e = target - rpm;\n  sum = constrain(sum + e*0.1, -200, 200);\n  float d = (e - last) / 0.1;  last = e;\n  int pwm = constrain(Kp*e + Ki*sum + Kd*d, 0, 255);\n  analogWrite(5, pwm);\n  Serial.print(target); Serial.print(' ');\n  Serial.println(rpm);\n  delay(100);\n}", note: { l: "readRPM()", text: "Counts encoder ticks in an interrupt since last time, then converts: ticks ÷ slots per turn × 600." } },
     { title: "Plot it in Python", only: ["advanced"], mins: 15, sim: "code-lab", steps: ["Simulate a motor: speed += 0.1 × (gain × power − speed).", "Run your PID for 200 steps and store the speeds.", "Plot target and speed with matplotlib.", "Measure overshoot (%) and settling time."] }

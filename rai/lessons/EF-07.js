@@ -1,6 +1,6 @@
 window.RAI_LESSONS["EF-07"] = {
   fact: "Professional robot engineers still sketch programs as flowcharts and blocks before writing code.",
-  think: { q: "The same robot program written three ways: blocks, Python, C++. Which would you trust to drive?", art: "🧩🐍➕", cap: "same idea, three languages",
+  think: { q: "The same robot program written three ways: blocks, Python, C++. Which would you trust to drive?", art: "laptop line", cap: "same idea, three languages",
     guesses: ["Blocks: easy to read", "Typed code: more powerful", "They're the same program!"],
     story: { h: "One robot, three languages", text: "Drive forward, turn right, repeat four times: a square. In blocks it's four pieces. In Python it's four lines. In C++ it's a few more. The robot doesn't care; it runs the same steps." },
     today: "we program a **simulated robot** with blocks, then read and change the same program as **typed code**." },
@@ -8,7 +8,7 @@ window.RAI_LESSONS["EF-07"] = {
   video: { title: "Block coding vs text coding", search: "block coding vs text coding explained", mins: 4, watch: ["What are blocks good at?", "What can text code do that blocks can't?", "Do programmers use both?"] },
   learn: [
     { kicker: "Big idea", title: "A program is a list of steps",
-      boxes: [{ h: "Sequence", text: "Steps in order: forward, turn, forward.", color: "blue" }, { h: "Loop", text: "Repeat steps: do it 4 times.", color: "green" }, { h: "Decision", text: "If the sensor sees a wall, turn.", color: "purple" }], art: "📋" },
+      boxes: [{ h: "Sequence", text: "Steps in order: forward, turn, forward.", color: "blue" }, { h: "Loop", text: "Repeat steps: do it 4 times.", color: "green" }, { h: "Decision", text: "If the sensor sees a wall, turn.", color: "purple" }], art: "book" },
     { kicker: "Same program", title: "Blocks and code side by side",
       code: "# Python (Open Roberta / VEXcode)\nfor i in range(4):\n    drive_forward(50)   # cm\n    turn_right(90)      # degrees\n\n// C++ (Arduino)\nfor (int i = 0; i < 4; i++) {\n  forward(50);\n  right(90);\n}",
       side: [{ h: "Blocks", text: "repeat 4 times\n  ↳ drive forward 50 cm\n  ↳ turn right 90°", color: "amber" }],
@@ -17,7 +17,7 @@ window.RAI_LESSONS["EF-07"] = {
       boxes: [{ h: "Blocks are great for", points: ["Starting fast, no typos", "Seeing the structure", "Younger learners"], color: "green" }, { h: "Typed code wins for", points: ["Big programs", "Precise maths and data", "Every real robot and job"], color: "blue" }], note: { l: "Tip", text: "Many tools show both at once. Build in blocks, then peek at the code." } }
   ],
   quiz: [{ q: "A 'loop' in a program...", options: ["Repeats steps", "Draws a circle", "Stops the robot", "Charges the battery"], answer: 0, why: "Loops repeat a set of steps." }, { q: "To draw a hexagon (6 sides), each turn should be...", options: ["90°", "60°", "45°", "120°"], answer: 1, why: "360 ÷ 6 = 60°." }],
-  real: [{ art: "🏭", name: "Factory robots", text: "Programmed with teach pendants, flowcharts and code like Python." }, { art: "🧹", name: "Robot vacuums", text: "Loops and decisions: drive, check bumper, turn." }, { art: "🎮", name: "Game characters", text: "The same sequence, loop and decision building blocks." }],
+  real: [{ art: "robotArm", name: "Factory robots", text: "Programmed with teach pendants, flowcharts and code like Python." }, { art: "robot", name: "Robot vacuums", text: "Loops and decisions: drive, check bumper, turn." }, { art: "laptop", name: "Game characters", text: "The same sequence, loop and decision building blocks." }],
   game: { title: "Program the teacher", mins: 6, big: "Computers do exactly what you say, not what you mean.", steps: ["The teacher is the robot and does EXACTLY what the class says.", "Mission: walk to the door and open it.", "Students call out commands: 'step forward 3', 'turn left'...", "Watch the robot crash into things when instructions are vague!"] },
   simWhy: "**Open Roberta Lab** shows blocks and generated code for a simulated robot, no account needed. **VEXcode VR** has 3D challenge worlds in blocks or Python. **Code Lab** runs plain Python.",
   builds: [

@@ -1,6 +1,6 @@
 window.RAI_LESSONS["AI-02"] = {
   fact: "The photo app on your phone learned to recognise cats from millions of pictures that people had labelled by hand.",
-  think: { q: "How can a computer that has never seen a banana learn to spot one?", art: "🍌📷", cap: "examples, not rules",
+  think: { q: "How can a computer that has never seen a banana learn to spot one?", art: "webcam camera", cap: "examples, not rules",
     guesses: ["Someone types the rules", "It searches the internet", "We show it examples!"],
     story: { h: "Try writing the rule", text: "\"A banana is yellow and curved.\" But some are green. Some are brown. Some are straight. Some are in a bowl with lemons. Rules break fast. Examples don't." },
     today: "we teach a computer to tell objects apart by **showing it examples**, then we try to trick it." },
@@ -15,39 +15,39 @@ window.RAI_LESSONS["AI-02"] = {
     { kicker: "Big idea", title: "Rules versus learning",
       boxes: [{ h: "Normal programming", text: "You write the rules.\nIF yellow AND curved THEN banana.", color: "blue" },
               { h: "Machine learning", text: "You give examples with answers (labels).\nThe computer finds the rules itself.", color: "purple" }],
-      art: "📏➡️🧠", cap: "from rules to examples",
+      art: "pencil brain", cap: "from rules to examples",
       note: { l: "Key words", text: "**Training data** = the examples. **Label** = the right answer for each one. **Model** = what the computer learns." } },
     { kicker: "How it learns", title: "Classes, examples and a guess",
       text: "We make **classes**: groups with a name, like banana, apple, nothing.", points: ["Each class gets lots of example pictures", "Training: the computer looks for patterns that separate the classes", "Afterwards it gives a **confidence** for each class: 92% banana, 6% apple, 2% nothing"],
       reveal: { q: "Why do we need a 'nothing' class?", a: "Without it the model must pick banana or apple even when you show it your empty hand. A 'nothing' (background) class lets it say 'I see neither'." },
-      art: "📊", cap: "a guess with a confidence" },
+      art: "graph", cap: "a guess with a confidence" },
     { kicker: "The secret", title: "Good data beats a clever computer",
       boxes: [{ h: "Bad training data", points: ["All photos on the same desk", "Always held the same way", "Only one person's hand"], color: "red" },
               { h: "Good training data", points: ["Different backgrounds and lighting", "Turned, near, far, half hidden", "Different people holding it"], color: "green" }],
       note: { l: "Remember", text: "The model only knows what you show it. If every banana photo has a blue desk behind it, it might learn **blue desk**, not banana!" } },
     { kicker: "Deeper", title: "Training, testing and overfitting", only: ["advanced"],
       text: "Keep some pictures **out** of training. Test on those.", points: ["Training accuracy: how well it does on pictures it studied", "Test accuracy: how well it does on new pictures (the honest score)", "**Overfitting:** great on training, poor on new data. It memorised instead of learning."],
-      art: "📚 vs 📝" }
+      art: "book pencil" }
   ],
   quiz: [
     { q: "What is a label in machine learning?", options: ["A sticker on the laptop", "The right answer for an example", "The name of the program", "A type of camera"], answer: 1, why: "Each training example comes with its label, like 'banana'." },
     { q: "Your model works for you but not for your friend. The best fix is...", options: ["Train longer with the same pictures", "Buy a faster computer", "Add training pictures of your friend and others", "Delete a class"], answer: 2, why: "More varied examples help the model work for everyone." }
   ],
   real: [
-    { art: "📱", name: "Phone photos", text: "Search your gallery for 'dog' or 'beach': a model trained on labelled photos finds them." },
-    { art: "🩺", name: "Medical scans", text: "Models trained on thousands of labelled X-rays help doctors spot problems early." },
-    { art: "♻️", name: "Recycling plants", text: "Cameras sort plastic, paper and metal on fast conveyor belts." }
+    { art: "phone", name: "Phone photos", text: "Search your gallery for 'dog' or 'beach': a model trained on labelled photos finds them." },
+    { art: "graph", name: "Medical scans", text: "Models trained on thousands of labelled X-rays help doctors spot problems early." },
+    { art: "bin", name: "Recycling plants", text: "Cameras sort plastic, paper and metal on fast conveyor belts." }
   ],
   game: { title: "Human classifier", mins: 8, big: "A learner is only as good as its examples. More, varied examples = better guesses.",
     steps: ["One student is the 'AI' and steps outside.", "The class picks a secret rule (e.g. 'things with wheels') and shows the AI 6 labelled picture cards: YES or NO.", "Now show 4 new cards. The AI guesses YES or NO.", "Count how many were right. Then show 6 more varied examples and test again.", "Did more examples help?"] },
   kitNote: "Use real fruit, school objects or picture cards. Three very different objects are easiest at first; similar ones (orange vs lemon) make a good challenge.",
   simWhy: "**Teachable Machine** trains in the browser and nothing is uploaded unless you choose to save. **Machine Learning for Kids** lets you use the model inside a Scratch game afterwards.",
   builds: [
-    { title: "Collect your examples", mins: 12, sim: "teachable", steps: ["Open Teachable Machine → **Image Project** → Standard.", "Rename the classes: e.g. banana, apple, nothing.", "Hold the webcam button and record **30+ pictures per class**.", "Move the object: turn it, near and far, different hands.", "For 'nothing', record the empty background and your empty hands."], art: "📸",
+    { title: "Collect your examples", mins: 12, sim: "teachable", steps: ["Open Teachable Machine → **Image Project** → Standard.", "Rename the classes: e.g. banana, apple, nothing.", "Hold the webcam button and record **30+ pictures per class**.", "Move the object: turn it, near and far, different hands.", "For 'nothing', record the empty background and your empty hands."], art: "webcam",
       note: { l: "Tip", text: "Hold the record button and slowly turn the object. You get 30 different pictures in a few seconds." } },
     { title: "Train and test", mins: 10, steps: ["Click **Train Model**. Keep the tab open while it trains.", "Look at the preview: hold up each object and read the confidence bars.", "Try to trick it: a different angle, bad lighting, a similar object.", "Write down every mistake in the test table."],
       side: [{ h: "Reading the bars", text: "Above 80%: confident. Around 50/50: unsure. Unsure on a real object means it needs more examples like that.", color: "blue" }] },
-    { title: "Fix it with better data", mins: 10, steps: ["Pick the worst mistake from your table.", "Add 15–20 new pictures of exactly that situation.", "Train again and repeat the same test.", "Did the score go up? Write the new result."], art: "🔧" },
+    { title: "Fix it with better data", mins: 10, steps: ["Pick the worst mistake from your table.", "Add 15–20 new pictures of exactly that situation.", "Train again and repeat the same test.", "Did the score go up? Write the new result."], art: "gear" },
     { title: "Test like a scientist", only: ["advanced"], mins: 10, steps: ["Collect 10 test photos per class that are **never** used for training.", "Count correct answers before and after improving the data.", "Work out accuracy = correct ÷ total × 100.", "Which class is most often confused with which?"] }
   ],
   test: { title: "Trick-the-model table", intro: "Test each idea 3 times. Was the model right?",

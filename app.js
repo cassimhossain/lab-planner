@@ -240,7 +240,7 @@
     const badge = n => (n ? `<em>${n}</em>` : "");
     $("#menu").innerHTML =
       item("home", "Overview", ic("home")) +
-      (window.RAI && shown("rai") ? `<div class="mlabel">Robotics &amp; AI</div>` + item("rai", "Robotics & AI Curriculum", ic("bot"), `<em class="soft new">${RAI.activities.length}</em>`) : "") +
+      (window.RAI && RAI.live && shown("rai") ? `<div class="mlabel">Robotics &amp; AI</div>` + item("rai", "Robotics & AI Curriculum", ic("bot"), `<em class="soft new">${RAI.activities.length}</em>`) : "") +
       `<div class="mlabel">Curriculum</div>` +
       item("curriculum", "Lesson library", ic("book"), `<em class="soft">${LIB.decks.length}</em>`) +
       D.groups.map(g => item(g.code, g.name, `<i class="gdot" style="background:${g.color}"></i>`, WEEK ? badge(nw.filter(a => a.group === g.code).length) : "")).join("") +
@@ -1064,14 +1064,17 @@
   const RAI_TYPE = { H: "Hardware", S: "Software", U: "Unplugged", HS: "Hardware + software", US: "Unplugged + software" };
   const raiCat = a => window.RAI.cats.find(x => a.code.startsWith(x.key + "-"));
   const raiMod = a => window.RAI.modules.find(m => m.key === a.mod);
+  /* a curriculum deck is a PDF in the library like every other deck (tools/build_library.py) */
+  const raiDeck = code => LIB.decks.find(d => d.code === code);
+  const raiGuide = code => (window.RAI.guides || []).includes(code) ? `library/guides/${code}_Teacher_Guide.pdf` : "";
   /* the same tile as the age-group pages, with the module's picture as its banner */
   function raiCard(a, ready) {
-    const c = raiCat(a), m = raiMod(a), ok = ready.has(a.code);
+    const c = raiCat(a), m = raiMod(a), dk = raiDeck(a.code), ok = !!dk;
     return `<button class="acard has-ban" data-rai="${esc(a.code)}" style="--c:${c.color};--l:${c.light}">
-      <span class="abanner rai"><span>${a.art || m.art || "🤖"}</span></span>
+      ${dk && dk.banner ? `<span class="abanner"><img loading="lazy" src="${esc(dk.banner)}" alt=""></span>` : `<span class="abanner rai">${window.RAI_ART ? RAI_ART.svg(a.art || m.art) : ""}</span>`}
       <span class="acard-top"><span class="adomain">${esc(m.name)}</span><span class="acode">${ok ? `<i class="sbadge" title="Has slides">${ic("play")}</i>` : ""}${esc(a.code)}</span></span>
       <span class="atitle">${esc(a.title)}</span>
-      <span class="adom">${esc(RAI_TYPE[a.type] || a.type)} · ${a.mins} min${ok ? " · slides + guide" : ""}</span>
+      <span class="adom">${esc(RAI_TYPE[a.type] || a.type)} · ${a.mins} min${dk ? ` · ${dk.pages} slides` : ""}${vidOf(a.code) ? " · video" : ""}</span>
       <span class="achips"><span class="lvl lvl-starter">Starter</span><span class="lvl lvl-core">Core</span><span class="lvl lvl-advanced">Advanced</span></span>
       <span class="afoot">${ok ? `<span class="chip green">${ic("check")}Ready</span>` : `<span class="chip ghost">Plan</span>`}<span class="aplan">Open ${ic("arrow")}</span></span>
     </button>`;
@@ -1079,30 +1082,31 @@
   /* the lesson sheet for one curriculum activity, laid out like renderModal's */
   function renderRai(code) {
     const R = window.RAI, a = R.activities.find(x => x.code === code); if (!a) return closeModal();
-    const c = raiCat(a), m = raiMod(a), ok = (R.ready || []).includes(code), q = encodeURIComponent(code);
+    const c = raiCat(a), m = raiMod(a), dk = raiDeck(code), ok = !!dk, gd = raiGuide(code), q = encodeURIComponent(code);
     const sims = a.sims.map(k => SIM.byKey[k]).filter(Boolean);
-    const hero = `<a class="mdeck raihero" href="rai/deck.html?c=${q}" aria-label="Open the slides"><span class="raiart">${a.art || m.art || "🤖"}</span>
-      <span class="mdeck-cta">${ic("play")}${ok ? "Open the slides" : "Open the plan (slides coming soon)"}</span></a>`;
+    const hero = dk ? `<button class="mdeck" data-view="${esc(dk.code)}" aria-label="Open presentation"><img src="${esc(dk.thumb)}" alt=""><span class="dplay">${ic("play")}</span><span class="mdeck-cta">${ic("play")}Open presentation · ${dk.pages} slides</span></button>`
+      : `<div class="mdeck none"><span class="raiart">${window.RAI_ART ? RAI_ART.svg(a.art || m.art) : ""}</span><span>Slides for this activity are being made</span></div>`;
+    const vv = vidOf(code);
     $("#modal").innerHTML = `<div class="sheet-m wide" style="--c:${c.color};--l:${c.light}" role="document" aria-label="${esc(a.code)} ${esc(a.title)}">
-      <div class="m-hero">${hero}<a class="mvid" href="rai/deck.html?c=${q}&view=guide"><span class="mvid-ic">${ic("book")}</span><span><b>Teacher guide</b><small>${ok ? "Prep, timing, step-by-step, troubleshooting and a rubric" : "Outcomes, depths and kit (full guide coming soon)"}</small></span>${ic("arrow")}</a><button class="m-x float" data-close aria-label="Close">${ic("x")}</button></div>
+      <div class="m-hero">${hero}${vv ? `<button class="mvid" data-video="${esc(code)}"><span class="mvid-ic">${ic("play")}</span><span><b>Watch the video</b><small>${esc(vv.title)} · ${esc(vv.channel)} · about ${vv.mins} min</small></span>${ic("arrow")}</button>` : ""}${gd ? `<a class="mvid" href="${gd}" target="_blank" rel="noopener"><span class="mvid-ic">${ic("book")}</span><span><b>Teacher guide</b><small>Prep, timing, step by step, troubleshooting and a rubric</small></span>${ic("arrow")}</a>` : ""}<button class="m-x float" data-close aria-label="Close">${ic("x")}</button></div>
       <div class="m-title"><span class="acode">${esc(a.code)} · ${esc(c.name)} · ${esc(m.name)}</span><h2>${esc(a.title)}</h2>
         <div class="facts"><span class="fact">${esc(RAI_TYPE[a.type] || a.type)}</span><span class="fact">${a.mins} min</span>${ok ? `<span class="fact ok">${ic("check")}Slides ready</span>` : ""}</div></div>
       <div class="m-body">
         <div class="m-sec lsec lgoal"><label><span>${ic("target")}The hook</span></label><p>${esc(a.hook)}</p></div>
         <div class="m-sec lsec"><label><span>${ic("flag")}Students will</span></label><ol class="lsteps">${a.outcomes.map(o => `<li>${esc(o)}</li>`).join("")}</ol></div>
         <div class="m-sec lsec"><label><span>${ic("list")}Three depths: pick one for your class</span></label>
-          <div class="raidepth">${["starter", "core", "advanced"].map(t => `<a href="rai/deck.html?c=${q}&tier=${t}"><span class="lvl lvl-${t}">${t[0].toUpperCase() + t.slice(1)}</span><span>${esc(a.tiers[t])}</span></a>`).join("")}</div></div>
+          <div class="raidepth">${["starter", "core", "advanced"].map(t => `<div><span class="lvl lvl-${t}">${t[0].toUpperCase() + t.slice(1)}</span><span>${esc(a.tiers[t])}</span></div>`).join("")}</div></div>
         <div class="m-sec lsec"><label><span>${ic("parts")}What you need <i>per group of 2</i></span></label>
           <div class="mkit">${a.kit.map(k => `<div><span>${esc(k.replace(/^★/, ""))}<small>${k.startsWith("★") ? "not in the lab yet: cheap to buy" : esc(catOf(k).cat)}</small></span><b>× 1</b></div>`).join("")}</div></div>
         ${sims.length ? `<div class="msims"><span class="msims-l">${ic("flask")}Try it on screen</span>${sims.map(s => `<a class="msim" href="${s.ext ? esc(s.href) : simHref(s)}"${s.ext ? ' target="_blank" rel="noopener"' : ""} style="--sc:${s.color}" title="${esc(s.good)}">${ic(simIcon(s))}<span><b>${esc(s.name)}${s.ext ? " ↗" : ""}</b><small>${esc(s.good)}</small></span></a>`).join("")}</div>` : ""}
         <div class="m-sec lsec"><label><span>${ic("bulb")}Key ideas</span></label><p>${a.concepts.map(esc).join(" · ")}</p></div>
       </div>
       <div class="m-foot"><div class="m-status"><small class="muted">${esc(c.name)} · ${esc(m.name)}</small></div>
-        <div class="m-acts"><a class="btn" href="rai/deck.html?c=${q}&view=guide">${ic("book")}Teacher guide</a><a class="btn primary" href="rai/deck.html?c=${q}">${ic("play")}Slides</a></div></div></div>`;
+        <div class="m-acts">${gd ? `<a class="btn" href="${gd}" target="_blank" rel="noopener">${ic("book")}Teacher guide</a>` : ""}${dk ? `<button class="btn primary" data-view="${esc(dk.code)}">${ic("play")}Slides</button>` : `<button class="btn primary" data-close>Close</button>`}</div></div></div>`;
   }
   function vRai() {
     const R = window.RAI; if (!R) return head("Robotics & AI Curriculum", "Could not load the curriculum.");
-    const ready = new Set(R.ready || []);
+    const ready = new Set(R.activities.filter(a => raiDeck(a.code)).map(a => a.code));
     const words = UI.raiQ.toLowerCase().split(/\s+/).filter(Boolean);
     const hit = a => (!UI.raiCat || a.code.startsWith(UI.raiCat + "-")) && (!UI.raiType || a.type.includes(UI.raiType)) &&
       words.every(w => (a.code + " " + a.title + " " + a.hook + " " + a.concepts.join(" ") + " " + a.kit.join(" ")).toLowerCase().includes(w));
@@ -1707,7 +1711,7 @@
   function vSettings() {
     const opt = (k, list) => `<select data-pref="${k}">${list.map(([v, l]) => `<option value="${v}"${pref(k) === v ? " selected" : ""}>${l}</option>`).join("")}</select>`;
     const theme = window.RACTheme ? window.RACTheme.mode : "system";
-    const MENU = [["rai", "Robotics & AI Curriculum"], ["curriculum", "Lesson library"], ["attendance", "Attendance"], ["buddy", "Study Buddy"], ["week", "Timetable"], ["sims", "Simulators"], ["circuit", "Circuit Lab"], ["codelab", "Code Lab"], ["hardware", "Hardware"], ["kits", "Edit kits & parts"]];
+    const MENU = [...(window.RAI && RAI.live ? [["rai", "Robotics & AI Curriculum"]] : []), ["curriculum", "Lesson library"], ["attendance", "Attendance"], ["buddy", "Study Buddy"], ["week", "Timetable"], ["sims", "Simulators"], ["circuit", "Circuit Lab"], ["codelab", "Code Lab"], ["hardware", "Hardware"], ["kits", "Edit kits & parts"]];
     return head("Settings", "Make the portal yours, set the defaults for planning and printing, and back up your plan.") + `<div class="setgrid">
       <div class="card"><h2>Look</h2>
         <label class="field">Theme<select data-theme-pick>${[["system", "Follow this device"], ["light", "Light"], ["dark", "Dark"]].map(([v, l]) => `<option value="${v}"${theme === v ? " selected" : ""}>${l}</option>`).join("")}</select></label>

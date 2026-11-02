@@ -1,6 +1,6 @@
 window.RAI_LESSONS["IS-08"] = {
   fact: "Modern recycling plants use cameras and blasts of air to sort up to 1,000 items a minute.",
-  think: { q: "How could a robot tell a bottle from a can, and push each into the right bin?", art: "♻️🤖", cap: "see → decide → sort",
+  think: { q: "How could a robot tell a bottle from a can, and push each into the right bin?", art: "bin robot", cap: "see → decide → sort",
     guesses: ["Weigh them", "Colour sensor", "Camera + AI!"],
     story: { h: "A mountain of rubbish", text: "Pakistan's cities produce tens of thousands of tonnes of waste every day. Sorting it by hand is slow, dirty and dangerous. Robots that can see are starting to help." },
     today: "we join **AI** (a model that recognises items) to **robotics** (a servo that sorts them) to make a working sorting machine." },
@@ -16,7 +16,7 @@ window.RAI_LESSONS["IS-08"] = {
       boxes: [{ h: "Perception (AI)", text: "A camera and a trained model answer: what is this?", color: "purple" },
               { h: "Decision", text: "Rules turn the answer into a choice: bottle → left bin.", color: "blue" },
               { h: "Action (robotics)", text: "A servo moves a flap to push the item.", color: "green" }],
-      art: "📷🧠⚙️" },
+      art: "camera brain gear" },
     { kicker: "Not sure?", title: "Confidence decides safely",
       text: "The model gives a confidence for each class. A good sorter only acts when it's sure.", points: ["Confidence ≥ 80%: sort it", "Below 80%: put it in the **'check' bin** for a human", "Wrong sorting costs more than slow sorting"],
       reveal: { q: "Why not just always pick the class with the highest confidence?", a: "With 40% bottle / 35% can / 25% paper the model is basically guessing. Sending it to a 'check' bin avoids a costly mistake. Real factories do exactly this." } },
@@ -30,17 +30,17 @@ window.RAI_LESSONS["IS-08"] = {
     { q: "Which part of the sorter is the AI?", options: ["The servo", "The image model", "The cardboard bins", "The USB cable"], answer: 1, why: "The model does the perception; the servo is robotics." }
   ],
   real: [
-    { art: "🏭", name: "Recycling plants", text: "Cameras + AI spot materials on fast belts; air jets push each item to its line." },
-    { art: "🍎", name: "Fruit packing", text: "Machines grade apples by colour, size and bruises, hundreds per minute." },
-    { art: "📦", name: "Warehouses", text: "Robots read labels and sort parcels into delivery routes." }
+    { art: "robotArm", name: "Recycling plants", text: "Cameras + AI spot materials on fast belts; air jets push each item to its line." },
+    { art: "camera", name: "Fruit packing", text: "Machines grade apples by colour, size and bruises, hundreds per minute." },
+    { art: "bin", name: "Warehouses", text: "Robots read labels and sort parcels into delivery routes." }
   ],
   game: { title: "Human sorting line", mins: 6, big: "A sorting system = perception + decision + action. Each part must be fast and reliable.",
     steps: ["Three students: the Camera (eyes open), the Brain (holds the rule card), the Arm (points to the bin).", "The Camera may only say what it sees in 3 words; the Brain decides the bin; the Arm moves.", "Feed 10 picture cards quickly. Count mistakes and time.", "Add a 'not sure' rule and run again."] },
   kitNote: "Use 3 clean, safe items: a plastic bottle, a can and scrunched paper. Make three bins from a cardboard box and a servo flap at the front.",
   simWhy: "**Teachable Machine** to explore the model first. **PictoBlox** (free download) to run the model and move the servo from the same blocks program.",
   builds: [
-    { title: "Train the eyes", mins: 15, sim: "teachable", steps: ["In PictoBlox: Machine Learning Environment → **Image Classifier**.", "Classes: bottle, can, paper, **empty**.", "Record 40 pictures per class at the sorting spot, items turned different ways.", "Train and test each item 5 times."], art: "📸" },
-    { title: "Build the sorter", mins: 15, steps: ["Glue a servo horn to a cardboard flap at the front of the bins.", "Servo: brown → GND, red → 5V, orange → **pin 9**.", "Test angles 30°, 90°, 150° with a short program.", "Mark the three positions on the box."], art: "📦⚙️",
+    { title: "Train the eyes", mins: 15, sim: "teachable", steps: ["In PictoBlox: Machine Learning Environment → **Image Classifier**.", "Classes: bottle, can, paper, **empty**.", "Record 40 pictures per class at the sorting spot, items turned different ways.", "Train and test each item 5 times."], art: "webcam" },
+    { title: "Build the sorter", mins: 15, steps: ["Glue a servo horn to a cardboard flap at the front of the bins.", "Servo: brown → GND, red → 5V, orange → **pin 9**.", "Test angles 30°, 90°, 150° with a short program.", "Mark the three positions on the box."], art: "bin gear",
       side: [{ h: "Safety", text: "Keep fingers away from the flap while it moves.", color: "red" }] },
     { title: "Connect brain to arm", mins: 15, sim: "pictoblox", steps: ["Add the Arduino Uno extension and connect over USB.", "Forever: analyse the image from the camera.", "If 'bottle' and confidence > 0.8 → servo 30°, wait 1 s, servo 90°.", "Same for can (90°, push) and paper (150°).", "Otherwise: show 'Not sure!' and keep the flap closed."],
       note: { l: "Tip", text: "Run the model only every half second. It gives the servo time and stops the flap from flickering." } }

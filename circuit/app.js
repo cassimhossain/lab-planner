@@ -1,13 +1,13 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=37";
-import { BOARDS, loadHex } from "./boards.js?v=37";
-import { layoutCircuit } from "./layout.js?v=37";
-import { SNIPPETS } from "./snippets.js?v=37";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=37";
-import * as T from "./tools.js?v=37";
-import { initHome, showHome, hideHome, isHome } from "./home.js?v=37";
-import { initUpload, showUpload, doFlash, boardChanged } from "./upload.js?v=37";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=37";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=38";
+import { BOARDS, loadHex } from "./boards.js?v=38";
+import { layoutCircuit } from "./layout.js?v=38";
+import { SNIPPETS } from "./snippets.js?v=38";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=38";
+import * as T from "./tools.js?v=38";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=38";
+import { initUpload, showUpload, doFlash, boardChanged } from "./upload.js?v=38";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=38";
 
 /* The simulator, the Arduino library bundler and the schematic drawer are
    roughly a third of the code and none of it is needed to open the page, so
@@ -19,7 +19,7 @@ let BUILTIN_LIBS = [], EXTRA_LIBS = [], enginePromise = null;
 function loadEngine() {
   if (enginePromise) return enginePromise;
   enginePromise = Promise.all([
-    import("./sim.js?v=37"), import("./libs.js?v=37"), import("./schematic.js?v=37"),
+    import("./sim.js?v=38"), import("./libs.js?v=38"), import("./schematic.js?v=38"),
   ]).then(([s, l, c]) => {
     Netlist = s.Netlist; Sim = s.Sim; Sim.muted = muted;
     prepareSketch = l.prepareSketch; BUILTIN_LIBS = l.BUILTIN_LIBS; EXTRA_LIBS = l.EXTRA_LIBS;
@@ -38,10 +38,10 @@ function loadCodeMirror() {
   if (cmPromise) return cmPromise;
   cmPromise = new Promise((res, rej) => {
     const css = document.createElement("link");
-    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=37";
+    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=38";
     document.head.appendChild(css);
     const sc = document.createElement("script");
-    sc.src = "../vendor/codemirror/codemirror.min.js?v=37";
+    sc.src = "../vendor/codemirror/codemirror.min.js?v=38";
     sc.onload = () => res(window.CodeMirror); sc.onerror = () => rej(new Error("CodeMirror failed to load"));
     document.head.appendChild(sc);
   });
@@ -437,6 +437,65 @@ function pinTitle(node) {
   if (BOARDS[p.type]) { const bp = BOARDS[p.type].pins[pin]; return `${esc(BOARDS[p.type].label)} · <b>${esc(pin.replace(/\.\d$/, ""))}</b>${bp && bp.label && bp.label !== pin ? ` <span>${esc(bp.label)}${bp.pwm ? " · PWM" : ""}${bp.adc != null ? " · analog" : ""}</span>` : ""}`; }
   if (p.type === "breadboard") { if (/^[tb][np]\./.test(pin)) return `Breadboard · <b>${pin[1] === "p" ? "+ rail" : "− rail"}</b>`; return `Breadboard · hole <b>${esc(pin)}</b>`; }
   return `${esc(partLabel(p))} · <b>${esc(pin)}</b>`;
+}
+
+/* ---------- aiming at a pin ----------
+   What a wire end would join: the nearest pin within a few screen pixels. It is
+   sticky, so halfway between two header pins it stays on the one already lit
+   instead of flipping as the hand settles, and the pin that is lit is always
+   the pin a click or a release joins. */
+function magnetAt(wx, wy, keep, px) {
+  const reach = px / view.z; let best = null;
+  project.parts.forEach(p => pinsWorld(p).forEach(q => {
+    const d = Math.hypot(q.x - wx, q.y - wy);
+    if (d < reach && (!best || d < best.d)) best = { node: p.id + ":" + q.name, x: q.x, y: q.y, d };
+  }));
+  if (keep && best && best.node !== keep) {
+    const k = pinPos(keep), dk = k ? Math.hypot(k.x - wx, k.y - wy) : Infinity;
+    if (dk < reach && dk < best.d * 1.35) return { node: keep, x: k.x, y: k.y, d: dk };
+  }
+  return best;
+}
+/* the big label over the pin being aimed at, with its neighbours on the same
+   header row either side, so "6" is never mistaken for "7" */
+function pinFlag(node) {
+  const f = $("#pinflag"); if (!f) return;
+  const at = node && pinPos(node);
+  if (!at) { f.classList.remove("on"); return; }
+  const i = node.indexOf(":"), id = node.slice(0, i), pin = node.slice(i + 1), p = project.parts.find(q => q.id === id), r = rt[id];
+  const board = BOARDS[p.type], bp = board && board.pins[pin];
+  const nice = n => n.replace(/\.\d$/, "");
+  let who, main = nice(pin), extra = "", nb = ["", ""];
+  if (board) {
+    who = board.label;
+    if (bp && bp.label && bp.label !== pin) extra = bp.label + (bp.pwm ? " · PWM" : "") + (bp.adc != null ? " · analog" : "");
+    else if (bp && bp.pwm) extra = "PWM";
+  } else if (p.type === "breadboard") {
+    who = "Breadboard"; main = /^[tb][np]\./.test(pin) ? (pin[1] === "p" ? "+ rail" : "− rail") : "hole " + pin;
+  } else who = partLabel(p);
+  /* neighbours: the pins beside this one on the same row of the part */
+  if (r && r.el.pinInfo && p.type !== "breadboard") {
+    const me = r.el.pinInfo.find(q => q.name === pin);
+    const row = me ? r.el.pinInfo.filter(q => Math.abs(q.y - me.y) < 1.5).sort((a, b) => a.x - b.x) : [];
+    const k = row.indexOf(me);
+    if (row.length > 2 && k >= 0) nb = [row[k - 1] ? nice(row[k - 1].name) : "", row[k + 1] ? nice(row[k + 1].name) : ""];
+  }
+  f.innerHTML = `<small>${esc(who)}</small><span class="pfrow">${nb[0] ? `<i>${esc(nb[0])}</i>` : ""}<b>${esc(main)}</b>${nb[1] ? `<i>${esc(nb[1])}</i>` : ""}</span>${extra ? `<em>${esc(extra)}</em>` : ""}`;
+  f.classList.add("on");
+  const st = $("#stage").getBoundingClientRect(), w = f.offsetWidth, h = f.offsetHeight;
+  const sx = at.x * view.z + view.x, sy = at.y * view.z + view.y;
+  let x = sx - w / 2, y = sy - h - 14;
+  if (y < 6) y = sy + 14;                                   // no room above: put it below the pin
+  x = Math.max(6, Math.min(st.width - w - 6, x));
+  f.classList.toggle("below", y > sy);
+  f.style.left = x + "px"; f.style.top = y + "px";
+}
+/* a short name for the message after a wire is joined */
+function pinShort(node) {
+  const i = node.indexOf(":"), id = node.slice(0, i), pin = node.slice(i + 1), p = project.parts.find(q => q.id === id); if (!p) return pin;
+  if (BOARDS[p.type]) { const bp = BOARDS[p.type].pins[pin]; return (bp && bp.label && bp.label !== pin ? bp.label : pin.replace(/\.\d$/, "")); }
+  if (p.type === "breadboard") return /^[tb][np]\./.test(pin) ? (pin[1] === "p" ? "+ rail" : "− rail") : "hole " + pin;
+  return partLabel(p) + " " + pin;
 }
 
 /* ---------- schematic view ----------
@@ -1164,17 +1223,14 @@ function onDown(e) {
      the dot exists. Fall back to the nearest pin within a few screen pixels, which
      is what the student was aiming at anyway. */
   let pin = e.target.closest(".pin");
-  if (!pin && !e.target.closest(".whit")) {
+  if (pin && hoverPin && !wiring && pin.dataset.pin !== hoverPin) pin = null;   // the lit pin wins over a neighbour's dot
+  if (!pin && !wiring && !e.target.closest(".whit")) {
     const [cx, cy] = toWorld(e.clientX, e.clientY);
-    let best = 7 / view.z, node = null;
-    project.parts.forEach(q => pinsWorld(q).forEach(z => {
-      const d = Math.hypot(z.x - cx, z.y - cy);
-      if (d < best) { best = d; node = q.id + ":" + z.name; }
-    }));
+    const m = magnetAt(cx, cy, hoverPin, 7), node = m && m.node;
     if (node) { ptr = [cx, cy]; drawPins(); pin = $(`#pins .pin[data-pin="${CSS.escape(node)}"]`); }
   }
   if (pin && running && T.state.probe) { e.stopPropagation(); T.toggleChannel(pin.dataset.pin); return; }
-  if (pin && !running) { e.stopPropagation(); const was = !!wiring; clickPin(pin.dataset.pin); pinDown = !was && wiring ? { sx: e.clientX, sy: e.clientY } : null; return; }
+  if (pin && !running) { e.stopPropagation(); const was = !!wiring; clickPin(wiring && hoverPin ? hoverPin : pin.dataset.pin); pinDown = !was && wiring ? { sx: e.clientX, sy: e.clientY } : null; return; }
   // while wiring, a click close to a pin finishes on that pin (magnet)
   if (wiring && hoverPin && !running && e.button === 0) { clickPin(hoverPin); return; }
   const wh = e.target.closest(".whit");
@@ -1210,24 +1266,25 @@ function onMove(e) {
   }
   let magnet = null;
   if (wiring) {
-    // snap to the nearest pin within ~10 screen px
-    let best = 10 / view.z;
-    project.parts.forEach(p => pinsWorld(p).forEach(q => { const d = Math.hypot(q.x - wx, q.y - wy); if (d < best) { best = d; magnet = { node: p.id + ":" + q.name, x: q.x, y: q.y }; } }));
+    // the end of the wire snaps to the pin it would join
+    magnet = magnetAt(wx, wy, hoverPin, 12);
     if (magnet && magnet.node === wiring.from) magnet = null;
     wiring.mouse = magnet ? [magnet.x, magnet.y] : [wx, wy];
-  }
+  } else if (!running && !drag) magnet = magnetAt(wx, wy, hoverPin, 7);   // a wire starts from the pin that is lit
   if (!drag) {
     const pin = e.target.closest && e.target.closest(".pin");
     const node = pin ? pin.dataset.pin : magnet ? magnet.node : null;
     if (node !== hoverPin) {
       hoverPin = node; const tip = $("#tip");
-      if (node) { tip.innerHTML = pinTitle(node) + (running && T.state.probe ? " " + T.readoutFor(node) : ""); tip.classList.add("on"); } else tip.classList.remove("on");
+      /* while building, the big label over the pin does the job of the tooltip */
+      if (node && running) { tip.innerHTML = pinTitle(node) + (T.state.probe ? " " + T.readoutFor(node) : ""); tip.classList.add("on"); } else tip.classList.remove("on");
+      pinFlag(running ? null : node);
       // breadboard: light up the joined holes
       project.parts.filter(p => p.type === "breadboard").forEach(p => { const el = rt[p.id] && rt[p.id].el; if (!el || !el.highlight) return; el.highlight(node && node.startsWith(p.id + ":") ? bbGroupOf(node.split(":")[1], (p.attrs || {}).cols || 30) : null); });
       $$(".pin.hot").forEach(c => c.classList.remove("hot")); if (pin) pin.classList.add("hot");
     }
     if (wiring) drawWires();
-    if (node) { const st = $("#stage").getBoundingClientRect(); const tip = $("#tip"); tip.style.left = (e.clientX - st.left + 14) + "px"; tip.style.top = (e.clientY - st.top + 16) + "px"; }
+    if (node && running) { const st = $("#stage").getBoundingClientRect(); const tip = $("#tip"); tip.style.left = (e.clientX - st.left + 14) + "px"; tip.style.top = (e.clientY - st.top + 16) + "px"; }
     if (running && T.state.probe) {
       const wh = e.target.closest && e.target.closest(".whit");
       const n = node || (wh ? (project.wires[+wh.dataset.wire] || {}).from : null);
@@ -1276,9 +1333,10 @@ function clickPin(node) {
   snapshot();
   project.wires.push({ from: wiring.from, to: node, pts: wiring.pts, color: penColor === "auto" ? autoColor(wiring.from, node) : penColor });
   sel = { kind: "wire", id: project.wires.length - 1 };
+  toast(`Joined <b>${esc(pinShort(wiring.from))}</b> → <b>${esc(pinShort(node))}</b> · wrong pin? Ctrl+Z`, "", 2400);
   cancelWire(); save(); drawWires(); showInspector();
 }
-function cancelWire() { wiring = null; document.body.classList.remove("wiring"); hint(""); drawWires(); }
+function cancelWire() { wiring = null; document.body.classList.remove("wiring"); hint(""); pinFlag(null); drawWires(); }
 function hint(t) { const h = $("#hint"); h.textContent = t; h.classList.toggle("on", !!t); }
 
 /* keep the dark-mode and full-screen buttons showing the state they are actually in */

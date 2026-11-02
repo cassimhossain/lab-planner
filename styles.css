@@ -860,10 +860,13 @@ body.booted .boot.gone { display: none; }
 
 
 /* ---------- 16. Student home and role switch ---------- */
-.rolesw { display: inline-flex; padding: 4px; gap: 4px; border-radius: var(--r-md); background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .2); align-self: center; }
-.rolesw button { min-height: 40px; padding: 0 14px; border: 0; border-radius: var(--r-sm); background: transparent; color: #DCE5F5; font-weight: 700; font-size: 14px; cursor: pointer; }
-.rolesw button:hover { color: #fff; background: rgba(255, 255, 255, .1); }
-.rolesw button.on { background: #fff; color: var(--navy-800); }
+/* the Student / Teacher switch sits in the top bar, before the theme button and Circuit Lab */
+.topbar .tb-role { margin-left: auto; display: flex; }
+.topbar .tb-role ~ .theme-btn { margin-left: 0; }
+.rolesw { display: inline-flex; height: 46px; padding: 4px; gap: 4px; border-radius: 14px; background: var(--surface); border: 1.5px solid var(--line); box-sizing: border-box; }
+.rolesw button { padding: 0 14px; border: 0; border-radius: 10px; background: transparent; color: var(--ink-muted); font-weight: 700; font-size: 14px; cursor: pointer; }
+.rolesw button:hover { color: var(--ink); background: var(--line); }
+.rolesw button.on { background: var(--primary); color: var(--on-primary); }
 .welcome .wl-btns { align-items: center; }
 .todayrow { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--sp-5); margin-bottom: 30px; align-items: start; }
 .daypack .linkbtn { margin-top: 12px; }
@@ -1156,7 +1159,7 @@ table.kt td.box::after { content: ""; display: block; width: 16px; height: 16px;
   .gban-s { width: 100%; gap: 8px; } .gban-s div { flex: 1; padding: 8px 12px; display: flex; align-items: baseline; gap: 6px; } .gban-s b { font-size: 20px; }
   /* empty days fold down to a heading and an add button */
   .wcol { min-height: 0; } .wcol.empty .wcol-h { border-bottom: 0; margin-bottom: 0; padding-bottom: 4px; } .wcol.empty .wadd { margin-top: 4px; }
-  .rolesw { width: 100%; } .rolesw button { flex: 1; }
+  .rolesw button { padding: 0 10px; }
   .lacts { gap: 10px; }
 }
 
@@ -1207,3 +1210,11 @@ table.kt td.box::after { content: ""; display: block; width: 16px; height: 16px;
   :root[data-theme="dark"] .gtab.on .gtab-code, :root[data-theme="dark"] .gtab.on > .ic { background: rgba(11, 20, 36, .14); color: #0B1424; }
   :root[data-theme="dark"] .gtab.on small, :root[data-theme="dark"] .daypick button.on span { color: rgba(11, 20, 36, .75); }
 }
+
+/* Settings: dropdowns, the menu ticks, and what the look settings switch on */
+.field select { height: 48px; border: 1.5px solid var(--line); border-radius: var(--r-md); padding: 0 12px; font: inherit; font-size: var(--fs-base); font-weight: 500; background: var(--surface); color: var(--ink); }
+.setchecks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+.setcheck { display: flex; align-items: center; gap: 10px; min-height: 40px; font-weight: 600; cursor: pointer; }
+.setcheck input { width: 20px; height: 20px; accent-color: var(--primary); }
+.no-motion *, .no-motion *::before, .no-motion *::after { animation: none !important; transition: none !important; }
+.no-buddy-btn .bd-fab { display: none !important; }

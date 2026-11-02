@@ -111,10 +111,26 @@
 
   /* ---------- state ---------- */
   const blank = () => ({ v: 1, defaultGroups: 8, name: "Qasim Mushtaq", campus: "Pak-Turk Maarif International Schools & Colleges, Chak Shahzad Campus · Robotics Lab",
-    weekStart: "", sessions: {}, kits: {}, catalog: {}, extra: [], lastBackup: "", saved: null });
+    weekStart: "", sessions: {}, kits: {}, catalog: {}, extra: [], lastBackup: "", saved: null, ui: {} });
   let S = load();
   function load() { try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.v === 1) { const o = Object.assign(blank(), s); o.extra = Array.isArray(o.extra) ? o.extra : []; return o; } } catch (e) { } return blank(); }
   function save() { S.saved = new Date().toISOString(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast("Could not save in this browser. Download a backup."); } }
+  /* Settings that change how the portal looks and behaves. They live in the
+     plan, so a backup carries them to another computer. */
+  const PREF0 = { appName: "BotBench", tagline: "", textSize: "normal", motion: "on", start: "home", buddyBtn: "on", hide: [] };
+  const pref = k => (S.ui && S.ui[k] !== undefined ? S.ui[k] : PREF0[k]);
+  const shown = k => !pref("hide").includes(k);
+  function setPref(k, v) { S.ui = Object.assign({}, S.ui, { [k]: v }); save(); applyPrefs(); }
+  function applyPrefs() {
+    const r = document.documentElement;
+    r.style.zoom = { large: "1.1", larger: "1.22" }[pref("textSize")] || "";
+    r.classList.toggle("no-motion", pref("motion") === "off");
+    r.classList.toggle("no-buddy-btn", pref("buddyBtn") === "off");
+    const name = pref("appName") || PREF0.appName, b = $(".brand-t");
+    if (b) b.innerHTML = `<b>${esc(name)}</b>${pref("tagline") ? `<small>${esc(pref("tagline"))}</small>` : ""}`;
+    const home = $(".brand"); if (home) home.setAttribute("aria-label", name + " home");
+    document.title = name;
+  }
   const EMPTY = { status: "Not started", day: "", time: "", section: "", groups: "", notes: "", date: "" };
   const sess = c => (S.sessions[c] = S.sessions[c] || Object.assign({}, EMPTY));
   const peek = c => S.sessions[c] || EMPTY;
@@ -220,7 +236,7 @@
   const kitSheetCode = () => decodeURIComponent((location.hash.match(/^#kit=(.+)$/) || [, ""])[1]);
   function renderMenu() {
     const r = route(), nw = planned();
-    const item = (k, label, icon, extra = "") => `<a href="#${k}" class="mi ${r === k ? "on" : ""}">${icon}<span>${label}</span>${extra}</a>`;
+    const item = (k, label, icon, extra = "") => shown(k) ? `<a href="#${k}" class="mi ${r === k ? "on" : ""}">${icon}<span>${label}</span>${extra}</a>` : "";
     const badge = n => (n ? `<em>${n}</em>` : "");
     $("#menu").innerHTML =
       item("home", "Overview", ic("home")) +
@@ -230,8 +246,8 @@
       (isStudent() ? "" : `<div class="mlabel">Teaching</div>` + item("attendance", "Attendance", ic("users")) + item("buddy", "Study Buddy", ic("bot")) + (WEEK ? item("week", "Timetable", ic("week"), badge(nw.length)) : "")) +
       `<div class="mlabel">Virtual labs</div>` +
       item("sims", "Simulators", ic("flask"), `<em class="soft">${SIM.list.length}</em>`) +
-      `<a href="circuit/?from=portal" class="mi">${ic("chip")}<span>Circuit Lab</span></a>` +
-      `<a href="codelab/?from=portal" class="mi">${ic("code")}<span>Code Lab</span><em class="soft new">New</em></a>` +
+      (shown("circuit") ? `<a href="circuit/?from=portal" class="mi">${ic("chip")}<span>Circuit Lab</span></a>` : "") +
+      (shown("codelab") ? `<a href="codelab/?from=portal" class="mi">${ic("code")}<span>Code Lab</span><em class="soft new">New</em></a>` : "") +
       (isStudent() ? item("buddy", "Study Buddy", ic("bot")) : "") +
       `<div class="mlabel">Lab &amp; kit</div>` +
       item("hardware", "Hardware", ic("parts")) +
@@ -248,6 +264,7 @@
     a.classList.remove("swap"); void a.offsetWidth; a.classList.add("swap");
   }
   function render() {
+    const sw = $("#tbRole"); if (sw) sw.innerHTML = roleSwitch();
     renderMenu();
     const r = route(), app = $("#app");
     app.innerHTML = r === "notfound" ? vNotFound() : r === "buddy" ? vBuddy() : r === "attendance" ? vAttendance() : r === "kitsheet" ? vKitSheet(kitSheetCode()) : r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "sims" ? vSims() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
@@ -319,7 +336,7 @@
       ${pct > 0 ? "" : "<!--"}<circle cx="32" cy="32" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * pct / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 32 32)"/>${pct > 0 ? "" : "-->"}
       <text x="32" y="37" text-anchor="middle" font-size="15" font-weight="800" fill="currentColor">${pct}%</text></svg>`;
   }
-  /* the Student / Teacher switch on the home page */
+  /* the Student / Teacher switch, in the top bar next to Circuit Lab */
   const roleSwitch = () => { const st = isStudent();
     return `<div class="rolesw" role="group" aria-label="Show the home page for"><button class="${st ? "on" : ""}" data-role="student" aria-pressed="${st}">Student</button><button class="${st ? "" : "on"}" data-role="teacher" aria-pressed="${!st}">Teacher</button></div>`; };
 
@@ -339,7 +356,7 @@
     const now = new Date(), day = fmt(now, { weekday: "long", day: "numeric", month: "long" });
     if (!PR.track || !GROUPS[PR.track]) {
       return `<section class="welcome portal"><div class="wl-txt"><span class="kicker">${day}</span><h1>Welcome to the club!</h1>
-          <p>Which group are you in? Pick it once and this page keeps your place.</p></div><div class="wl-btns">${roleSwitch()}</div>${DOODLE}</section>
+          <p>Which group are you in? Pick it once and this page keeps your place.</p></div>${DOODLE}</section>
         <div class="trackpick">${D.groups.map(g => `<button class="tpick" data-track="${g.code}" style="--c:${g.color};--l:${g.light}"><span class="pbadge">${g.code}</span><span class="pt"><b>${esc(g.name)}</b><small>Ages ${esc(g.ages)} · ${ACTS.filter(a => a.group === g.code).length} lessons</small></span>${ic("arrow")}</button>`).join("")}</div>`;
     }
     const g = GROUPS[PR.track], list = ACTS.filter(a => a.group === g.code), n = list.filter(a => finished(a.code)).length, pct = Math.round(100 * n / list.length);
@@ -350,7 +367,7 @@
     const sec = (icon, title, sub, link, body, tone = "") => `<section class="sec ${tone}"><div class="sec-h"><span class="sec-ic">${ic(icon)}</span><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ""}</div>${link || ""}</div>${body}</section>`;
     return `<section class="welcome portal"><div class="wl-txt"><span class="kicker">${day}</span><h1>Hi, ${esc(g.name)}!</h1>
         <p>${n ? `${plural(n, "lesson")} finished, ${list.length - n} to go.` : "Your first lesson is ready when you are."}</p></div>
-        <div class="wl-btns">${roleSwitch()}<button class="btn" data-track="">Change group</button></div>${DOODLE}</section>
+        <div class="wl-btns"><button class="btn" data-track="">Change group</button></div>${DOODLE}</section>
       <div class="sgrid" style="--c:${g.color};--l:${g.light}">
         <div class="sgrid-main">${cont ? lessonCard(cont, "Continue where you left off") : ""}${next ? lessonCard(next, cont ? "Then, next up" : "Next up") : `<div class="panel pdone">${ic("trophy")}You have finished every ${esc(g.name)} lesson. Amazing work!</div>`}</div>
         <div class="panel sprog"><div class="panel-h"><h2>Your progress</h2><a href="#${g.code}?view=map">Roadmap ${ic("arrow")}</a></div>
@@ -462,7 +479,7 @@
         <div class="wl-txt"><span class="kicker">${fmt(now, { weekday: "long", day: "numeric", month: "long" })}</span>
           <h1>${hi}, ${esc((S.name || "").split(" ")[0] || "teacher")}</h1>
           <p>${LIB.decks.length} lessons with slides across 4 age groups · ${SH.url ? "attendance syncs to your Google Sheet · progress is saved in this browser" : "attendance and progress are saved in this browser only"}</p></div>
-        <div class="wl-btns">${roleSwitch()}<a class="btn primary big" href="#attendance">${ic("users")}Take attendance</a><a class="btn big" href="#curriculum">${ic("book")}Lesson library</a></div>
+        <div class="wl-btns"><a class="btn primary big" href="#attendance">${ic("users")}Take attendance</a><a class="btn big" href="#curriculum">${ic("book")}Lesson library</a></div>
         ${DOODLE}
       </section>
       ${attendanceHome()}
@@ -473,7 +490,7 @@
         <div class="wl-txt"><span class="kicker">${fmt(now, { weekday: "long", day: "numeric", month: "long" })}</span>
           <h1>${hi}, ${esc((S.name || "").split(" ")[0] || "teacher")}</h1>
           <p>${LIB.decks.length} lessons across 4 age groups · ${pctAll}% of the curriculum taught · ${nw.length ? plural(nw.length, "session") + " this week" : "nothing planned this week yet"}</p></div>
-        <div class="wl-btns">${roleSwitch()}<a class="btn primary big" href="#curriculum">${ic("book")}Open lesson library</a><a class="btn big" href="circuit/?from=portal">${ic("chip")}Open Circuit Lab</a></div>
+        <div class="wl-btns"><a class="btn primary big" href="#curriculum">${ic("book")}Open lesson library</a><a class="btn big" href="circuit/?from=portal">${ic("chip")}Open Circuit Lab</a></div>
         ${DOODLE}
       </section>
       <div class="todayrow">${upnext}${dayPack}</div>
@@ -1624,7 +1641,23 @@
 
   /* ---------- SETTINGS ---------- */
   function vSettings() {
-    return head("Settings", "Defaults for planning and printing, and backups of your plan.") + `<div class="setgrid">
+    const opt = (k, list) => `<select data-pref="${k}">${list.map(([v, l]) => `<option value="${v}"${pref(k) === v ? " selected" : ""}>${l}</option>`).join("")}</select>`;
+    const theme = window.RACTheme ? window.RACTheme.mode : "system";
+    const MENU = [["curriculum", "Lesson library"], ["attendance", "Attendance"], ["buddy", "Study Buddy"], ["week", "Timetable"], ["sims", "Simulators"], ["circuit", "Circuit Lab"], ["codelab", "Code Lab"], ["hardware", "Hardware"], ["kits", "Edit kits & parts"]];
+    return head("Settings", "Make the portal yours, set the defaults for planning and printing, and back up your plan.") + `<div class="setgrid">
+      <div class="card"><h2>Look</h2>
+        <label class="field">Theme<select data-theme-pick>${[["system", "Follow this device"], ["light", "Light"], ["dark", "Dark"]].map(([v, l]) => `<option value="${v}"${theme === v ? " selected" : ""}>${l}</option>`).join("")}</select></label>
+        <label class="field">Text size${opt("textSize", [["normal", "Normal"], ["large", "Large"], ["larger", "Larger (good for a projector)"]])}</label>
+        <label class="field">Animations${opt("motion", [["on", "On"], ["off", "Off (calmer, and faster on old computers)"]])}</label>
+        <label class="field">Study Buddy button in the corner${opt("buddyBtn", [["on", "Show"], ["off", "Hide"]])}</label></div>
+      <div class="card"><h2>Name and start page</h2>
+        <label class="field">Name at the top of the menu<input id="setApp" value="${esc(pref("appName"))}" placeholder="${PREF0.appName}"></label>
+        <label class="field">Line under the name (optional)<input id="setTag" value="${esc(pref("tagline"))}" placeholder="For example your school or lab"></label>
+        <label class="field">Open on${opt("start", [["home", "Overview"], ["curriculum", "Lesson library"], ["attendance", "Attendance"], ["week", "Timetable"], ["sims", "Simulators"]])}</label>
+        <label class="field">Home page for${`<select data-rolepick><option value="teacher"${isStudent() ? "" : " selected"}>Teacher</option><option value="student"${isStudent() ? " selected" : ""}>Student</option></select>`}</label></div>
+      <div class="card"><h2>Menu</h2>
+        <p class="muted">Untick what you don't use. Overview and Settings always stay.</p>
+        <div class="setchecks">${MENU.map(([k, l]) => `<label class="setcheck"><input type="checkbox" data-menushow="${k}"${shown(k) ? " checked" : ""}>${l}</label>`).join("")}</div></div>
       <div class="card"><h2>Defaults</h2>
         <label class="field">Groups (pairs) per session<div class="stepper"><button data-gstep="-1" aria-label="Fewer groups">${ic("minus")}</button><b>${S.defaultGroups}</b><button data-gstep="1" aria-label="More groups">${ic("plus")}</button></div></label>
         <label class="field">Your name on printouts<input id="setName" value="${esc(S.name)}"></label>
@@ -1724,6 +1757,11 @@
       if (d.k === "n" && v && !allParts()[v]) S.catalog[v] = { cat: "Other", spec: "", type: "Reusable" };
       save(); render(); return; }
     if (t.id === "pBreak") { UI.pBreak = t.checked; render(); return; }
+    if (t.dataset.pref) { setPref(t.dataset.pref, t.value); render(); return; }
+    if ("themePick" in t.dataset) { if (window.RACTheme) window.RACTheme.set(t.value); return; }
+    if ("rolepick" in t.dataset) { PR.role = t.value; savePr(); render(); return; }
+    if (t.dataset.menushow) { const k = t.dataset.menushow, h = pref("hide").filter(x => x !== k); setPref("hide", t.checked ? h : h.concat(k)); render(); return; }
+    if (t.id === "setApp" || t.id === "setTag") { setPref(t.id === "setApp" ? "appName" : "tagline", t.value.trim()); return; }
     if (t.id === "setName") { S.name = t.value.trim(); save(); return; }
     if (t.id === "setCampus") { S.campus = t.value.trim(); save(); return; }
     if (t.id === "fileImport") { const f = t.files[0]; if (!f) return; const r = new FileReader();
@@ -1780,6 +1818,8 @@
   });
 
   if (!S.weekStart) { S.weekStart = nextMonday(); save(); }
+  applyPrefs();
+  if (!location.hash && pref("start") !== "home") history.replaceState(null, "", "#" + pref("start"));
   if (!openFromHash()) render();
 
   /* Drop the splash once the first page is on screen. It is held for a beat so a

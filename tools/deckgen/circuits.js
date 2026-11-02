@@ -40,9 +40,10 @@ const elbow = (a, b, x, c, w = 2.5) => wire([a, [x, a[1]], [x, b[1]], b], c, w);
 
 const dot = (x, y, c) => `<circle cx="${x}" cy="${y}" r="4" fill="${c}" stroke="${c}" stroke-width="1.4"/>`;
 
+/* Patrick Hand, a little smaller than the Caveat these were laid out in */
 const note = (x, y, s, c = "#E4572E", size = 16, anchor = "middle") =>
-  `<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="Caveat" font-weight="700"
-    font-size="${size}" fill="${c}" stroke="none">${s}</text>`;
+  `<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="Deck Hand"
+    font-size="${(size * 0.84).toFixed(1)}" fill="${c}" stroke="none">${s}</text>`;
 
 const lbl = (x, y, s, c = MUTED, size = 11, anchor = "middle", weight = 700) =>
   `<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="Deck Body" font-weight="${weight}"

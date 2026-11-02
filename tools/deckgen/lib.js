@@ -5,7 +5,7 @@ const titleSlide = ({ series, main, accentWords = [], hook, pills, art, fig, not
   let title = main;
   accentWords.forEach(w => { title = title.replace(w, `<em>${w}</em>`); });
   return {
-    bare: true, deco: false,
+    bare: true,
     blobs: [{ x: -150, y: -170, w: 520, c: "#DCEFEC" }, { x: 640, y: 300, w: 480, c: "#FBEFD4" }],
     raw: `<div style="position:absolute;left:70px;top:150px;width:560px;z-index:4">
       <div class="t-series">${series}</div>
@@ -14,8 +14,8 @@ const titleSlide = ({ series, main, accentWords = [], hook, pills, art, fig, not
       <div class="pills" style="margin-top:22px">${pills.map((p, i) =>
         `<span class="pill" style="background:var(--${["orange", "blue", "green", "purple"][i % 4]})">${p}</span>`).join("")}</div>
     </div>
-    ${fig ? `<div style="position:absolute;right:48px;top:120px;width:360px;height:230px;z-index:4">${fig}</div>`
-          : `<div class="art" style="position:absolute;right:90px;top:150px;width:260px;height:220px;z-index:4">${art}</div>`}
+    ${fig ? `<div class="t-fig" style="position:absolute;right:48px;top:120px;width:360px;height:230px;z-index:4">${fig}</div>`
+          : `<div class="art t-fig" style="position:absolute;right:90px;top:150px;width:260px;height:220px;z-index:4">${art}</div>`}
     ${note ? `<div class="note" style="position:absolute;left:70px;bottom:62px;width:600px;z-index:4">
       <svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg>
       <svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg>
@@ -24,7 +24,7 @@ const titleSlide = ({ series, main, accentWords = [], hook, pills, art, fig, not
 };
 
 const divider = ({ part, main, sub, pills, art }) => ({
-  bare: true, deco: false,
+  bare: true,
   blobs: [{ x: 560, y: -170, w: 560, c: "#FAE3CF" }, { x: -180, y: 300, w: 460, c: "#DCE6FB" }],
   raw: `<div style="position:absolute;left:70px;top:208px;width:560px;z-index:4">
     <div class="d-part">${part}</div>

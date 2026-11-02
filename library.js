@@ -9,7 +9,7 @@ window.LIBRARY = {
    "thumb": "library/thumbs/EF-10.jpg",
    "banner": "library/banners/EF-10.jpg",
    "pages": 22,
-   "kb": 3236
+   "kb": 3095
   },
   {
    "code": "F-00",
@@ -719,7 +719,7 @@ window.LIBRARY = {
    "thumb": "library/thumbs/ROB-05.jpg",
    "banner": "library/banners/ROB-05.jpg",
    "pages": 19,
-   "kb": 3064
+   "kb": 2873
   },
   {
    "code": "ROB-06",
@@ -729,7 +729,7 @@ window.LIBRARY = {
    "thumb": "library/thumbs/ROB-06.jpg",
    "banner": "library/banners/ROB-06.jpg",
    "pages": 19,
-   "kb": 2862
+   "kb": 2707
   },
   {
    "code": "ROB-07",
@@ -739,7 +739,7 @@ window.LIBRARY = {
    "thumb": "library/thumbs/ROB-07.jpg",
    "banner": "library/banners/ROB-07.jpg",
    "pages": 17,
-   "kb": 2541
+   "kb": 2455
   },
   {
    "code": "ROB-10",
@@ -749,7 +749,7 @@ window.LIBRARY = {
    "thumb": "library/thumbs/ROB-10.jpg",
    "banner": "library/banners/ROB-10.jpg",
    "pages": 19,
-   "kb": 3008
+   "kb": 2880
   },
   {
    "code": "TL-01",

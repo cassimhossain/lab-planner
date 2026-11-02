@@ -43,10 +43,10 @@ module.exports = {
 
     { tag: "LEARN", kicker: "Objective 1 · The big idea", title: "Serial: one wire, one bit at a time",
       blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;height:100%">
-        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Parallel</h3>
+        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="gears">Parallel</h3>
           <p>Eight wires carry eight bits at the same instant. Fast, but it costs eight pins, eight tracks on the board and eight chances of a bad joint.</p>
           <p style="margin-top:8px">This is how the old printer cables worked. Look at the back of an old PC and you will see the enormous plug.</p></div></div>
-        <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Serial</h3>
+        <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="wave">Serial</h3>
           <p>One wire carries the same eight bits <strong>one after another</strong>, very quickly. It costs one pin instead of eight.</p>
           <p style="margin-top:8px">Nearly everything modern is serial: USB, HDMI, Ethernet, SATA. Fewer wires turned out to be worth more than doing it all at once.</p></div></div>
         <div class="note teal" style="grid-column:1/3"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><b>Why serial won</b><span>A single wire can be driven faster and more cleanly than eight wires that must all arrive at the same nanosecond. Simplicity beat brute force.</span></div></div></div>` }] },
@@ -121,11 +121,11 @@ module.exports = {
 
     { tag: "LEARN", kicker: "In the real world", title: "You are surrounded by these three",
       blocks: [{ t: "html", html: `<div class="cols c3" style="flex:1 1 auto;min-height:0;display:grid;gap:18px">
-        <div class="box fill c-blue"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>I2C</h3>
+        <div class="box fill c-blue"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="chip">I2C</h3>
           <p>The digital scale at a kiryana shop: load cell amplifier, display and clock all on one pair of wires inside a cheap plastic case.</p></div></div>
-        <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>UART</h3>
+        <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="chat">UART</h3>
           <p>A GPS module in a delivery bike tracker. It simply talks, once a second, down one wire, whether anybody is listening or not.</p></div></div>
-        <div class="box fill c-purple"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>SPI</h3>
+        <div class="box fill c-purple"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="bolt">SPI</h3>
           <p>The LED matrix boards on Jinnah Avenue. Thousands of pixels need refreshing many times a second, which only SPI can keep up with.</p></div></div></div>` }] },
 
     divider({
@@ -136,7 +136,7 @@ module.exports = {
     }),
 
     { tag: "MAKE", kicker: "Class game", title: "Be the bus",
-      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.1fr 1fr;gap:22px;height:100%">
+      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.1fr 1fr;gap:22px;align-items:start">
         <div class="box fill c-green"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>How to play</h3>
           <ol style="margin:6px 0 0 19px;line-height:1.8">
             <li>Everyone gets a sticky note with a number. That is your address.</li>
@@ -152,14 +152,14 @@ module.exports = {
 
     { tag: "MAKE", kicker: "Before you wire", title: "What you need",
       blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;height:100%">
-        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Kit, per pair</h3>
+        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="breadboard">Kit, per pair</h3>
           <ul style="margin:6px 0 0 18px;line-height:1.8">
             <li>Arduino Uno + USB cable (×2 for the UART step)</li>
             <li>OLED 128×64 I2C display</li>
             <li>MPU6050 motion sensor</li>
             <li>Breadboard and jumper wires</li>
           </ul></div></div>
-        <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Wiring, every time</h3>
+        <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="line">Wiring, every time</h3>
           <p><strong>SDA → A4 · SCL → A5 · VCC → 5V · GND → GND</strong></p>
           <p style="margin-top:8px">Both I2C devices go to the <em>same</em> four rails. That is the whole point: you are not giving each one its own pins.</p>
           <p style="margin-top:8px;color:#8A94A6">Check GND first, before power. A missing ground is the single commonest fault in this lesson.</p></div></div></div>` }] },
@@ -254,19 +254,19 @@ Adafruit_SSD1306 oled(128, 64, &amp;Wire, -1);
 }</div></div>` }] },
 
     { tag: "MAKE", kicker: "Build step 3 of 3", title: "Two boards, one conversation",
-      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1fr 1.05fr;gap:22px;height:100%">
+      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:.86fr 1fr 1fr;gap:16px;height:100%;align-items:start">
         <div class="stack">
           <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Do this</h3>
-            <ol style="margin:4px 0 0 19px;line-height:1.7">
-              <li><strong>TX of board A → RX of board B</strong>, and back the other way.</li>
+            <ol style="margin:4px 0 0 19px;line-height:1.6">
+              <li><strong>Pin 11 of A → pin 10 of B</strong>, and pin 11 of B → pin 10 of A.</li>
               <li>Join the two <strong>GND</strong> pins. This is not optional.</li>
-              <li>Send a number when a button is pressed.</li>
-              <li>Light an LED on the other board when it arrives.</li></ol></div></div>
+              <li>A button on <strong>pin 2</strong> of board A.</li>
+              <li>Press it: the LED on <strong>pin 13</strong> of board B blinks.</li></ol></div></div>
           <div class="note"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><b>Gibberish on screen?</b><span>The two boards disagree about baud rate. Both must say 9600. Garbage means wrong speed; silence means wrong wiring.</span></div></div>
         </div>
-        <div class="code" style="align-self:start"><span class="cm">// Board A: sender</span>
+        <div class="code" style="font-size:10.6px;line-height:1.5"><span class="cm">// Board A: sender</span>
 #include &lt;SoftwareSerial.h&gt;
-SoftwareSerial link(10, 11);  <span class="cm">// RX, TX</span>
+SoftwareSerial link(10, 11); <span class="cm">// RX, TX</span>
 
 <span class="kw">void</span> setup() {
   link.begin(<span class="st">9600</span>);
@@ -278,14 +278,25 @@ SoftwareSerial link(10, 11);  <span class="cm">// RX, TX</span>
     link.println(<span class="st">"PING"</span>);
     delay(300);
   }
+}</div>
+        <div class="code" style="font-size:10.6px;line-height:1.5"><span class="cm">// Board B: receiver</span>
+#include &lt;SoftwareSerial.h&gt;
+SoftwareSerial link(10, 11); <span class="cm">// RX, TX</span>
+
+<span class="kw">void</span> setup() {
+  link.begin(<span class="st">9600</span>);
+  pinMode(13, OUTPUT);
 }
 
-<span class="cm">// Board B: receiver</span>
 <span class="kw">void</span> loop() {
   <span class="kw">if</span> (link.available()) {
-    String m = link.readStringUntil(<span class="st">'\\n'</span>);
-    <span class="kw">if</span> (m.startsWith(<span class="st">"PING"</span>))
+    String m =
+      link.readStringUntil(<span class="st">'\\n'</span>);
+    <span class="kw">if</span> (m.startsWith(<span class="st">"PING"</span>)) {
       digitalWrite(13, HIGH);
+      delay(200);
+      digitalWrite(13, LOW);
+    }
   }
 }</div></div>` }] },
 
@@ -318,7 +329,7 @@ SoftwareSerial link(10, 11);  <span class="cm">// RX, TX</span>
 
     { tag: "WRAP UP", kicker: "Show what you know", title: "What did we learn?",
       blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.15fr 1fr;gap:22px;height:100%">
-        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Five things to keep</h3>
+        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="book">Five things to keep</h3>
           <ul style="margin:6px 0 0 18px;line-height:1.85">
             <li>Serial sends bits one at a time, and it won.</li>
             <li>I2C: two wires, many devices, each with an address.</li>
@@ -327,7 +338,7 @@ SoftwareSerial link(10, 11);  <span class="cm">// RX, TX</span>
             <li>Shared GND is never optional.</li>
           </ul></div></div>
         <div class="stack">
-          <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Exit ticket</h3>
+          <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="pencil">Exit ticket</h3>
             <p>You are adding a GPS, a screen and an SD card to one robot. Which protocol for each, and why?</p></div></div>
           <div class="note teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><b>Next class</b><span>EF-11: libraries. How somebody else's code saves you two hours, and how to read it when it misbehaves.</span></div></div>
         </div></div>` }] },

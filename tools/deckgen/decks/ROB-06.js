@@ -88,11 +88,11 @@ module.exports = {
 
     { tag: "LEARN", kicker: "In the real world", title: "Open your eyes and spot them",
       blocks: [{ t: "html", html: `<div class="cols c3" style="flex:1 1 auto;min-height:0;display:grid;gap:18px">
-        <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>DC motor</h3>
+        <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="motor">DC motor</h3>
           <p>A pedestal fan, a drill, a toy car. You want it to go round; nobody cares exactly where it stops.</p></div></div>
-        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Servo</h3>
+        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="servo">Servo</h3>
           <p>The flaps on a model aeroplane, a camera gimbal, the steering of an RC car. Hold this angle, against wind.</p></div></div>
-        <div class="box fill c-purple"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Stepper</h3>
+        <div class="box fill c-purple"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="stepper">Stepper</h3>
           <p>A 3D printer, a CNC router, the paper feed in a photocopier. Move exactly this far, every time.</p></div></div></div>` }] },
 
     divider({
@@ -119,14 +119,14 @@ module.exports = {
 
     { tag: "MAKE", kicker: "Before you wire", title: "What you need",
       blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;height:100%">
-        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Kit, per pair</h3>
+        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="breadboard">Kit, per pair</h3>
           <ul style="margin:6px 0 0 18px;line-height:1.8">
             <li>SG90 servo (orange signal, red 5V, brown GND)</li>
             <li>28BYJ-48 stepper + ULN2003 driver board</li>
             <li>Arduino Uno + USB cable</li>
             <li>Half-size breadboard, jumper wires</li>
           </ul></div></div>
-        <div class="box fill c-red"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Power warning</h3>
+        <div class="box fill c-red"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="battery">Power warning</h3>
           <p>One SG90 on the Arduino's 5 V is fine. <strong>Two or more is not.</strong> They pull current in spikes and reset the board.</p>
           <p style="margin-top:8px">The stepper always takes its own 5 V supply through the ULN2003. Share the ground, never the 5 V rail.</p></div></div></div>` }] },
 
@@ -272,7 +272,7 @@ Servo needle;
 
     { tag: "WRAP UP", kicker: "Show what you know", title: "What did we learn?",
       blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.15fr 1fr;gap:22px;height:100%">
-        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Five things to keep</h3>
+        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="book">Five things to keep</h3>
           <ul style="margin:6px 0 0 18px;line-height:1.85">
             <li>DC controls speed, servo controls angle, stepper counts.</li>
             <li>A servo reads pulse width, between 1 and 2 ms.</li>
@@ -281,7 +281,7 @@ Servo needle;
             <li>Steppers lose torque as they speed up.</li>
           </ul></div></div>
         <div class="stack">
-          <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Exit ticket</h3>
+          <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="pencil">Exit ticket</h3>
             <p>You are building a robot that must lift a cup to a shelf and hold it there. Which motor, and what happens if you choose wrong?</p></div></div>
           <div class="note teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><b>Next class</b><span>ROB-07: encoders. How a robot works out how far it has actually travelled, rather than how far it meant to.</span></div></div>
         </div></div>` }] },

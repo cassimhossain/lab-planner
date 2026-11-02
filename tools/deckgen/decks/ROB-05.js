@@ -59,9 +59,9 @@ module.exports = {
       blocks: [
         { t: "figbox", name: "l298n", color: "green", h: "Two motors, one board", style: "min-height:0" },
         { t: "html", html: `<div class="stack">
-          <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>IN pins decide direction</h3>
+          <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="arrow">IN pins decide direction</h3>
             <p>IN1 HIGH and IN2 LOW drives motor A one way. Swap them and it reverses. Both the same means brake.</p></div></div>
-          <div class="box fill c-purple"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>EN pins decide speed</h3>
+          <div class="box fill c-purple"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="wave">EN pins decide speed</h3>
             <p>ENA and ENB take PWM from pins 5, 6, 9, 10 or 11. 0 is stopped, 255 is flat out.</p></div></div>
           <div class="note"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><b>The 5V jumper</b><span>Leave it on and the board powers the Arduino from the battery. Take it off if you also have USB plugged in, or the two supplies fight.</span></div></div>
         </div>` },
@@ -94,11 +94,11 @@ module.exports = {
 
     { tag: "LEARN", kicker: "In the real world", title: "Where you have seen this",
       blocks: [{ t: "html", html: `<div class="cols c3" style="flex:1 1 auto;min-height:0;display:grid;gap:18px">
-        <div class="box fill c-blue"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Robot vacuum</h3>
+        <div class="box fill c-blue"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="robot">Robot vacuum</h3>
           <p>Two driven wheels, one caster, and a clever turn-on-the-spot when it meets a chair leg. Exactly this drive.</p></div></div>
-        <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Electric wheelchair</h3>
+        <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="motor">Electric wheelchair</h3>
           <p>The joystick does not steer. It sets two wheel speeds, and the chair curves because they differ.</p></div></div>
-        <div class="box fill c-purple"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Warehouse AGV</h3>
+        <div class="box fill c-purple"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="map">Warehouse AGV</h3>
           <p>Shelf-carrying robots turn in their own footprint, because an aisle has no room for a turning circle.</p></div></div></div>` }] },
 
     divider({
@@ -110,7 +110,7 @@ module.exports = {
 
     { tag: "MAKE", kicker: "Before you build", title: "What you need",
       blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;height:100%">
-        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Kit, per pair</h3>
+        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="breadboard">Kit, per pair</h3>
           <ul style="margin:6px 0 0 18px;line-height:1.8">
             <li>2WD chassis kit: plate, 2 gear motors, 2 wheels, caster</li>
             <li>L298N motor driver</li>
@@ -118,7 +118,7 @@ module.exports = {
             <li>4×AA battery pack</li>
             <li>Male-female jumper wires, screwdriver set</li>
           </ul></div></div>
-        <div class="box fill c-red"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Safety, before power</h3>
+        <div class="box fill c-red"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="bolt">Safety, before power</h3>
           <ul style="margin:6px 0 0 18px;line-height:1.8">
             <li>Wheels <strong>off the desk</strong> for every first test.</li>
             <li>Tie long hair back. Gear motors catch it.</li>
@@ -266,7 +266,7 @@ module.exports = {
 
     { tag: "WRAP UP", kicker: "Show what you know", title: "What did we learn?",
       blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.15fr 1fr;gap:22px;height:100%">
-        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Five things to keep</h3>
+        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="book">Five things to keep</h3>
           <ul style="margin:6px 0 0 18px;line-height:1.85">
             <li>Arduino pins give signals. Drivers give power.</li>
             <li>An H-bridge reverses a motor with four switches.</li>
@@ -275,7 +275,7 @@ module.exports = {
             <li>No shared ground, no working robot.</li>
           </ul></div></div>
         <div class="stack">
-          <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Exit ticket</h3>
+          <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="pencil">Exit ticket</h3>
             <p>Your robot drifts left. Name two different fixes, one mechanical and one in code.</p></div></div>
           <div class="note teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><b>Next class</b><span>ROB-06: servos and steppers. A DC motor spins; a servo points; a stepper counts.</span></div></div>
         </div></div>` }] },

@@ -47,9 +47,9 @@ module.exports = {
       blocks: [
         { t: "figbox", name: "compFilter", color: "teal", h: "Each fixes the other's fault", style: "min-height:0" },
         { t: "html", html: `<div class="stack">
-          <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Accelerometer</h3>
+          <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="chip">Accelerometer</h3>
             <p>Measures which way gravity pulls, so it always knows true vertical. But every motor vibration shakes it, so the reading jumps about.</p></div></div>
-          <div class="box fill c-blue"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Gyroscope</h3>
+          <div class="box fill c-blue"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="gears">Gyroscope</h3>
             <p>Measures how fast you are rotating. Add it up over time and you get an angle: beautifully smooth, but it <strong>drifts</strong> a degree every few seconds.</p></div></div>
           <div class="note"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><b>Fusion</b><span>Trust the gyro for the short term and the accelerometer for the long term. One line of code does it.</span></div></div>
         </div>` },
@@ -97,11 +97,11 @@ module.exports = {
 
     { tag: "LEARN", kicker: "In the real world", title: "Inverted pendulums you have met",
       blocks: [{ t: "html", html: `<div class="cols c3" style="flex:1 1 auto;min-height:0;display:grid;gap:18px">
-        <div class="box fill c-blue"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>You, standing up</h3>
+        <div class="box fill c-blue"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="hand">You, standing up</h3>
           <p>Your ankles make tiny corrections constantly. Stand still and feel them. Your inner ear is the IMU.</p></div></div>
-        <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>A rocket on launch</h3>
+        <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="star">A rocket on launch</h3>
           <p>Thrust is below the mass, so it is an inverted pendulum too. The engine gimbals to keep it pointing up.</p></div></div>
-        <div class="box fill c-purple"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>A Segway</h3>
+        <div class="box fill c-purple"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="robot">A Segway</h3>
           <p>Lean forward and the wheels drive forward to get back under you. You are steering by deliberately falling.</p></div></div></div>` }] },
 
     divider({
@@ -113,7 +113,7 @@ module.exports = {
 
     { tag: "MAKE", kicker: "Before you build", title: "What you need",
       blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;height:100%">
-        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Kit, per pair</h3>
+        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="breadboard">Kit, per pair</h3>
           <ul style="margin:6px 0 0 18px;line-height:1.8">
             <li>MPU6050 IMU</li>
             <li>2WD chassis, rebuilt <strong>tall</strong>: battery at the top</li>
@@ -121,7 +121,7 @@ module.exports = {
             <li>Arduino Uno + USB cable</li>
             <li>18650 cell + holder</li>
           </ul></div></div>
-        <div class="box fill c-red"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Build it tall on purpose</h3>
+        <div class="box fill c-red"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="robot">Build it tall on purpose</h3>
           <p>A short robot falls too fast for an Uno to catch. Put the heavy battery <strong>as high as you can</strong>.</p>
           <p style="margin-top:8px">This is the broom-versus-pencil question from the start of the lesson, and now it is your design decision.</p>
           <p style="margin-top:8px;color:#8A94A6">Keep fingers away from the wheels. Test over a soft surface.</p></div></div></div>` }] },
@@ -256,7 +256,7 @@ module.exports = {
 
     { tag: "WRAP UP", kicker: "Show what you know", title: "What did we learn?",
       blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.15fr 1fr;gap:22px;height:100%">
-        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Five things to keep</h3>
+        <div class="box fill c-teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="book">Five things to keep</h3>
           <ul style="margin:6px 0 0 18px;line-height:1.85">
             <li>A balancing robot is an inverted pendulum: unstable by nature.</li>
             <li>Accelerometers are noisy; gyros drift. Fuse them.</li>
@@ -265,7 +265,7 @@ module.exports = {
             <li>Tune one gain at a time, and write it down.</li>
           </ul></div></div>
         <div class="stack">
-          <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3>Exit ticket</h3>
+          <div class="box fill c-orange"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="pencil">Exit ticket</h3>
             <p>Your robot shakes rapidly and falls. Which gain would you change first, up or down, and why?</p></div></div>
           <div class="note teal"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><b>At home</b><span>Watch a lift arrive at a floor. It slows before it stops. That is D, working in a building.</span></div></div>
         </div></div>` }] },

@@ -3,12 +3,16 @@
    A deck is a plain JS array of slide objects. This turns it into HTML and
    prints it to a 16:9 PDF with Playwright, in the club's house style.
 
-   node render.js decks/EF-10.js out/EF-10.pdf
+   node render.js decks/EF-10.js out/EF-10.pdf [--png] [--banner]
+   --banner also writes the deck's portal tile to library/banners/<code>.jpg
 */
 
 const fs = require("fs");
 const path = require("path");
-const { chromium } = require("playwright");
+/* the full playwright package brings its own browser; playwright-core uses
+   the Google Chrome already installed on the machine */
+let chromium, viaChrome = false;
+try { ({ chromium } = require("playwright")); } catch (e) { ({ chromium } = require("playwright-core")); viaChrome = true; }
 
 const HERE = __dirname;
 const ART = require("./art.js");            // the hand-drawn doodle library
@@ -39,7 +43,7 @@ function block(b) {
 
     case "box": return `<div class="box fill c-${b.color || "blue"}" ${style(b)}>${frame(true)}
       <div class="inner">
-        ${b.h ? `<h3>${b.icon ? ART.svg(b.icon, "", "ic") : ""}${md(b.h)}</h3>` : ""}
+        ${b.icon ? bic(b.icon) : ""}${b.h ? `<h3>${md(b.h)}</h3>` : ""}
         ${b.text ? `<p>${md(b.text)}</p>` : ""}
         ${b.points ? `<ul style="margin:4px 0 0 17px">${b.points.map(p => `<li>${md(p)}</li>`).join("")}</ul>` : ""}
         ${b.art ? `<div class="art" style="height:${b.artH || 96}px;margin:8px 0 2px">${ART.svg(b.art)}</div>` : ""}
@@ -130,6 +134,8 @@ function block(b) {
   }
 }
 const style = b => b.style ? `style="${b.style}"` : "";
+/* the outline icon at the left of a box, in the box's colour */
+const bic = name => `<span class="bic">${ART.svg(name, "", "", "currentColor")}</span>`;
 
 function code(src, extra = "") {
   const h = esc(src)
@@ -184,7 +190,8 @@ function html(deck) {
   <filter id="rai-rough"><feTurbulence type="fractalNoise" baseFrequency="0.028" numOctaves="2" seed="3" result="n"/>
   <feDisplacementMap in="SourceGraphic" in2="n" scale="2.2" xChannelSelector="R" yChannelSelector="G"/></filter>
 </defs></svg>
-${deck.slides.map((s, i) => slide(s, i, n, deck)).join("\n")}
+${deck.slides.map((s, i) => slide(s, i, n, deck)).join("\n")
+  .replace(/<div class="inner"><h3 ic="([a-z0-9]+)">/g, (m, k) => `<div class="inner">${bic(k)}<h3>`)}
 </body></html>`;
 }
 
@@ -198,7 +205,7 @@ ${deck.slides.map((s, i) => slide(s, i, n, deck)).join("\n")}
   const tmp = path.join(HERE, ".deck.html");
   fs.writeFileSync(tmp, doc);
 
-  const b = await chromium.launch();
+  const b = await chromium.launch(viaChrome ? { channel: "chrome" } : {});
   const p = await (await b.newContext()).newPage();
   await p.goto("file://" + tmp, { waitUntil: "networkidle" });
   await p.evaluate(() => document.fonts.ready);
@@ -254,6 +261,32 @@ ${deck.slides.map((s, i) => slide(s, i, n, deck)).join("\n")}
     const els = await p.$$(".slide");
     for (let i = 0; i < els.length; i++) await els[i].screenshot({ path: `${dir}/${String(i + 1).padStart(2, "0")}.png` });
     console.log(`pngs: ${dir}`);
+  }
+  /* the tile banner for the portal: the title slide's drawing on the
+     category colour, 720 x 240 like every other banner in library/banners */
+  if (process.argv.includes("--banner")) {
+    const fig = await p.$(".slide .t-fig");
+    if (fig) {
+      /* only the drawing: the slide's paper, blobs and words are hidden */
+      await p.evaluate(() => {
+        const sl = document.querySelector(".slide"), f = sl.querySelector(".t-fig");
+        sl.style.background = "transparent";
+        document.documentElement.style.background = document.body.style.background = "transparent";
+        [...sl.children].forEach(c => { if (c !== f) c.style.visibility = "hidden"; });
+        window.scrollTo(0, 0);   // the slide PNGs leave the page scrolled to the end
+      });
+      const r = await fig.boundingBox(), pad = 16;
+      const png = (await p.screenshot({ omitBackground: true, clip: { x: r.x - pad, y: r.y - pad, width: r.width + 2 * pad, height: r.height + 2 * pad } })).toString("base64");
+      const bp = await (await b.newContext({ viewport: { width: 720, height: 240 } })).newPage();
+      /* the category's colours, as on its portal cards (rai/catalog.js) */
+      const CAT = { EF: ["#FDF1E3", "#E0892B"], ROB: ["#E8F0FD", "#2E6BE6"], AI: ["#F1E9FB", "#7B3FC4"], IS: ["#E3F6F2", "#14967F"] };
+      const [light, strong] = CAT[deck.code.split("-")[0]] || ["#FFF9F0", "#8A94A6"];
+      await bp.setContent(`<body style="margin:0"><div style="width:720px;height:240px;background:${light};border-bottom:6px solid ${strong};box-sizing:border-box;display:grid;place-items:center">
+        <img src="data:image/png;base64,${png}" style="max-width:660px;max-height:222px"></div></body>`);
+      const dst = path.join(HERE, "..", "..", "library", "banners", deck.code + ".jpg");
+      await bp.screenshot({ path: dst, type: "jpeg", quality: 82 });
+      console.log(`banner: ${path.relative(path.join(HERE, "..", ".."), dst)}`);
+    }
   }
   await b.close();
   console.log(`${out}  ${deck.slides.length} slides  ${(fs.statSync(out).size / 1024).toFixed(0)} KB`);

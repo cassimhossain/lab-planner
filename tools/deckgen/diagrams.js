@@ -41,9 +41,11 @@ const tx = (x, y, s, c = C.body, size = 12, weight = 400, anchor = "middle") =>
   `<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="Deck Body" font-size="${size}"
     font-weight="${weight}" fill="${c}" stroke="none">${s}</text>`;
 
+/* Patrick Hand runs wider than the Caveat these were laid out in, so it is
+   set a little smaller to keep each note in its place */
 const hand = (x, y, s, c = C.orange, size = 17) =>
-  `<text x="${x}" y="${y}" text-anchor="middle" font-family="Caveat" font-weight="700"
-    font-size="${size}" fill="${c}" stroke="none">${s}</text>`;
+  `<text x="${x}" y="${y}" text-anchor="middle" font-family="Deck Hand"
+    font-size="${(size * 0.84).toFixed(1)}" fill="${c}" stroke="none">${s}</text>`;
 
 const chipBody = (x, y, w, h, c, label) => box(x, y, w, h, c, label);
 
@@ -138,14 +140,12 @@ DIAGRAMS.servoPulse = () => S(400, 210, `
   ${tx(99, 92, "20 ms frame, every time", C.muted, 11)}`);
 
 DIAGRAMS.motorPick = () => S(400, 200, `
-  ${box(12, 40, 112, 92, C.orange, "DC motor")}
-  ${box(144, 40, 112, 92, C.teal, "Servo")}
-  ${box(276, 40, 112, 92, C.purple, "Stepper")}
-  ${tx(68, 86, "spins, fast", C.body, 12)}${tx(68, 104, "no idea where", C.muted, 11)}
-  ${tx(200, 86, "points, 0-180°", C.body, 12)}${tx(200, 104, "holds an angle", C.muted, 11)}
-  ${tx(332, 86, "counts steps", C.body, 12)}${tx(332, 104, "2048 per turn", C.muted, 11)}
+  ${box(12, 40, 112, 92, C.orange)}${box(144, 40, 112, 92, C.teal)}${box(276, 40, 112, 92, C.purple)}
+  ${tx(68, 68, "DC motor", C.ink, 14, 700)}${tx(68, 92, "spins, fast", C.body, 12)}${tx(68, 110, "no idea where", C.muted, 11)}
+  ${tx(200, 68, "Servo", C.ink, 14, 700)}${tx(200, 92, "points, 0-180°", C.body, 12)}${tx(200, 110, "holds an angle", C.muted, 11)}
+  ${tx(332, 68, "Stepper", C.ink, 14, 700)}${tx(332, 92, "counts steps", C.body, 12)}${tx(332, 110, "2048 per turn", C.muted, 11)}
   ${hand(68, 160, "wheels", C.orange)}${hand(200, 160, "arms, grippers", C.teal)}${hand(332, 160, "printers, CNC", C.purple)}
-  ${hand(200, 190, "all three are open loop: none of them checks the real world", C.red, 15)}`);
+  ${hand(200, 190, "only the servo checks itself: DC and stepper never know where they are", C.red, 15)}`);
 
 /* ---------------- ROB-07 · encoders and odometry ---------------- */
 

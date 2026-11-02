@@ -1,0 +1,108 @@
+/* Robotics & AI Club - teacher guide, A4 portrait.
+   The same fonts, colours and hand-drawn boxes as the slides (theme.css), on
+   white because guides get printed: a single column, nothing smaller than 9 pt. */
+
+@font-face { font-family: "Deck Display"; src: url("fonts/baloo2-800.woff2") format("woff2"); font-weight: 800; }
+@font-face { font-family: "Deck Display"; src: url("fonts/baloo2-700.woff2") format("woff2"); font-weight: 700; }
+@font-face { font-family: "Deck Display"; src: url("fonts/baloo2-600.woff2") format("woff2"); font-weight: 600; }
+@font-face { font-family: "Deck Body"; src: url("fonts/nunito-400.woff2") format("woff2"); font-weight: 400; }
+@font-face { font-family: "Deck Body"; src: url("fonts/nunito-700.woff2") format("woff2"); font-weight: 700; }
+@font-face { font-family: "Deck Hand"; src: url("fonts/patrickhand-400.woff2") format("woff2"); font-weight: 400; }
+
+:root {
+  --paper: #FFF9F0; --ink: #262D47; --body: #3A4152; --muted: #8A94A6; --kicker: #E4572E;
+  --note: #FFEFA8; --note-line: #DCA42A; --note-label: #B9620F;
+  --green: #1DA14E; --blue: #2E6BE6; --purple: #7B3FC4;
+}
+@page { size: A4; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { font-family: "Deck Body", system-ui, sans-serif; font-size: 10.5pt; line-height: 1.5; color: var(--body); }
+strong { color: var(--ink); }
+code { font-family: ui-monospace, Menlo, monospace; font-size: .9em; background: #F1EADB; padding: 0 3px; border-radius: 3px; }
+
+/* ---------- cover band ---------- */
+.cover { position: relative; padding: 4mm 0 5mm; margin-bottom: 4mm; border-bottom: 2px dotted #D6D2C6; }
+.chips { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5mm; }
+.chip { background: var(--c); color: #fff; border-radius: 999px; padding: 3px 11px 2px; font: 800 9.5pt "Deck Display"; }
+.tag { border: 1.5px solid var(--blue); color: var(--blue); border-radius: 999px; padding: 2px 10px 1px; font: 800 8pt "Deck Display"; letter-spacing: 1.4px; }
+.series { font-family: "Deck Hand"; font-size: 15pt; color: var(--kicker); line-height: 1; }
+.cover h1 { font: 800 28pt/1.08 "Deck Display"; color: var(--ink); margin: 2mm 0 2mm; letter-spacing: -.3px; }
+.hook { font: 600 13pt/1.3 "Deck Display"; color: var(--blue); }
+
+/* ---------- sections ---------- */
+.sec { margin: 0 0 6mm; break-inside: auto; }
+.sec.keep { break-inside: avoid; }
+.sec h2 { display: flex; align-items: center; gap: 8px; font: 800 15pt/1.2 "Deck Display"; color: var(--ink); margin-bottom: 2.5mm; break-after: avoid; }
+.sec h2 span { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--c); color: #fff; font-size: 10.5pt; flex: none; }
+.sec p + p { margin-top: 2mm; }
+.lead { margin-bottom: 2mm; }
+h3 { font: 800 12pt/1.2 "Deck Display"; color: var(--c); margin-bottom: 1.5mm; }
+
+/* ---------- hand-drawn boxes and notes (as on the slides) ---------- */
+.box, .note, .depth { position: relative; padding: 4mm 5mm; break-inside: avoid; }
+.frame { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: url(#rough); pointer-events: none; }
+.frame rect { fill: none; stroke: var(--c); stroke-width: 2.2; vector-effect: non-scaling-stroke; }
+.frame.fb { inset: 2px -2px -2px 2px; } .frame.fb rect { stroke-width: 1.4; opacity: .55; }
+.box > .frame.fa rect, .depth > .frame.fa rect { fill: #fff; }
+.inner { position: relative; z-index: 1; }
+.note { margin-top: 3mm; transform: rotate(-.4deg); font-family: "Deck Hand"; color: var(--ink); }
+.note > .frame rect { stroke: var(--note-line); } .note > .frame.fa rect { fill: var(--note); }
+.note b { display: block; font-weight: 400; font-size: 11.5pt; color: var(--note-label); margin-bottom: 1mm; }
+.note span { font-size: 12pt; line-height: 1.35; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-bottom: 4mm; }
+
+/* ---------- at a glance ---------- */
+.glance { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; }
+.glance div { background: var(--l); border-radius: 8px; padding: 2.5mm 3mm; }
+.glance small { display: block; font-size: 8.5pt; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .6px; }
+.glance b { font: 700 10.5pt/1.3 "Deck Body"; color: var(--ink); }
+
+/* ---------- lists ---------- */
+.outcomes { margin-left: 6mm; } .outcomes li { margin: 1mm 0; }
+.kit, .checks, .do, .safety { list-style: none; }
+.kit li, .safety li { position: relative; padding-left: 5mm; margin: 1mm 0; }
+.kit li::before { content: ""; position: absolute; left: 0; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: var(--c); }
+.star { font-style: normal; font-size: 8.5pt; color: var(--note-label); }
+.checks li { position: relative; padding-left: 7mm; margin: 1.2mm 0; }
+.checks li::before { content: ""; position: absolute; left: 0; top: .2em; width: 11px; height: 11px; border: 1.6px solid var(--c); border-radius: 2px; }
+.safety li::before { content: "!"; position: absolute; left: 0; top: 0; font: 800 10.5pt "Deck Display"; color: #E0414B; }
+
+/* ---------- three depths ---------- */
+.depths { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+.depth .lvl { display: inline-block; border-radius: 999px; padding: 1px 9px; font: 800 9pt "Deck Display"; color: #fff; margin-bottom: 1.5mm; }
+.d-starter .lvl { background: var(--green); } .d-core .lvl { background: var(--blue); } .d-advanced .lvl { background: var(--purple); }
+.d-starter > .frame rect { stroke: var(--green); } .d-core > .frame rect { stroke: var(--blue); } .d-advanced > .frame rect { stroke: var(--purple); }
+.depth .dt { font-weight: 700; color: var(--ink); margin-bottom: 1.5mm; line-height: 1.35; }
+.depth p { font-size: 9.8pt; line-height: 1.45; }
+
+/* ---------- tables ---------- */
+.tbl { width: 100%; border-collapse: collapse; font-size: 9.8pt; }
+.tbl th { text-align: left; color: var(--c); font: 700 10.5pt "Deck Display"; padding: 1mm 2mm 1.5mm; border-bottom: 2px solid var(--c); }
+.tbl td { padding: 1.6mm 2mm; border-bottom: 1px dotted #D6D2C6; vertical-align: top; }
+.tbl tr { break-inside: avoid; }
+.tbl td:first-child { font-weight: 700; color: var(--ink); }
+.sum { text-align: right; font: 700 10pt "Deck Display"; color: var(--c); margin-top: 1.5mm; }
+.rubric td { width: 27%; } .rubric td:first-child { width: 19%; }
+
+/* ---------- step by step ---------- */
+.step { padding: 0 0 3mm 4mm; margin-bottom: 3mm; border-left: 3px solid var(--l); break-inside: avoid; }
+.step-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1mm; }
+.step-h b { font: 800 12pt "Deck Display"; color: var(--ink); }
+.step-h span { font-size: 9pt; color: var(--muted); font-weight: 700; }
+.say { font-family: "Deck Hand"; font-size: 12pt; line-height: 1.35; color: var(--ink); margin: 1mm 0; }
+.say em, .watch em { font-style: normal; color: var(--kicker); }
+.do li { position: relative; padding-left: 5mm; margin: .8mm 0; }
+.do li::before { content: "→"; position: absolute; left: 0; color: var(--c); font-weight: 700; }
+.watch { font-size: 9.8pt; margin-top: 1mm; color: var(--body); }
+.watch em { font-family: "Deck Hand"; font-size: 11pt; }
+
+/* ---------- answers ---------- */
+.qa { margin-bottom: 2.5mm; break-inside: avoid; }
+.q { font-weight: 700; color: var(--ink); }
+.a { padding-left: 4mm; border-left: 2px solid var(--l); }
+
+/* ---------- code ---------- */
+.code { background: #232A3D; color: #E6EAF4; border-radius: 8px; padding: 3.5mm 4mm; margin-top: 2mm;
+  font: 8.6pt/1.5 ui-monospace, Menlo, monospace; white-space: pre; break-inside: avoid; }
+.code .cm { color: #8A94A6; } .code .kw { color: #BCA6F0; }

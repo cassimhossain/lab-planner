@@ -1,0 +1,136 @@
+/* Teacher guide: ROB-05 Build and Wire a Robot Car. Built by guide.js. */
+module.exports = {
+  code: "ROB-05",
+  grouping: "Pairs, one robot each",
+
+  overview: "Students build the robot car the rest of the Robotics module uses. They learn why an Arduino pin cannot drive a motor, how an H-bridge reverses one, how PWM sets speed, and how two wheel speeds steer a differential-drive robot. Then they assemble the chassis, wire two motors through an L298N with a separate battery, and write five driving functions that make the robot drive a square.",
+  mustLand: "Arduino pins give signals; the driver gives power. The two grounds must be joined, or nothing the Arduino says means anything to the driver.",
+
+  outcomes: [
+    "Assemble a **2WD chassis** so it rolls straight and nothing rubs.",
+    "Wire two motors through an **L298N driver** and a separate battery, with a shared ground.",
+    "Explain how an **H-bridge** reverses a motor using four switches.",
+    "Drive **forward, back, left and right** from code, written as functions.",
+  ],
+
+  depths: {
+    starter: "Assemble the chassis and wire it with close support, then upload a ready-made square sketch and watch it drive. Focus on why the battery and grounds matter, not on the code.",
+    core: "Full lesson: build, wire, make each wheel turn both ways (step 3), then write `drive()` and the five functions and drive a square (step 4).",
+    advanced: "Add a trim constant so the robot drives straight over 2 m, then a soft start that ramps speed over 300 ms. Measure stall current with a multimeter.",
+  },
+
+  kit: [
+    "2WD robot chassis kit: plate, 2 gear motors, 2 wheels, caster, screws",
+    "L298N motor driver board",
+    "Arduino Uno + USB cable",
+    "4×AA battery pack with switch, and fresh AA cells",
+    "Male-female jumper wires",
+    "Small screwdriver set",
+  ],
+  sims: [
+    "**Circuit Lab**: the L298N, two motors and the battery can be wired and driven on screen; good for checking wiring before power.",
+    "**GearsBot** (online): drive a simulated differential-drive robot to feel left/right steering before the build.",
+  ],
+  prep: [
+    "Pre-solder or crimp leads onto the gear motors if the kit motors have bare tabs. Soldering in class needs a teacher present.",
+    "Fit fresh AA cells, or test packs with a multimeter: under 5.5 V the robot will be sluggish.",
+    "Check every L298N has its ENA and ENB jumpers; students remove them in step 2.",
+    "Clear floor space with a taped 1 m square for the final test.",
+    "Have a box of spare M3 screws and nuts. They will be dropped.",
+  ],
+
+  timing: [
+    [5, "Let's think", "Why a pin cannot drive a motor: the current numbers (slide 2)."],
+    [3, "Aims", "The four aims and keywords (slide 3)."],
+    [17, "Teach", "H-bridge, reading the L298N, PWM, differential drive, real examples (slides 4 to 8)."],
+    [5, "Kit and safety", "Kit check and the four safety rules (slide 10)."],
+    [15, "Assemble the chassis", "Motors, wheels, caster, battery over the driven wheels (slide 12)."],
+    [15, "Wire it up", "Motors to OUT1-4, battery, shared GND, IN and EN pins (slides 11, 13)."],
+    [10, "One wheel turns", "Wheels off the desk; each wheel forward and back (slide 14)."],
+    [12, "Four functions", "drive(), forward/back/left/right/halt, drive a square (slide 15)."],
+    [8, "Test and wrap up", "Make it go straight, self-rating and exit ticket (slides 16, 18, 19)."],
+  ],
+
+  steps: [
+    { phase: "Let's think", mins: 5, slides: "1-2",
+      say: ["An Arduino pin gives about 20 mA. A small gear motor wants 150 to 250 mA, and over 1 A when it starts. What happens if we plug a motor straight into a pin?",
+        "And to run a motor backwards you must reverse the voltage. Can a pin go negative?"],
+      do: ["Write 20 mA and 1000 mA on the board side by side. Let the ratio do the explaining."],
+      watch: "students who think a bigger delay or a higher number in code will help. The limit is physical, not software." },
+    { phase: "Aims", mins: 3, slides: "3",
+      say: ["By the end of today your robot drives a square and comes back."],
+      do: ["Read the aims; point out the keywords H-bridge, PWM and common ground."] },
+    { phase: "Teach", mins: 17, slides: "4-8",
+      say: ["An H-bridge is four switches round a motor. Close S1 and S4 and current goes one way. Close S2 and S3 and it goes the other way. Never S1 and S3 together: that is a short circuit.",
+        "On the L298N, the IN pins decide direction and the EN pins decide speed.",
+        "PWM switches the power on and off very fast. The share of time it is on sets the speed. Switching wastes almost nothing; a resistor would waste it as heat.",
+        "There is no steering wheel. Two wheels at different speeds make the robot turn."],
+      do: ["Slide 4: draw the H on the board and have students say which switches close for forward and backward.",
+        "Slide 6: below about analogWrite(60) cheap motors only buzz. Tell them to start tests at 100.",
+        "Slide 7: walk through the table with your hands as two wheels."],
+      watch: "the idea that the Arduino 'powers' the motor. Keep saying: the battery powers it, the Arduino only decides." },
+    { phase: "Kit and safety", mins: 5, slides: "9-10",
+      say: ["Wheels off the desk for every first test. Battery in last, out first, whenever you change wiring."],
+      do: ["Pairs check their kit against the list before anything is unscrewed.", "Long hair tied back now, before motors run."] },
+    { phase: "Assemble the chassis", mins: 15, slides: "12",
+      say: ["Weight goes over the driven wheels, so they grip. Weight over the caster just pushes a sliding lump."],
+      do: ["Bolt motors in without overtightening; the plastic strips.", "Push wheels on until flat against the shaft; fit the caster at the opposite end.",
+        "Spin each wheel by hand: it must turn freely with no rubbing."],
+      watch: "a wheel rubbing the chassis. It will curve the robot however good the code is. Loosen, square, retighten." },
+    { phase: "Wire it up", mins: 15, slides: "11, 13",
+      say: ["Two supplies, one rule: the battery powers the motors, USB powers the Arduino, the grounds are shared, the 5 V rails are not."],
+      do: ["Follow slide 13 in order: motors to OUT1/OUT2 and OUT3/OUT4; battery + to +12V and − to GND; Arduino GND to driver GND.",
+        "IN1→7, IN2→8, IN3→9, IN4→11; ENA→5, ENB→6, after removing the two enable jumpers.",
+        "Check every pair's ground wire before any battery goes in."],
+      watch: "pin 10 left free on purpose. Pins 5 and 6 are PWM for speed; 7, 8, 9, 11 only set direction." },
+    { phase: "One wheel turns", mins: 10, slides: "14",
+      say: ["Wrong direction? Do not change the code. Swap the two motor wires at the driver. Same fix, honest code."],
+      do: ["Upload the step 3 sketch with the robot on a box, wheels free.", "Left wheel forward, then swap IN1 and IN2 in code to see it reverse. Repeat for the right wheel with IN3, IN4, ENB."] },
+    { phase: "Four functions", mins: 12, slides: "15",
+      say: ["One `drive(left, right)` function does all the work. Forward, back, left, right and halt are each one line that calls it."],
+      do: ["Students add the step 4 code (with pinMode for all six pins in setup).", "Drive a square on the floor; tune the 420 ms turn until the robot comes back to its start."],
+      watch: "the `halt()` name. The slide calls it halt because `stop` is easy to confuse; any name is fine if it is used consistently." },
+    { phase: "Test and wrap up", mins: 8, slides: "16-19",
+      say: ["Every real robot has a trim value somewhere. Finding yours is engineering, not cheating."],
+      do: ["Pairs pick one symptom from slide 16 and fix it, or note it.", "Self-rate against the proofs; exit ticket: two fixes for drifting left, one mechanical and one in code."] },
+  ],
+
+  misconceptions: [
+    ["The Arduino powers the motors.", "The battery does. The Arduino sends a small signal telling the driver which way and how fast."],
+    ["Lower speed means lower voltage.", "PWM keeps the voltage and changes how much of the time it is on. That is why it wastes so little."],
+    ["Turning needs a steering motor.", "Differential drive turns by giving the two wheels different speeds or directions."],
+    ["If both motors get 170 the robot goes straight.", "No two motors are identical. Real robots need a trim value, found by testing."],
+    ["The ground wire is optional if the battery is connected.", "Without a shared ground the driver cannot tell HIGH from LOW, so the motors twitch randomly."],
+  ],
+
+  trouble: [
+    ["Wheels twitch randomly", "Join Arduino GND to driver GND."],
+    ["One wheel does nothing", "A loose OUT screw terminal. Tug the wire gently, retighten, retest. Check its ENA/ENB wire too."],
+    ["Robot curves to one side", "Check for rubbing first, then lower the faster motor's speed (for example 170 and 155)."],
+    ["Works on USB, dies on battery", "Flat cells, or the pack is too weak. Fit fresh AAs; the L298N itself loses about 2 V."],
+    ["Arduino resets when motors start", "Motor start-up current drags the supply down. Keep the Arduino on USB, motors on the battery, grounds joined."],
+    ["Motors only buzz", "Speed too low: analogWrite below about 60 cannot overcome friction. Start at 100 or more."],
+    ["Driver gets hot", "Disconnect at once. Check nothing shorts the OUT terminals and the motors are not stalled against the chassis."],
+  ],
+
+  rubric: [
+    ["Building", "Chassis assembled with help; a wheel rubs.", "Both wheels spin freely; battery over the driven wheels.", "Robot rolls straight unpowered; explains why weight placement matters."],
+    ["Wiring and power", "Motors run with help; ground missed at first.", "Both motors run both ways; shared ground explained.", "Diagnoses a wiring fault from its symptom alone."],
+    ["Code and steering", "Runs the given sketch.", "Writes drive() and the five functions; drives a square.", "Adds trim or a soft start and shows the improvement with measurements."],
+  ],
+
+  answers: [
+    ["Slide 2: Why can't the Arduino drive a motor directly?", "A pin supplies about 20 mA safely; a motor needs 150 to 250 mA running and over 1 A at start. Also a pin cannot reverse the voltage to run the motor backwards."],
+    ["Slide 4: Which switches close for forward, and for backward?", "Forward: S1 and S4. Backward: S2 and S3. Never S1 with S3 (or S2 with S4): that shorts the battery."],
+    ["Slide 7: Left wheel forward, right wheel backward. What does the robot do?", "It spins on the spot to the right."],
+    ["Exit ticket: the robot drifts left. Two fixes?", "Mechanical: check the right wheel is not rubbing, the wheels are on fully and the weight is even. Code: slow the left motor slightly (a trim value), or speed up the right."],
+  ],
+
+  safety: [
+    "Wheels off the desk for every first power-up.",
+    "Battery in last, out first, whenever wiring changes.",
+    "Tie long hair back and keep loose sleeves away from the wheels: gear motors catch them.",
+    "If the driver smells hot or the batteries get warm, disconnect at once and tell a teacher.",
+    "Alkaline AA cells only. Never mix old and new cells, and never short a battery pack's leads.",
+  ],
+};

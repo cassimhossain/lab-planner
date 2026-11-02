@@ -119,7 +119,7 @@ module.exports = {
             <li>2WD chassis, rebuilt <strong>tall</strong>: battery at the top</li>
             <li>L298N motor driver</li>
             <li>Arduino Uno + USB cable</li>
-            <li>18650 cell + holder, 3.7 V</li>
+            <li>2 × 18650 cells in a holder, 7.4 V</li>
           </ul></div></div>
         <div class="box fill c-red"><svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><div class="inner"><h3 ic="robot">Build it tall on purpose</h3>
           <p>A short robot falls too fast for an Uno to catch. Put the heavy battery <strong>as high as you can</strong>.</p>

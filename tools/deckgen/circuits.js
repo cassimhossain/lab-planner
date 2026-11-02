@@ -199,7 +199,7 @@ CIRCUITS.servo = () => {
 
 CIRCUITS.stepper = () => {
   const uno = comp(16, 52, 112, "Arduino", "Uno", "#0E8A86", {
-    right: [["GND", W.gnd], null, ["8", W.out], ["10", W.out], ["9", W.out], ["11", W.out]],
+    right: [["GND", W.gnd], null, ["8", W.out], ["9", W.out], ["10", W.out], ["11", W.out]],
   });
   const drv = comp(234, 52, 142, "ULN2003", "driver board", "#7B3FC4", {
     left: [["GND", W.gnd], ["5V", W.pwr], ["IN1", W.out], ["IN2", W.out], ["IN3", W.out], ["IN4", W.out]],
@@ -216,7 +216,7 @@ CIRCUITS.stepper = () => {
     ${wire([[432, 257], [470, 257], [470, 292], [150, 292], [150, 266], [210, 266]], W.gnd)}
     ${dot(210, 266, W.gnd)}
     ${wire([drv.R[3], [430, drv.R[3][1]]], W.mot)}
-    ${note(190, 22, "the Stepper library wants the pins in the order 8, 10, 9, 11", "#E4572E", 16, "start")}
+    ${note(190, 22, "wired 8, 9, 10, 11; the Stepper library lists them 8, 10, 9, 11", "#E4572E", 16, "start")}
     ${note(484, 210, "2048 steps = one turn", W.mot, 15)}`);
 };
 
@@ -264,7 +264,7 @@ CIRCUITS.balance = () => {
     left: [["+12V", W.pwr], ["GND", W.gnd], ["IN1-IN4", W.out], ["ENA ENB", W.out]],
     right: [null, ["OUT1/2", W.mot], ["OUT3/4", W.mot]],
   });
-  const cell = comp(424, 32, 116, "18650", "3.7 V", "#E0414B", { fill: "#FFF3F3", minH: 50 });
+  const cell = comp(424, 32, 116, "2 × 18650", "7.4 V", "#E0414B", { fill: "#FFF3F3", minH: 50 });
   return S(`
     ${uno.svg}${imu.svg}${drv.svg}${cell.svg}
     ${elbow(uno.R[0], imu.L[0], 190, W.pwr)}

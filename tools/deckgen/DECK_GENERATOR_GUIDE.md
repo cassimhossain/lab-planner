@@ -265,3 +265,20 @@ number, a diagram or a worked example:
 - Draw it rather than describe it. A bus, a bridge, a response curve or a
   wiring run is clearer as a picture, and a picture beside a table of exact
   pins is clearer than either on its own.
+
+## Teacher guides
+
+Every deck gets an A4 teacher guide, made the same way:
+
+```bash
+node guide.js guides/EF-10.js     # -> library/guides/EF-10_Teacher_Guide.pdf
+```
+
+A guide is a plain object in `guides/<CODE>.js` holding the twelve sections
+of `rai/SLIDE_GUIDE.md` section 5. The title, hook, depths, length and
+concepts come from `rai/catalog.js`, so the guide cannot disagree with the
+portal, and `guide.js` refuses to build if the timing plan does not add up
+to the lesson length. Copy `guides/ROB-05.js` to start a new one. Then add
+the code to `window.RAI.guides` in `rai/catalog.js`; the lesson pop-up shows
+the Teacher guide link from there.
+

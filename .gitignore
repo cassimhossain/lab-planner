@@ -25,3 +25,4 @@ desktop/*.log
 # slide generator: build output and node modules
 tools/deckgen/out/
 tools/deckgen/.deck.html
+tools/deckgen/.guide.html

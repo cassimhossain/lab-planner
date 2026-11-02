@@ -150,13 +150,13 @@ module.exports = {
         { t: "conn", color: "purple", h: "Connections", from: "Arduino Uno", to: "ULN2003", why: "Carries",
           rows: [
             { w: "out", a: "8", b: "IN1", c: "coil 1" },
-            { w: "out", a: "10", b: "IN2", c: "coil 2" },
-            { w: "out", a: "9", b: "IN3", c: "coil 3" },
+            { w: "out", a: "9", b: "IN2", c: "coil 2" },
+            { w: "out", a: "10", b: "IN3", c: "coil 3" },
             { w: "out", a: "11", b: "IN4", c: "coil 4" },
             { w: "pwr", a: "(own 5 V)", b: "5V", c: "coil current, not from the Uno" },
             { w: "gnd", a: "GND", b: "GND", c: "the shared reference" },
           ],
-          foot: "The library wants 8, 10, 9, 11 in that order. Wire it in order and it only vibrates." },
+          foot: "Wire 8, 9, 10, 11 to IN1 to IN4. The sketch lists them 8, 10, 9, 11: that is not a typo." },
       ] },
 
     { tag: "MAKE", kicker: "Build step 1 of 3", title: "A servo that points",

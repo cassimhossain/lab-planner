@@ -5,7 +5,7 @@ Every file the site loads is requested with ?v=NN so a browser never runs a
 mix of old and new files. There are three separate numbers, and before this
 script they had to be changed by hand in many places:
 
-  portal   index.html, 404.html, buddy/config.js (version), and the
+  portal   index.html, 404.html, rai/deck.html, buddy/config.js (version), and the
            Study Buddy files Circuit Lab caches (BUDDY_V in circuit/sw.js)
   circuit  every ?v= inside circuit/, plus VERSION = "vNN" in circuit/sw.js
   codelab  ?v= in codelab/index.html, codelab/app.js and codelab/visual.js
@@ -49,7 +49,7 @@ def plan(name, old, new):
     v = r"\?v=%d\b" % old
     rep = "?v=%d" % new
     if name == "portal":
-        out = [(p, v, rep) for p in ["index.html", "404.html"]]
+        out = [(p, v, rep) for p in ["index.html", "404.html", "rai/deck.html"]]
         out += [("buddy/config.js", r'version: "%d"' % old, 'version: "%d"' % new),
                 ("circuit/sw.js", r'const BUDDY_V = "%d"' % old, 'const BUDDY_V = "%d"' % new)]
         # the lab pages load Study Buddy with the portal's number

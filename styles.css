@@ -1218,3 +1218,29 @@ table.kt td.box::after { content: ""; display: block; width: 16px; height: 16px;
 .setcheck input { width: 20px; height: 20px; accent-color: var(--primary); }
 .no-motion *, .no-motion *::before, .no-motion *::after { animation: none !important; transition: none !important; }
 .no-buddy-btn .bd-fab { display: none !important; }
+
+/* Robotics & AI Curriculum */
+.raicats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.raicat { text-align: left; border: 2px solid transparent; background: var(--surface); border-radius: var(--r-lg); padding: 14px 16px; cursor: pointer; color: var(--ink); box-shadow: var(--sh-1); border-top: 5px solid var(--c); display: flex; flex-direction: column; gap: 4px; }
+.raicat b { font-family: var(--font-display); font-size: 17px; } .raicat small { color: var(--ink-muted); font-size: 13px; line-height: 1.4; } .raicat em { font-style: normal; font-weight: 700; color: var(--c); font-size: 13px; margin-top: auto; }
+.raicat.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 10%, var(--surface)); }
+.raibar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.raibar .search { flex: 1; min-width: 220px; } .raibar input { width: 100%; height: 46px; border: 1.5px solid var(--line); border-radius: 14px; padding: 0 14px; font: inherit; background: var(--surface); color: var(--ink); }
+.raibar .seg { display: flex; gap: 4px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 4px; }
+.raibar .seg button { border: 0; background: transparent; color: var(--ink-muted); font-weight: 700; padding: 8px 12px; border-radius: 10px; cursor: pointer; font: inherit; font-weight: 700; }
+.raibar .seg button.on { background: var(--primary); color: var(--on-primary); }
+.raimod h2 { font-family: var(--font-display); font-size: 21px; margin: 26px 0 12px; display: flex; align-items: baseline; gap: 10px; }
+.raimod h2 span { font-size: 12px; font-weight: 800; color: #fff; background: var(--c); border-radius: 99px; padding: 3px 10px; letter-spacing: .02em; }
+.raigrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+.raicard { background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--sh-1); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; border-left: 5px solid var(--c); }
+.raicard-h { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12.5px; }
+.raicode { font-family: var(--font-mono); font-weight: 800; color: var(--c); } .raitype { color: var(--ink-muted); }
+.raiok, .raiplan { margin-left: auto; border-radius: 99px; padding: 2px 9px; font-weight: 800; font-size: 11.5px; }
+.raiok { background: #E6F6EC; color: #117A3B; } .raiplan { background: var(--line); color: var(--ink-muted); }
+:root[data-theme="dark"] .raiok { background: #12361F; color: #7EE2A4; }
+.raicard h3 { margin: 0; font-family: var(--font-display); font-size: 17px; line-height: 1.25; } .raicard p { margin: 0; color: var(--ink-muted); font-size: 14px; line-height: 1.45; }
+.raitiers { display: grid; gap: 4px; font-size: 13px; } .raitiers span { display: grid; grid-template-columns: 74px 1fr; gap: 6px; } .raitiers b { color: var(--c); }
+.raisims { display: flex; gap: 6px; flex-wrap: wrap; } .raisims a { font-size: 12.5px; font-weight: 700; border-radius: 99px; padding: 3px 10px; background: color-mix(in srgb, var(--c) 12%, transparent); color: var(--ink); }
+.raibtns { display: flex; gap: 8px; margin-top: auto; padding-top: 4px; } .raibtns .btn { flex: 1; justify-content: center; }
+@media (max-width: 1100px) { .raicats { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .raicats { grid-template-columns: 1fr; } .raigrid { grid-template-columns: 1fr; } }

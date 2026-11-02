@@ -225,7 +225,7 @@
   const coreOf = gc => ACTS.filter(a => a.group === gc && (a.phase === "Phase 1" || a.phase === "Phase 2"));
 
   /* ---------- routing / sidebar ---------- */
-  const ROUTES = ["home", "curriculum", "hardware", "LE", "JM", "YI", "TL", "week", "sims", "print", "kits", "settings", "attendance", "buddy"];
+  const ROUTES = ["home", "rai", "curriculum", "hardware", "LE", "JM", "YI", "TL", "week", "sims", "print", "kits", "settings", "attendance", "buddy"];
   /* a page can carry filters after a "?", e.g. #JM?topic=AI%20%26%20Data&view=map */
   const route = () => { const r = location.hash.slice(1).split("?")[0]; return /^kit=/.test(r) ? "kitsheet" : ROUTES.includes(r) ? r : r && !/^open=/.test(r) ? "notfound" : "home"; };
   const qp = () => new URLSearchParams(location.hash.split("?")[1] || "");
@@ -240,6 +240,7 @@
     const badge = n => (n ? `<em>${n}</em>` : "");
     $("#menu").innerHTML =
       item("home", "Overview", ic("home")) +
+      (window.RAI && shown("rai") ? `<div class="mlabel">Robotics &amp; AI</div>` + item("rai", "Robotics & AI Curriculum", ic("bot"), `<em class="soft new">${RAI.activities.length}</em>`) : "") +
       `<div class="mlabel">Curriculum</div>` +
       item("curriculum", "Lesson library", ic("book"), `<em class="soft">${LIB.decks.length}</em>`) +
       D.groups.map(g => item(g.code, g.name, `<i class="gdot" style="background:${g.color}"></i>`, WEEK ? badge(nw.filter(a => a.group === g.code).length) : "")).join("") +
@@ -267,7 +268,7 @@
     const sw = $("#tbRole"); if (sw) sw.innerHTML = roleSwitch();
     renderMenu();
     const r = route(), app = $("#app");
-    app.innerHTML = r === "notfound" ? vNotFound() : r === "buddy" ? vBuddy() : r === "attendance" ? vAttendance() : r === "kitsheet" ? vKitSheet(kitSheetCode()) : r === "home" ? vHome() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "sims" ? vSims() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
+    app.innerHTML = r === "notfound" ? vNotFound() : r === "buddy" ? vBuddy() : r === "attendance" ? vAttendance() : r === "kitsheet" ? vKitSheet(kitSheetCode()) : r === "home" ? vHome() : r === "rai" ? vRai() : r === "curriculum" ? vCurriculum() : r === "hardware" ? vHardware() : GROUPS[r] ? vGroup(r) : r === "week" ? vWeek() : r === "sims" ? vSims() : r === "print" ? vPrint() : r === "kits" ? vKits() : vSettings();
     document.body.dataset.route = r;
     if (r !== "notfound" && r !== "kitsheet") app.insertAdjacentHTML("afterbegin", hintCard(r));
     /* Circuit Lab reads this to bring the student back where they were */
@@ -556,7 +557,7 @@
   $("#cmdk").onclick = () => openPalette("all");
 
   /* ---------- AGE GROUP ---------- */
-  const UI = { phase: {}, q: {}, hwPh: {}, hwG: "", hwQ: "", libG: "F", libQ: "", pMode: "session", pDay: "ALL", pBreak: true, kitCode: ACTS[0].code, kitGroup: "LE", kitQ: "", catOpen: false, catQ: "" };
+  const UI = { raiCat: "", raiType: "", raiQ: "", phase: {}, q: {}, hwPh: {}, hwG: "", hwQ: "", libG: "F", libQ: "", pMode: "session", pDay: "ALL", pBreak: true, kitCode: ACTS[0].code, kitGroup: "LE", kitQ: "", catOpen: false, catQ: "" };
   /* what a search box matches: the words on the card, the "about" line, the
      unit and every part in the kit, so "servo" finds the lessons that use one */
   const hayOf = a => (a.code + " " + a.title + " " + a.domain + " " + a.unit + " " + (a.about || "") + " " + kitOf(a.code).map(k => k.n).join(" ")).toLowerCase();
@@ -1047,7 +1048,7 @@
   }
   /* ---------- VIRTUAL LABS ---------- */
   const SIM = window.SIMS || { list: [], circuits: [], byKey: {}, forLesson: () => [] };
-  const simIcon = s => s.kind === "build" ? "chip" : s.kind === "code" ? "code" : s.kind === "cad" ? "cube" : "bolt";
+  const simIcon = s => s.kind === "build" ? "chip" : s.kind === "code" ? "code" : s.kind === "cad" ? "cube" : s.kind === "robot" ? "bot" : s.kind === "ai" ? "target" : "bolt";
   /* the labs show their way back to the portal only when opened from here;
      a lab link shared on its own keeps the student inside that lab */
   const simHref = s => labHref(s.href || "sim.html?s=" + s.key);
@@ -1056,16 +1057,45 @@
     const pick = ["circuit-lab", "code-lab", "cck-dc", "blockscad"].map(k => SIM.byKey[k]).filter(Boolean);
     return `<div class="labgrid">${pick.map(s => `<a class="labtile simtile" href="${simHref(s)}" style="--sc:${s.color}"><span class="lt-ic">${ic(simIcon(s))}</span><b>${esc(s.name)}</b><small>${esc(s.about)}</small></a>`).join("")}</div>`;
   }
+  /* ---------- ROBOTICS & AI CURRICULUM ----------
+     The subject-based curriculum in rai/: four categories, modules, and
+     activities that each have slides and a teacher guide (rai/deck.html).
+     Activities whose lesson file isn't written yet show their plan. */
+  function vRai() {
+    const R = window.RAI; if (!R) return head("Robotics & AI Curriculum", "Could not load the curriculum.");
+    const ready = new Set(R.ready || []), TYPE = { H: "Hardware", S: "Software", U: "Unplugged", HS: "Hardware + software", US: "Unplugged + software" };
+    const words = UI.raiQ.toLowerCase().split(/\s+/).filter(Boolean);
+    const hit = a => (!UI.raiCat || a.code.startsWith(UI.raiCat + "-")) && (!UI.raiType || a.type.includes(UI.raiType)) &&
+      words.every(w => (a.code + " " + a.title + " " + a.hook + " " + a.concepts.join(" ") + " " + a.kit.join(" ")).toLowerCase().includes(w));
+    const cats = R.cats.map(c => { const n = R.activities.filter(a => a.code.startsWith(c.key + "-")).length;
+      return `<button class="raicat ${UI.raiCat === c.key ? "on" : ""}" data-raicat="${c.key}" style="--c:${c.color};--l:${c.light}"><b>${esc(c.name)}</b><small>${esc(c.about)}</small><em>${n} activities</em></button>`; }).join("");
+    const types = [["", "All types"], ["H", "Hardware"], ["S", "Software"], ["U", "Unplugged"]];
+    const card = a => { const c = R.cats.find(x => a.code.startsWith(x.key + "-")), ok = ready.has(a.code), q = encodeURIComponent(a.code);
+      const sims = a.sims.map(k => SIM.byKey[k]).filter(Boolean).slice(0, 3);
+      return `<article class="raicard" style="--c:${c.color};--l:${c.light}"><div class="raicard-h"><span class="raicode">${esc(a.code)}</span><span class="raitype">${esc(TYPE[a.type] || a.type)} · ${a.mins} min</span>${ok ? `<span class="raiok">Slides ready</span>` : `<span class="raiplan">Plan</span>`}</div>
+        <h3>${esc(a.title)}</h3><p>${esc(a.hook)}</p>
+        <div class="raitiers"><span><b>Starter</b>${esc(a.tiers.starter)}</span><span><b>Core</b>${esc(a.tiers.core)}</span><span><b>Advanced</b>${esc(a.tiers.advanced)}</span></div>
+        ${sims.length ? `<div class="raisims">${sims.map(s => `<a href="${s.ext ? esc(s.href) : simHref(s)}"${s.ext ? ' target="_blank" rel="noopener"' : ""}>${esc(s.name)}${s.ext ? " ↗" : ""}</a>`).join("")}</div>` : ""}
+        <div class="raibtns"><a class="btn primary" href="rai/deck.html?c=${q}">${ic("play")}Slides</a><a class="btn" href="rai/deck.html?c=${q}&view=guide">${ic("book")}Teacher guide</a></div></article>`; };
+    const mods = R.modules.filter(m => !UI.raiCat || m.cat === UI.raiCat).map(m => { const list = R.activities.filter(a => a.mod === m.key && hit(a)); if (!list.length) return "";
+      const c = R.cats.find(x => x.key === m.cat);
+      return `<section class="raimod"><h2 style="--c:${c.color}"><span>${esc(c.name)}</span>${esc(m.name)}</h2><div class="raigrid">${list.map(card).join("")}</div></section>`; }).join("");
+    return head("Robotics & AI Curriculum", `${R.activities.length} activities in ${R.cats.length} categories. Each one runs at three depths (Starter, Core, Advanced), so you choose what fits the class. ${ready.size} have full slides and a teacher guide so far.`) +
+      `<div class="raicats">${cats}</div>
+      <div class="raibar"><label class="search"><input id="raiQ" value="${esc(UI.raiQ)}" placeholder="Search activities, concepts or parts" aria-label="Search the curriculum"></label>
+        <div class="seg">${types.map(([k, l]) => `<button class="${UI.raiType === k ? "on" : ""}" data-raitype="${k}">${l}</button>`).join("")}</div></div>
+      ${mods || `<p class="muted">No activities match. Clear the search or pick another category.</p>`}`;
+  }
   function vSims() {
     const byCode = c => ACTS.find(a => lab(a) === c) || ACTS.find(a => String(a.code).startsWith(c + " "));
     const cl = SIM.byKey["circuit-lab"];
     const exChips = (SIM.circuits || []).map(c => { const a = byCode(c), g = a && GROUPS[a.group];
       return `<a class="exchip" href="circuit/?from=portal#lesson=${c}" style="--c:${g ? g.color : "#2E6BE6"}"><b>${esc(c)}</b>${esc(a ? a.title : c)}</a>`; }).join("");
-    const card = s => `<a class="simcard" href="${simHref(s)}" style="--sc:${s.color}">
-        <span class="sim-art">${ic(simIcon(s))}<em>${s.kind === "phet" ? "PhET" : s.kind === "cad" ? "3D design" : s.kind === "code" ? "Python · C++" : "Arduino"}</em></span>
+    const card = s => `<a class="simcard" href="${s.ext ? esc(s.href) : simHref(s)}"${s.ext ? ' target="_blank" rel="noopener"' : ""} style="--sc:${s.color}">
+        <span class="sim-art">${ic(simIcon(s))}<em>${s.kind === "phet" ? "PhET" : s.kind === "cad" ? "3D design" : s.kind === "code" ? "Python · C++" : s.kind === "robot" ? "Robots" : s.kind === "ai" ? "AI" : s.kind === "elec" ? "Electronics" : "Arduino"}</em></span>
         <span class="sim-b"><b>${esc(s.name)}</b><small>${esc(s.about)}</small>
           <span class="sim-good"><i>Good for</i>${esc(s.good)}</span>
-          <span class="sim-meta"><span>Ages ${esc(s.ages)}</span><span class="${s.online || s.kind === "build" ? "on" : "off"}">${esc(simTag(s))}</span></span></span></a>`;
+          <span class="sim-meta"><span>Ages ${esc(s.ages)}</span><span class="${s.online || s.kind === "build" ? "on" : "off"}">${esc(s.ext ? "Opens in a new tab" : simTag(s))}</span></span></span></a>`;
     const phet = SIM.list.filter(s => s.kind === "phet"), cad = SIM.list.filter(s => s.kind === "cad"), code = SIM.byKey["code-lab"];
     return `${head("Virtual labs", "Simulators for trying ideas before touching real parts. Each lesson also shows the matching simulator when you open it.")}
       ${cl ? `<section class="sec t-sim"><div class="sec-h"><span class="sec-ic">${ic("chip")}</span><div><h2>Circuit Lab</h2><p>Our Arduino simulator: wire parts on a breadboard, write code, press Run.</p></div><a class="btn primary sec-link" href="circuit/?from=portal">${ic("play")}Open Circuit Lab</a></div>
@@ -1082,6 +1112,8 @@
         <div class="simgrid">${phet.map(card).join("")}</div></section>
       <section class="sec t-cad"><div class="sec-h"><span class="sec-ic">${ic("cube")}</span><div><h2>3D design</h2><p>Model parts with blocks, then export STL files for the 3D printer.</p></div></div>
         <div class="simgrid">${cad.map(card).join("")}</div></section>
+      ${[["robot", "bot", "Robot simulators", "Drive virtual robots, design mechanisms and plan paths before building."], ["ai", "target", "AI playgrounds", "Train models, look inside neural networks and explore generative AI. All free."], ["elec", "bolt", "More electronics", "Animated circuits, logic gates and online Arduino and ESP32 projects."]].map(([k, i, h, p]) => {
+        const l = SIM.list.filter(s => s.kind === k); return l.length ? `<section class="sec t-sim"><div class="sec-h"><span class="sec-ic">${ic(i)}</span><div><h2>${h}</h2><p>${p}</p></div></div><div class="simgrid">${l.map(card).join("")}</div></section>` : ""; }).join("")}
       <p class="muted small simcredit">PhET simulations: PhET Interactive Simulations, University of Colorado Boulder, phet.colorado.edu (CC BY 4.0). BlocksCAD: blockscad3d.com (open source, GPL v3). Circuit Lab uses Wokwi Elements and AVR8js (MIT). Code Lab uses Pyodide (MPL 2.0), CodeMirror (MIT) and the Wandbox and Compiler Explorer online compilers.</p>`;
   }
 
@@ -1643,7 +1675,7 @@
   function vSettings() {
     const opt = (k, list) => `<select data-pref="${k}">${list.map(([v, l]) => `<option value="${v}"${pref(k) === v ? " selected" : ""}>${l}</option>`).join("")}</select>`;
     const theme = window.RACTheme ? window.RACTheme.mode : "system";
-    const MENU = [["curriculum", "Lesson library"], ["attendance", "Attendance"], ["buddy", "Study Buddy"], ["week", "Timetable"], ["sims", "Simulators"], ["circuit", "Circuit Lab"], ["codelab", "Code Lab"], ["hardware", "Hardware"], ["kits", "Edit kits & parts"]];
+    const MENU = [["rai", "Robotics & AI Curriculum"], ["curriculum", "Lesson library"], ["attendance", "Attendance"], ["buddy", "Study Buddy"], ["week", "Timetable"], ["sims", "Simulators"], ["circuit", "Circuit Lab"], ["codelab", "Code Lab"], ["hardware", "Hardware"], ["kits", "Edit kits & parts"]];
     return head("Settings", "Make the portal yours, set the defaults for planning and printing, and back up your plan.") + `<div class="setgrid">
       <div class="card"><h2>Look</h2>
         <label class="field">Theme<select data-theme-pick>${[["system", "Follow this device"], ["light", "Light"], ["dark", "Dark"]].map(([v, l]) => `<option value="${v}"${theme === v ? " selected" : ""}>${l}</option>`).join("")}</select></label>
@@ -1676,6 +1708,8 @@
     const t = e.target.closest("button, a"); if (!t) { if (e.target.id === "scrim") { closeModal(); closeNav(); } return; }
     const d = t.dataset;
     if (d.pal != null) { palRun(+d.pal); return; }
+    if (d.raicat != null) { UI.raiCat = UI.raiCat === d.raicat ? "" : d.raicat; render(); return; }
+    if (d.raitype != null) { UI.raiType = d.raitype; render(); return; }
     if (d.role) { PR.role = d.role; savePr(); render(); toast(d.role === "student" ? "Student view" : "Teacher view"); return; }
     if (d.track != null) { PR.track = d.track; savePr(); render(); window.scrollTo(0, 0); return; }
     if (d.vmode) { setQp("view", d.vmode === "map" ? "map" : ""); return; }
@@ -1774,9 +1808,9 @@
     if (key === "palQ") { CMD.q = t.value; CMD.i = 0; palResults(); return; }
     if (key === "schQ") { UI.sch.q = t.value; const pos = t.selectionStart; renderModal(); const n = $("#schQ"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (er) { } } return; }
     if (key === "pickQ") { UI.pickQ = t.value; const pos = t.selectionStart; renderModal(); const n = $("#pickQ"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (er) { } } return; }
-    if (!["gq", "kitQ", "catQ", "libQ", "hwQ"].includes(key)) return;
+    if (!["gq", "kitQ", "catQ", "libQ", "hwQ", "raiQ"].includes(key)) return;
     clearTimeout(qT); qT = setTimeout(() => {
-      if (key === "gq") UI.q[t.dataset.gq] = t.value; else if (key === "libQ") UI.libQ = t.value; else if (key === "hwQ") UI.hwQ = t.value; else if (key === "kitQ") UI.kitQ = t.value; else UI.catQ = t.value;
+      if (key === "gq") UI.q[t.dataset.gq] = t.value; else if (key === "raiQ") UI.raiQ = t.value; else if (key === "libQ") UI.libQ = t.value; else if (key === "hwQ") UI.hwQ = t.value; else if (key === "kitQ") UI.kitQ = t.value; else UI.catQ = t.value;
       const pos = t.selectionStart; render(); const n = key === "gq" ? document.querySelector(`[data-gq="${t.dataset.gq}"]`) : document.getElementById(key);
       if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (er) { } }
     }, 200);

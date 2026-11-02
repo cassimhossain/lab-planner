@@ -1,0 +1,116 @@
+/* Robotics & AI Curriculum: slides and teacher guides.
+   The slides follow the club's deck style: cream paper, soft colour blobs,
+   a Caveat kicker over a Bricolage title, coloured boxes and a LEARN / MAKE /
+   WRAP UP tag. Each slide is 960 x 540 and scales to fit the window. */
+:root { --paper: #FFF8EE; --ink: #1B2333; --muted: #5B6578; --c: #2E6BE6; --l: #E8F0FD;
+  --red: #E0414B; --green: #2E9E5B; --amber: #F2A31B; --purple: #7B3FC4; --blue: #2E6BE6; --teal: #14967F; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: #0F1828; font-family: "Atkinson Hyperlegible Next", system-ui, sans-serif; color: var(--ink); }
+button { font: inherit; }
+
+/* ---------- player chrome ---------- */
+.top { position: fixed; inset: 0 0 auto 0; height: 56px; display: flex; align-items: center; gap: 10px; padding: 0 14px; color: #E8EDF5; z-index: 5; background: #0F1828; border-bottom: 2px solid var(--c); }
+.top .t { flex: 1; min-width: 0; } .top .t b { display: block; font-family: "Bricolage Grotesque", sans-serif; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .top .t small { color: #9AA7BC; font-size: 12.5px; }
+.tb { border: 0; background: #1B2A44; color: #E8EDF5; height: 38px; min-width: 38px; padding: 0 12px; border-radius: 10px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-size: 13.5px; }
+.tb:hover { background: #24395C; } .tb.hot { background: var(--amber); color: #1B2333; }
+.stage { position: fixed; inset: 56px 0 6px 0; display: grid; place-items: center; overflow: hidden; }
+.prog { position: fixed; left: 0; bottom: 0; height: 6px; background: var(--c); transition: width .25s; z-index: 6; }
+.slide { width: 960px; height: 540px; position: relative; background: var(--paper); border-radius: 14px; overflow: hidden; transform-origin: center; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+.timer { position: fixed; right: 16px; bottom: 18px; z-index: 7; background: #1B2333; color: #fff; border-radius: 16px; padding: 10px 16px; font: 700 34px "JetBrains Mono", monospace; box-shadow: 0 10px 30px rgba(0,0,0,.4); display: none; cursor: pointer; }
+.timer.on { display: block; } .timer.done { background: var(--red); animation: pulse 1s infinite; }
+@keyframes pulse { 50% { transform: scale(1.06); } }
+.reduce * { animation: none !important; transition: none !important; }
+
+/* ---------- slide parts ---------- */
+.blob { position: absolute; border-radius: 50%; opacity: .55; pointer-events: none; }
+.chipt { position: absolute; top: 18px; left: 26px; background: var(--c); color: #fff; font: 800 11px "Bricolage Grotesque", sans-serif; padding: 5px 10px; border-radius: 99px; letter-spacing: .02em; }
+.stag { position: absolute; top: 16px; right: 22px; border: 2px solid var(--c); color: var(--c); font: 800 11px "Bricolage Grotesque", sans-serif; padding: 3px 10px; border-radius: 99px; letter-spacing: .06em; background: #fff; }
+.foot { position: absolute; left: 26px; right: 26px; bottom: 12px; display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); }
+.body { position: absolute; inset: 52px 34px 34px 34px; display: flex; flex-direction: column; }
+.kick { font: 700 24px "Caveat", cursive; color: var(--c); line-height: 1; }
+h1.st { font: 800 34px/1.08 "Bricolage Grotesque", sans-serif; margin: 2px 0 14px; letter-spacing: -.01em; }
+.cols { display: grid; grid-template-columns: 1.25fr 1fr; gap: 18px; flex: 1; min-height: 0; }
+.cols.even { grid-template-columns: 1fr 1fr; } .cols.three { grid-template-columns: 1fr 1fr 1fr; }
+.box { border: 2.5px solid var(--c); border-radius: 12px; padding: 10px 14px; background: #fff; font-size: 16px; line-height: 1.38; position: relative; }
+.box h3 { margin: 0 0 4px; font: 800 15.5px "Bricolage Grotesque", sans-serif; color: var(--c); }
+.box p { margin: 0 0 6px; white-space: pre-line; } .box ul, .box ol { margin: 4px 0; padding-left: 20px; } .box li { margin: 3px 0; }
+.box.red { --c: var(--red); } .box.green { --c: var(--green); } .box.amber { --c: var(--amber); } .box.purple { --c: var(--purple); } .box.blue { --c: var(--blue); } .box.teal { --c: var(--teal); }
+.note { background: #FFF1B8; border: 2px solid #E5C34A; border-radius: 6px; padding: 8px 12px; font: 600 15px/1.3 "Atkinson Hyperlegible Next"; transform: rotate(-1.2deg); box-shadow: 2px 3px 0 rgba(0,0,0,.06); }
+.note b.l { display: block; font: 700 18px "Caveat", cursive; color: #8A5A00; }
+.note.blue { background: #E3EEFF; border-color: #8FB2F0; } .note.blue b.l { color: #1F55C8; }
+.stack { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.art { display: grid; place-items: center; font-size: 110px; line-height: 1; text-align: center; }
+.art small { display: block; font: 700 20px "Caveat", cursive; color: var(--c); margin-top: 8px; }
+.today { border: 2.5px solid var(--purple); background: #F5EEFF; border-radius: 12px; padding: 10px 14px; font-size: 16px; margin-top: auto; }
+.today b { color: var(--purple); }
+code, pre { font-family: "JetBrains Mono", monospace; }
+pre.code { margin: 0; background: #16213A; color: #E6EDF7; border-radius: 10px; padding: 10px 12px; font-size: 12.5px; line-height: 1.45; overflow: hidden; white-space: pre; }
+.steps { counter-reset: s; list-style: none; padding: 0 !important; margin: 0; }
+.steps li { counter-increment: s; position: relative; padding-left: 34px; margin: 7px 0; }
+.steps li::before { content: counter(s, lower-alpha); position: absolute; left: 0; top: -1px; width: 24px; height: 24px; border-radius: 50%; background: var(--c); color: #fff; font: 800 13px/24px "Bricolage Grotesque"; text-align: center; }
+table.tt { width: 100%; border-collapse: collapse; font-size: 14.5px; background: #fff; }
+table.tt th, table.tt td { border: 1.5px solid #CFD6E2; padding: 7px 9px; text-align: left; }
+table.tt th { background: var(--l); font-family: "Bricolage Grotesque"; }
+table.tt td.blank { color: #B3BCCB; }
+
+/* interactive bits */
+.guess { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+.guess button { border: 2.5px solid var(--c); background: #fff; color: var(--ink); border-radius: 10px; padding: 7px 12px; font: 700 15px "Atkinson Hyperlegible Next"; cursor: pointer; transform: rotate(-1deg); }
+.guess button:nth-child(2) { transform: rotate(1deg); border-color: var(--blue); } .guess button:nth-child(3) { border-color: var(--green); }
+.guess button.pick { background: var(--c); color: #fff; }
+.reveal { cursor: pointer; } .reveal .ans { display: none; } .reveal.open .ans { display: block; animation: pop .3s; } .reveal.open .tap { display: none; }
+.tap { font: 700 18px "Caveat", cursive; color: var(--c); }
+@keyframes pop { from { opacity: 0; transform: translateY(6px); } }
+.quiz { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.quiz button { text-align: left; border: 2.5px solid #CFD6E2; background: #fff; border-radius: 12px; padding: 10px 12px; font: 600 15.5px "Atkinson Hyperlegible Next"; cursor: pointer; color: var(--ink); }
+.quiz button.right { border-color: var(--green); background: #E6F6EC; } .quiz button.wrong { border-color: var(--red); background: #FDECEC; }
+.why { margin-top: 10px; min-height: 22px; font-size: 15px; }
+.simbtn { display: inline-flex; align-items: center; gap: 8px; background: var(--c); color: #fff; text-decoration: none; border-radius: 12px; padding: 10px 16px; font: 800 15px "Bricolage Grotesque"; margin: 4px 8px 4px 0; }
+.simbtn.ghost { background: #fff; color: var(--c); border: 2.5px solid var(--c); }
+.tbtn, .stack > .simbtn { align-self: flex-start; }
+.tbtn { border: 0; background: var(--ink); color: #fff; border-radius: 10px; padding: 7px 12px; font: 700 13.5px "Atkinson Hyperlegible Next"; cursor: pointer; }
+.rate { display: grid; gap: 8px; } .rate div { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; background: #fff; border: 2px solid #CFD6E2; border-radius: 10px; padding: 7px 12px; font-size: 15px; }
+.rate span { display: flex; gap: 6px; } .rate span i { width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid; display: inline-block; cursor: pointer; }
+.rate span i.on { background: currentColor; }
+.ticks li { list-style: none; position: relative; padding-left: 30px; margin: 7px 0; } .ticks { padding: 0 !important; }
+.ticks li::before { content: "✓"; position: absolute; left: 0; top: -2px; width: 22px; height: 22px; border: 2px solid var(--green); color: var(--green); border-radius: 4px; text-align: center; font-weight: 800; line-height: 20px; }
+
+/* title slide */
+.ttl .body { inset: 60px 50px 40px 56px; justify-content: center; }
+.ttl .grp { font: 700 26px "Caveat", cursive; color: var(--c); }
+.ttl h1 { font: 800 50px/1.02 "Bricolage Grotesque", sans-serif; margin: 6px 0 12px; max-width: 610px; }
+.ttl h1 em { font-style: normal; color: var(--c); }
+.ttl .hook { font: 700 19px/1.35 "Atkinson Hyperlegible Next"; color: var(--blue); max-width: 540px; }
+.tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; } .tags span { background: var(--c); color: #fff; border-radius: 99px; padding: 5px 12px; font: 800 12.5px "Bricolage Grotesque"; }
+.tags span:nth-child(2) { background: var(--purple); } .tags span:nth-child(3) { background: var(--blue); } .tags span:nth-child(4) { background: var(--teal); }
+.ttl .bigart { position: absolute; right: 44px; top: 130px; font-size: 130px; }
+.ttl .note { margin-top: 22px; max-width: 440px; align-self: flex-start; }
+.ttl h1.long { font-size: 40px; } .ttl h1.vlong { font-size: 34px; }
+.divider { background: var(--c); color: #fff; } .divider .body { justify-content: center; }
+.divider h1 { font: 800 46px "Bricolage Grotesque"; margin: 0 0 6px; } .divider .kick { color: #FFE9B8; font-size: 30px; }
+.divider ol { font-size: 19px; line-height: 1.6; } .divider .foot { color: rgba(255,255,255,.75); }
+
+/* ---------- teacher guide ---------- */
+body.guide { background: #F4F6FA; }
+.gwrap { max-width: 900px; margin: 0 auto; padding: 76px 22px 60px; }
+.gwrap h1 { font: 800 32px "Bricolage Grotesque"; margin: 6px 0; } .gwrap h2 { font: 800 21px "Bricolage Grotesque"; margin: 28px 0 10px; color: var(--c); border-bottom: 2px solid var(--l); padding-bottom: 6px; }
+.gwrap h3 { font: 800 16px "Bricolage Grotesque"; margin: 16px 0 6px; }
+.gwrap p, .gwrap li { line-height: 1.55; font-size: 15.5px; }
+.gcard { background: #fff; border: 1px solid #DDE3EC; border-radius: 14px; padding: 14px 18px; }
+.ggrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; } .ggrid div { background: var(--l); border-radius: 10px; padding: 8px 10px; font-size: 13px; } .ggrid b { display: block; font-size: 15px; }
+.gt { width: 100%; border-collapse: collapse; background: #fff; font-size: 14.5px; } .gt th, .gt td { border: 1px solid #DDE3EC; padding: 8px 10px; vertical-align: top; text-align: left; } .gt th { background: var(--l); }
+.tier { border-left: 5px solid var(--c); background: #fff; border-radius: 8px; padding: 8px 12px; margin: 8px 0; }
+.tier b { display: block; }
+.say { background: #FFF8E1; border-left: 4px solid var(--amber); padding: 6px 10px; border-radius: 6px; font-style: italic; margin: 6px 0; }
+@media print {
+  .top, .prog, .timer { display: none !important; }
+  body, body.guide { background: #fff; }
+  .gwrap { padding: 0; }
+  .gwrap h2 { break-after: avoid; } .gcard, .tier, tr { break-inside: avoid; }
+  body.printdeck .stage { position: static; display: block; }
+  body.printdeck .slide { transform: none !important; box-shadow: none; border-radius: 0; break-after: page; margin: 0; }
+  @page { margin: 12mm; }
+}
+@page deck { size: 960px 540px; margin: 0; }
+body.printdeck .stage { page: deck; }

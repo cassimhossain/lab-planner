@@ -377,4 +377,4 @@ window.RAI = {
   ]
 };
 /* activities whose rai/lessons/<code>.js is written (slides + teacher guide) */
-window.RAI.ready = ["AI-02", "AI-11", "EF-01", "IS-08", "ROB-08", "ROB-09"];
+window.RAI.ready = ["AI-02", "AI-11", "EF-01", "EF-02", "EF-03", "EF-04", "EF-05", "EF-06", "EF-07", "EF-08", "EF-09", "IS-08", "ROB-08", "ROB-09"];

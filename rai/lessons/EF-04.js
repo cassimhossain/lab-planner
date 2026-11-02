@@ -1,0 +1,42 @@
+window.RAI_LESSONS["EF-04"] = {
+  fact: "A modern processor contains billions of tiny logic gates, each switching billions of times a second.",
+  think: { q: "Your robot should stop if the wall is close OR the battery is low. How does a chip make that choice?", art: "🔀", cap: "yes / no decisions",
+    guesses: ["It thinks about it", "A tiny switch decides", "Logic gates!"],
+    story: { h: "Decisions everywhere", text: "A lift door closes only if no one is in the way AND the button was pressed. A car alarm sounds if a door opens OR the glass breaks. Every 'if' is built from logic." },
+    today: "we learn **AND, OR and NOT**, build them in a simulator and turn a robot rule into logic and code." },
+  objectives: [{ t: "Explain AND, OR and NOT with truth tables", proof: "I filled in all three truth tables" }, { t: "Build gate circuits in a simulator", proof: "my CircuitVerse circuit matches my table" }, { t: "Turn a robot rule into logic and code", proof: "I wrote the same rule as gates and as an if statement" }],
+  video: { title: "Logic gates explained", search: "logic gates AND OR NOT explained for beginners", mins: 5, watch: ["What does an AND gate need to output 1?", "How is OR different?", "What does NOT do?"] },
+  learn: [
+    { kicker: "The three gates", title: "AND, OR, NOT",
+      boxes: [{ h: "AND", text: "Output 1 only if BOTH inputs are 1.\n'Seatbelt on AND door shut → car can start.'", color: "blue" }, { h: "OR", text: "Output 1 if EITHER input is 1.\n'Door opens OR glass breaks → alarm.'", color: "green" }, { h: "NOT", text: "Flips it: 1 becomes 0, 0 becomes 1.\n'NOT dark → lamp off.'", color: "red" }] },
+    { kicker: "Truth tables", title: "Every possible case",
+      code: "A B | AND  OR\n0 0 |  0    0\n0 1 |  0    1\n1 0 |  0    1\n1 1 |  1    1",
+      reveal: { q: "How many rows does a truth table with 3 inputs need?", a: "8. Each input doubles the rows: 2 × 2 × 2 = 8." }, side: [{ h: "1 and 0", text: "1 = true, yes, HIGH, 5 V\n0 = false, no, LOW, 0 V", color: "purple" }] },
+    { kicker: "Logic in code", title: "&&, || and !",
+      code: "bool wallClose = distance < 15;\nbool batteryLow = volts < 6.5;\nif (wallClose || batteryLow) stop();   // OR\nif (armed && motion) alarm();          // AND\nif (!dark) lampOff();                  // NOT",
+      side: [{ h: "Same idea, two forms", text: "Hardware gates and if-statements are the same logic. Chips build your if-statements out of gates!", color: "teal" }] },
+    { kicker: "Deeper", title: "Building maths from logic", only: ["advanced"], points: ["XOR: 1 if inputs are different", "Half adder: XOR gives the sum bit, AND gives the carry", "Chain adders → a calculator. That's how a CPU adds."], code: "A B | SUM(XOR) CARRY(AND)\n1 1 |    0        1   → 1+1 = 10 in binary" }
+  ],
+  quiz: [{ q: "An AND gate has inputs 1 and 0. The output is...", options: ["1", "0", "2", "It depends"], answer: 1, why: "AND needs both inputs to be 1." }, { q: "'Stop if wall close OR battery low.' The wall isn't close, battery is low. Stop?", options: ["Yes", "No"], answer: 0, why: "OR only needs one input true." }],
+  real: [{ art: "🛗", name: "Lifts", text: "Doors close only if the button is pressed AND nothing blocks the sensor." }, { art: "🚨", name: "Alarms", text: "Any door OR window sensor triggers the siren." }, { art: "💻", name: "Computers", text: "Billions of gates add, compare and decide inside every chip." }],
+  game: { title: "Human logic gates", mins: 8, big: "A gate is a tiny rule that turns inputs into one output.",
+    steps: ["Two students are inputs: hand up = 1, hand down = 0.", "A third student is the gate with a card: AND, OR or NOT.", "The gate stands up (1) or sits (0) by the rule.", "Chain two gates: the output of one is an input of the next!"] },
+  simWhy: "**CircuitVerse** is a free digital-logic simulator: drag gates, switches and lights. **Circuit Lab** runs the same rule as Arduino code.",
+  builds: [
+    { title: "Gates in CircuitVerse", mins: 15, sim: "circuitverse", steps: ["Open the simulator (no account needed to try).", "Add two Input switches, an AND gate and an Output LED.", "Flip the switches through all 4 combinations; fill the table.", "Repeat for OR and NOT."] },
+    { title: "A robot rule as gates", mins: 12, steps: ["Rule: the robot moves only if the start button is pressed AND NOT (wall close OR battery low).", "Build it in CircuitVerse with 3 switches.", "Test all 8 combinations.", "Which cases let the robot move?"], art: "🤖" },
+    { title: "The same rule in code", only: ["core", "advanced"], mins: 12, sim: "circuit-lab", steps: ["Two buttons and a potentiometer in Circuit Lab.", "Write the rule with &&, || and !.", "Check it agrees with your gate circuit."], code: "bool go = start && !(wallClose || batteryLow);\ndigitalWrite(13, go);" }
+  ],
+  test: { title: "Truth table check", cols: ["Start", "Wall close", "Battery low", "Robot moves?"], rows: [["0", "0", "0", ""], ["1", "0", "0", ""], ["1", "1", "0", ""], ["1", "0", "1", ""], ["1", "1", "1", ""]] },
+  levelup: { choices: [{ t: "XOR", d: "Build XOR from AND, OR and NOT." }, { t: "Half adder", d: "Add two binary digits with XOR and AND." }, { t: "Voting machine", d: "Light turns on if at least 2 of 3 switches are on." }], think: { h: "Think like an engineer", text: "Why might engineers prefer a hardware gate to software for an emergency stop?" }, boss: "Build a full adder and add two 2-bit numbers." },
+  wrap: { learned: ["AND needs both, OR needs either, NOT flips", "Truth tables list every case", "Robot rules are logic", "&&, || and ! are gates in code", "Gates build all computing"], exit: "Write a rule for a smart lamp using AND and NOT.", home: "Find one AND rule and one OR rule in your home (a microwave? a car?).", next: "**EF-05 Transistors and Relays**: switching big loads." },
+  guide: { grouping: "Pairs", overview: "Connects Boolean logic in hardware with if-statements in code, so students see decision-making as one idea at two levels. CircuitVerse needs no install and makes the truth tables concrete.",
+    prep: ["Check CircuitVerse loads on the network", "Print AND/OR/NOT cards for the game", "Optional: 74HC08 chips to show a real gate"],
+    timing: [[8, "Hook", "Robot decision question and video"], [12, "Learn", "Gates, truth tables, code"], [8, "Game", "Human gates"], [15, "Build 1", "CircuitVerse"], [12, "Build 2", "Robot rule"], [10, "Build 3", "Code version"], [5, "Wrap", "Exit ticket"]],
+    steps: [{ phase: "Game", title: "Chain the gates", say: "Your output is the next person's input.", do: ["Start with single gates, then chain NOT after OR to build NOR."] }],
+    misconceptions: [["OR means one or the other but not both", "In logic OR includes both (that's XOR otherwise)."], ["Logic is only for computers", "Every safety system and appliance uses it."]],
+    trouble: [["CircuitVerse output stays off", "Wire not connected to the gate's pin: drag until it snaps."], ["Code always moves", "Brackets missing: !(a || b) is not the same as !a || b."]],
+    tiers: { starter: ["Human gates game with AND and OR only; picture-based rules."], core: ["Full lesson."], advanced: ["XOR, half and full adders; De Morgan's laws."] },
+    assess: [{ c: "Logic", e: "Knows AND/OR names", s: "Completes truth tables", x: "Simplifies and builds adders" }, { c: "Application", e: "Follows a given rule", s: "Turns a rule into gates and code", x: "Designs own safety rules" }],
+    safety: ["None beyond usual laptop use."] }
+};

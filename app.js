@@ -1067,8 +1067,8 @@
     const words = UI.raiQ.toLowerCase().split(/\s+/).filter(Boolean);
     const hit = a => (!UI.raiCat || a.code.startsWith(UI.raiCat + "-")) && (!UI.raiType || a.type.includes(UI.raiType)) &&
       words.every(w => (a.code + " " + a.title + " " + a.hook + " " + a.concepts.join(" ") + " " + a.kit.join(" ")).toLowerCase().includes(w));
-    const cats = R.cats.map(c => { const n = R.activities.filter(a => a.code.startsWith(c.key + "-")).length;
-      return `<button class="raicat ${UI.raiCat === c.key ? "on" : ""}" data-raicat="${c.key}" style="--c:${c.color};--l:${c.light}"><b>${esc(c.name)}</b><small>${esc(c.about)}</small><em>${n} activities</em></button>`; }).join("");
+    const cats = gtabs([{ code: "", icon: "grid", name: "All categories", sub: `${R.activities.length} activities`, color: "#1B3A6B", light: "#E5ECF7" }]
+      .concat(R.cats.map(c => ({ code: c.key, name: c.name, sub: `${R.activities.filter(a => a.code.startsWith(c.key + "-")).length} activities`, color: c.color, light: c.light }))), UI.raiCat, "data-raicat");
     const types = [["", "All types"], ["H", "Hardware"], ["S", "Software"], ["U", "Unplugged"]];
     const card = a => { const c = R.cats.find(x => a.code.startsWith(x.key + "-")), ok = ready.has(a.code), q = encodeURIComponent(a.code);
       const sims = a.sims.map(k => SIM.byKey[k]).filter(Boolean).slice(0, 3);
@@ -1081,7 +1081,7 @@
       const c = R.cats.find(x => x.key === m.cat);
       return `<section class="raimod"><h2 style="--c:${c.color}"><span>${esc(c.name)}</span>${esc(m.name)}</h2><div class="raigrid">${list.map(card).join("")}</div></section>`; }).join("");
     return head("Robotics & AI Curriculum", `${R.activities.length} activities in ${R.cats.length} categories. Each one runs at three depths (Starter, Core, Advanced), so you choose what fits the class. ${ready.size} have full slides and a teacher guide so far.`) +
-      `<div class="raicats">${cats}</div>
+      cats + `
       <div class="raibar"><label class="search"><input id="raiQ" value="${esc(UI.raiQ)}" placeholder="Search activities, concepts or parts" aria-label="Search the curriculum"></label>
         <div class="seg">${types.map(([k, l]) => `<button class="${UI.raiType === k ? "on" : ""}" data-raitype="${k}">${l}</button>`).join("")}</div></div>
       ${mods || `<p class="muted">No activities match. Clear the search or pick another category.</p>`}`;
@@ -1708,7 +1708,7 @@
     const t = e.target.closest("button, a"); if (!t) { if (e.target.id === "scrim") { closeModal(); closeNav(); } return; }
     const d = t.dataset;
     if (d.pal != null) { palRun(+d.pal); return; }
-    if (d.raicat != null) { UI.raiCat = UI.raiCat === d.raicat ? "" : d.raicat; render(); return; }
+    if (d.raicat != null) { UI.raiCat = d.raicat; render(); return; }
     if (d.raitype != null) { UI.raiType = d.raitype; render(); return; }
     if (d.role) { PR.role = d.role; savePr(); render(); toast(d.role === "student" ? "Student view" : "Teacher view"); return; }
     if (d.track != null) { PR.track = d.track; savePr(); render(); window.scrollTo(0, 0); return; }

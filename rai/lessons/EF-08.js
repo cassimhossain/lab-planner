@@ -1,0 +1,41 @@
+window.RAI_LESSONS["EF-08"] = {
+  fact: "The software in a modern car has around 100 million lines of code, organised into thousands of functions.",
+  think: { q: "Good robot code reads like a recipe. Bad robot code reads like a phone book. What's the difference?", art: "📖🍲", cap: "organise your code",
+    guesses: ["Fewer lines", "Better names", "Functions and loops!"],
+    story: { h: "The 300-line robot", text: "A team's robot code was one long list: forward, delay, turn, delay... 300 lines. When they needed to change the turning speed, they had to edit 40 places. They missed 3." },
+    today: "we turn messy robot code into **functions**, use **loops**, and replace delay() with **events** using millis()." },
+  objectives: [{ t: "Break a task into functions", proof: "my robot program uses forward(), turnRight() and stopAll()" }, { t: "Use loops instead of repeated lines", proof: "I shortened a program with a loop" }, { t: "Run two things at once with millis()", proof: "my LED blinks while the button still works" }],
+  video: { title: "Arduino functions and millis explained", search: "arduino millis instead of delay explained", mins: 6, watch: ["What does delay() stop?", "How does millis() let two things happen?", "Why use functions?"] },
+  learn: [
+    { kicker: "Functions", title: "Name it once, use it everywhere",
+      code: "void forward(int speed) {\n  analogWrite(ENA, speed); analogWrite(ENB, speed);\n  digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);\n  digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);\n}\n// now the main program reads like English:\nforward(150); delay(1000); turnRight(); stopAll();",
+      side: [{ h: "Why?", points: ["Shorter, readable code", "Fix a bug in one place", "Reuse in the next project"], color: "green" }] },
+    { kicker: "The delay() problem", title: "A frozen robot can't see",
+      text: "During `delay(1000)` the Arduino does NOTHING else: no sensors, no buttons.", points: ["A robot in delay() can drive into a wall", "Solution: check the clock with **millis()** and act when enough time has passed"],
+      code: "unsigned long last = 0;\nvoid loop() {\n  if (millis() - last >= 500) {   // every 500 ms\n    last = millis();\n    toggleLED();\n  }\n  checkBumper();                  // runs all the time!\n}",
+      reveal: { q: "Why does millis() let two jobs run at once?", a: "loop() keeps running very fast; each job checks 'is it my time yet?' and does a tiny bit. Nothing ever waits." } },
+    { kicker: "Events", title: "React when something happens",
+      points: ["**Polling:** keep checking 'is the button pressed?' in loop()", "**Edge detection:** act only when it changes from up to down", "**Interrupts:** the hardware calls your function instantly (encoders, emergency stop)"], art: "🔔" }
+  ],
+  quiz: [{ q: "What does delay(2000) do?", options: ["Runs other code for 2 s", "Pauses everything for 2 s", "Speeds up the loop", "Turns off the board"], answer: 1, why: "delay blocks everything, which is why we use millis()." }, { q: "The main benefit of a function is...", options: ["It makes the robot faster", "Code is written once and reused", "It uses less battery", "It's required by Arduino"], answer: 1, why: "Write once, fix once, reuse everywhere." }],
+  real: [{ art: "🚗", name: "Car software", text: "Thousands of functions run on timers: check brakes every 10 ms, update the dashboard every 100 ms." }, { art: "🎮", name: "Games", text: "A game loop updates characters, reads controls and draws the screen, never waiting." }, { art: "🤖", name: "Robot firmware", text: "Motor control, sensors and radio all run 'at once' using timers and interrupts." }],
+  game: { title: "The juggling chef", mins: 5, big: "Don't wait: check the clock and do a little of each job.", steps: ["One student is a chef with 3 tasks: stir every 5 s, flip every 10 s, answer the phone when it 'rings'.", "Round 1 ('delay chef'): they must wait out each timer, eyes closed. The phone rings and they miss it!", "Round 2 ('millis chef'): they glance at a clock and switch tasks. Nothing is missed."] },
+  simWhy: "**Code Lab** for practising functions in Python first. **Circuit Lab** to see delay() and millis() behave differently with real buttons. **GearsBot** for robot functions in a simulator.",
+  builds: [
+    { title: "Refactor the robot", mins: 15, sim: "circuit-lab", steps: ["Start from the long 'dance' program given by the teacher.", "Find repeated chunks. Make forward(), backward(), turnLeft(), turnRight(), stopAll().", "Use a for loop for the repeated part.", "Is your program shorter? Does it still dance the same?"] },
+    { title: "Blink without delay", mins: 15, steps: ["LED on pin 13, button on pin 2.", "Version A: blink with delay(1000). Press the button: how fast does it respond?", "Version B: blink with millis(). Press again.", "Add a second LED blinking at a different speed."], code: "unsigned long t1=0, t2=0;\nvoid loop(){\n  if (millis()-t1 >= 1000){ t1=millis(); flip(13); }\n  if (millis()-t2 >= 300) { t2=millis(); flip(12); }\n  if (digitalRead(2)==LOW) tone(8, 880); else noTone(8);\n}\nvoid flip(int p){ digitalWrite(p, !digitalRead(p)); }" },
+    { title: "Debug like a pro", only: ["core", "advanced"], mins: 10, steps: ["Add Serial.println() at the start of each function.", "Watch the order in the Serial Monitor.", "Use the Serial Plotter to graph a sensor while the robot runs."] }
+  ],
+  test: { title: "delay() versus millis()", cols: ["Version", "Button response time", "Both LEDs at their own speed?", "Notes"], rows: [["delay()", "", "", ""], ["millis()", "", "", ""]] },
+  levelup: { choices: [{ t: "Library", d: "Move your motor functions into their own tab (.h file)." }, { t: "State + timer", d: "Robot drives 2 s, turns 1 s, repeat, all with millis()." }, { t: "Interrupt", d: "attachInterrupt on the button for an emergency stop." }], think: { h: "Think like an engineer", text: "Why is a delay() dangerous in a robot that drives near people?" }, boss: "Write a tiny scheduler: a list of tasks with periods that loop() runs." },
+  wrap: { learned: ["Functions make code readable and reusable", "Loops replace repeated lines", "delay() freezes everything", "millis() lets jobs share time", "Interrupts react instantly"], exit: "Rewrite: `led on; delay(500); led off; delay(500);` using millis().", home: "Write the 'functions' of your morning routine: wakeUp(), getDressed()... Which ones repeat?", next: "**EF-09 Wireless Control**." },
+  guide: { grouping: "Pairs", overview: "Code quality lesson that pays off in every later robot. The biggest practical shift is from delay() to millis(), without which robots can't sense while moving.",
+    prep: ["Write a deliberately long 'robot dance' program to hand out (60+ lines of repeated moves)", "A clock with a second hand for the juggling chef"],
+    timing: [[8, "Hook", "300-line robot story"], [12, "Learn", "Functions, delay problem, events"], [5, "Game", "Juggling chef"], [15, "Build 1", "Refactor"], [15, "Build 2", "Blink without delay"], [10, "Build 3", "Debugging"], [5, "Wrap", "Exit ticket"]],
+    steps: [{ phase: "Build", title: "Feel the delay problem", do: ["Have everyone hold the button during the delay version: the lag is obvious.", "Celebrate the instant response in the millis version."] }],
+    misconceptions: [["millis() makes things happen at the same instant", "It switches between jobs so fast it looks simultaneous."], ["Functions make code run faster", "They make it easier to read and fix."]],
+    trouble: [["Function 'not declared'", "Typo in the name or it's used before it's defined in some editors: put functions above loop()."], ["millis timing drifts", "Use last += period instead of last = millis() for exact rhythm."], ["Variable overflow", "Use unsigned long for time variables."]],
+    tiers: { starter: ["Juggling chef and a ready-made two-LED millis sketch: change the speeds."], core: ["Full lesson."], advanced: ["Interrupts, headers and a simple scheduler."] },
+    assess: [{ c: "Structure", e: "Uses given functions", s: "Writes own functions and loops", x: "Organises code into modules" }, { c: "Timing", e: "Uses delay", s: "Uses millis for two tasks", x: "Uses interrupts or a scheduler" }],
+    safety: ["None beyond usual electronics care."] }
+};

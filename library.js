@@ -2,6 +2,16 @@
 window.LIBRARY = {
  "decks": [
   {
+   "code": "EF-10",
+   "group": "EF",
+   "title": "Talking Chips I2C UART and SPI",
+   "file": "library/slides/EF-10_Talking_Chips_I2C_UART_and_SPI_Slides.pdf",
+   "thumb": "library/thumbs/EF-10.jpg",
+   "banner": "library/banners/EF-10.jpg",
+   "pages": 20,
+   "kb": 2729
+  },
+  {
    "code": "F-00",
    "group": "F",
    "title": "Welcome to Robotics",
@@ -700,6 +710,46 @@ window.LIBRARY = {
    "banner": "library/banners/LE-32.jpg",
    "pages": 17,
    "kb": 454
+  },
+  {
+   "code": "ROB-05",
+   "group": "ROB",
+   "title": "Build and Wire a Robot Car",
+   "file": "library/slides/ROB-05_Build_and_Wire_a_Robot_Car_Slides.pdf",
+   "thumb": "library/thumbs/ROB-05.jpg",
+   "banner": "library/banners/ROB-05.jpg",
+   "pages": 18,
+   "kb": 2760
+  },
+  {
+   "code": "ROB-06",
+   "group": "ROB",
+   "title": "Servos and Steppers Moving Precisely",
+   "file": "library/slides/ROB-06_Servos_and_Steppers_Moving_Precisely_Slides.pdf",
+   "thumb": "library/thumbs/ROB-06.jpg",
+   "banner": "library/banners/ROB-06.jpg",
+   "pages": 17,
+   "kb": 2328
+  },
+  {
+   "code": "ROB-07",
+   "group": "ROB",
+   "title": "Encoders How Far Did I Go",
+   "file": "library/slides/ROB-07_Encoders_How_Far_Did_I_Go_Slides.pdf",
+   "thumb": "library/thumbs/ROB-07.jpg",
+   "banner": "library/banners/ROB-07.jpg",
+   "pages": 16,
+   "kb": 2242
+  },
+  {
+   "code": "ROB-10",
+   "group": "ROB",
+   "title": "Balancing Robot",
+   "file": "library/slides/ROB-10_Balancing_Robot_Slides.pdf",
+   "thumb": "library/thumbs/ROB-10.jpg",
+   "banner": "library/banners/ROB-10.jpg",
+   "pages": 18,
+   "kb": 2683
   },
   {
    "code": "TL-01",

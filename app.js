@@ -651,6 +651,7 @@
       ${UI.swapOpen ? `<div class="plist">${others.map(b => `<button class="prow" data-swap="${esc(b.code)}" style="--c:${GROUPS[b.group].color};--l:${GROUPS[b.group].light}"><span class="acode">${esc(lab(b))}</span><span class="nt">${esc(b.title)}<small>${esc(GROUPS[b.group].name)} · ${DAYFULL[peek(b.code).day]}</small></span><span class="nplan">Swap</span></button>`).join("")}</div>` : ""}</div>`;
   }
   function renderModal() {
+    if (String(modalCode).startsWith("rai:")) return renderRai(modalCode.slice(4));
     if (String(modalCode).startsWith("pick:")) return renderPicker(modalCode.slice(5));
     if (String(modalCode).startsWith("sched:")) return renderSched();
     const a = getA(modalCode), g = GROUPS[a.group], s = peek(a.code), kit = kitOf(a.code).filter(k => k.n), gr = groupsOf(a.code), dk = deckOf(a.code), stu = isStudent();
@@ -1060,25 +1061,57 @@
      The subject-based curriculum in rai/: four categories, modules, and
      activities that each have slides and a teacher guide (rai/deck.html).
      Activities whose lesson file isn't written yet show their plan. */
+  const RAI_TYPE = { H: "Hardware", S: "Software", U: "Unplugged", HS: "Hardware + software", US: "Unplugged + software" };
+  const raiCat = a => window.RAI.cats.find(x => a.code.startsWith(x.key + "-"));
+  const raiMod = a => window.RAI.modules.find(m => m.key === a.mod);
+  /* the same tile as the age-group pages, with the module's picture as its banner */
+  function raiCard(a, ready) {
+    const c = raiCat(a), m = raiMod(a), ok = ready.has(a.code);
+    return `<button class="acard has-ban" data-rai="${esc(a.code)}" style="--c:${c.color};--l:${c.light}">
+      <span class="abanner rai"><span>${a.art || m.art || "🤖"}</span></span>
+      <span class="acard-top"><span class="adomain">${esc(m.name)}</span><span class="acode">${ok ? `<i class="sbadge" title="Has slides">${ic("play")}</i>` : ""}${esc(a.code)}</span></span>
+      <span class="atitle">${esc(a.title)}</span>
+      <span class="adom">${esc(RAI_TYPE[a.type] || a.type)} · ${a.mins} min${ok ? " · slides + guide" : ""}</span>
+      <span class="achips"><span class="lvl lvl-starter">Starter</span><span class="lvl lvl-core">Core</span><span class="lvl lvl-advanced">Advanced</span></span>
+      <span class="afoot">${ok ? `<span class="chip green">${ic("check")}Ready</span>` : `<span class="chip ghost">Plan</span>`}<span class="aplan">Open ${ic("arrow")}</span></span>
+    </button>`;
+  }
+  /* the lesson sheet for one curriculum activity, laid out like renderModal's */
+  function renderRai(code) {
+    const R = window.RAI, a = R.activities.find(x => x.code === code); if (!a) return closeModal();
+    const c = raiCat(a), m = raiMod(a), ok = (R.ready || []).includes(code), q = encodeURIComponent(code);
+    const sims = a.sims.map(k => SIM.byKey[k]).filter(Boolean);
+    const hero = `<a class="mdeck raihero" href="rai/deck.html?c=${q}" aria-label="Open the slides"><span class="raiart">${a.art || m.art || "🤖"}</span>
+      <span class="mdeck-cta">${ic("play")}${ok ? "Open the slides" : "Open the plan (slides coming soon)"}</span></a>`;
+    $("#modal").innerHTML = `<div class="sheet-m wide" style="--c:${c.color};--l:${c.light}" role="document" aria-label="${esc(a.code)} ${esc(a.title)}">
+      <div class="m-hero">${hero}<a class="mvid" href="rai/deck.html?c=${q}&view=guide"><span class="mvid-ic">${ic("book")}</span><span><b>Teacher guide</b><small>${ok ? "Prep, timing, step-by-step, troubleshooting and a rubric" : "Outcomes, depths and kit (full guide coming soon)"}</small></span>${ic("arrow")}</a><button class="m-x float" data-close aria-label="Close">${ic("x")}</button></div>
+      <div class="m-title"><span class="acode">${esc(a.code)} · ${esc(c.name)} · ${esc(m.name)}</span><h2>${esc(a.title)}</h2>
+        <div class="facts"><span class="fact">${esc(RAI_TYPE[a.type] || a.type)}</span><span class="fact">${a.mins} min</span>${ok ? `<span class="fact ok">${ic("check")}Slides ready</span>` : ""}</div></div>
+      <div class="m-body">
+        <div class="m-sec lsec lgoal"><label><span>${ic("target")}The hook</span></label><p>${esc(a.hook)}</p></div>
+        <div class="m-sec lsec"><label><span>${ic("flag")}Students will</span></label><ol class="lsteps">${a.outcomes.map(o => `<li>${esc(o)}</li>`).join("")}</ol></div>
+        <div class="m-sec lsec"><label><span>${ic("list")}Three depths: pick one for your class</span></label>
+          <div class="raidepth">${["starter", "core", "advanced"].map(t => `<a href="rai/deck.html?c=${q}&tier=${t}"><span class="lvl lvl-${t}">${t[0].toUpperCase() + t.slice(1)}</span><span>${esc(a.tiers[t])}</span></a>`).join("")}</div></div>
+        <div class="m-sec lsec"><label><span>${ic("parts")}What you need <i>per group of 2</i></span></label>
+          <div class="mkit">${a.kit.map(k => `<div><span>${esc(k.replace(/^★/, ""))}<small>${k.startsWith("★") ? "not in the lab yet: cheap to buy" : esc(catOf(k).cat)}</small></span><b>× 1</b></div>`).join("")}</div></div>
+        ${sims.length ? `<div class="msims"><span class="msims-l">${ic("flask")}Try it on screen</span>${sims.map(s => `<a class="msim" href="${s.ext ? esc(s.href) : simHref(s)}"${s.ext ? ' target="_blank" rel="noopener"' : ""} style="--sc:${s.color}" title="${esc(s.good)}">${ic(simIcon(s))}<span><b>${esc(s.name)}${s.ext ? " ↗" : ""}</b><small>${esc(s.good)}</small></span></a>`).join("")}</div>` : ""}
+        <div class="m-sec lsec"><label><span>${ic("bulb")}Key ideas</span></label><p>${a.concepts.map(esc).join(" · ")}</p></div>
+      </div>
+      <div class="m-foot"><div class="m-status"><small class="muted">${esc(c.name)} · ${esc(m.name)}</small></div>
+        <div class="m-acts"><a class="btn" href="rai/deck.html?c=${q}&view=guide">${ic("book")}Teacher guide</a><a class="btn primary" href="rai/deck.html?c=${q}">${ic("play")}Slides</a></div></div></div>`;
+  }
   function vRai() {
     const R = window.RAI; if (!R) return head("Robotics & AI Curriculum", "Could not load the curriculum.");
-    const ready = new Set(R.ready || []), TYPE = { H: "Hardware", S: "Software", U: "Unplugged", HS: "Hardware + software", US: "Unplugged + software" };
+    const ready = new Set(R.ready || []);
     const words = UI.raiQ.toLowerCase().split(/\s+/).filter(Boolean);
     const hit = a => (!UI.raiCat || a.code.startsWith(UI.raiCat + "-")) && (!UI.raiType || a.type.includes(UI.raiType)) &&
       words.every(w => (a.code + " " + a.title + " " + a.hook + " " + a.concepts.join(" ") + " " + a.kit.join(" ")).toLowerCase().includes(w));
     const cats = gtabs([{ code: "", icon: "grid", name: "All categories", sub: `${R.activities.length} activities`, color: "#1B3A6B", light: "#E5ECF7" }]
       .concat(R.cats.map(c => ({ code: c.key, name: c.name, sub: `${R.activities.filter(a => a.code.startsWith(c.key + "-")).length} activities`, color: c.color, light: c.light }))), UI.raiCat, "data-raicat");
     const types = [["", "All types"], ["H", "Hardware"], ["S", "Software"], ["U", "Unplugged"]];
-    const card = a => { const c = R.cats.find(x => a.code.startsWith(x.key + "-")), ok = ready.has(a.code), q = encodeURIComponent(a.code);
-      const sims = a.sims.map(k => SIM.byKey[k]).filter(Boolean).slice(0, 3);
-      return `<article class="raicard" style="--c:${c.color};--l:${c.light}"><div class="raicard-h"><span class="raicode">${esc(a.code)}</span><span class="raitype">${esc(TYPE[a.type] || a.type)} · ${a.mins} min</span>${ok ? `<span class="raiok">Slides ready</span>` : `<span class="raiplan">Plan</span>`}</div>
-        <h3>${esc(a.title)}</h3><p>${esc(a.hook)}</p>
-        <div class="raitiers"><span><b>Starter</b>${esc(a.tiers.starter)}</span><span><b>Core</b>${esc(a.tiers.core)}</span><span><b>Advanced</b>${esc(a.tiers.advanced)}</span></div>
-        ${sims.length ? `<div class="raisims">${sims.map(s => `<a href="${s.ext ? esc(s.href) : simHref(s)}"${s.ext ? ' target="_blank" rel="noopener"' : ""}>${esc(s.name)}${s.ext ? " ↗" : ""}</a>`).join("")}</div>` : ""}
-        <div class="raibtns"><a class="btn primary" href="rai/deck.html?c=${q}">${ic("play")}Slides</a><a class="btn" href="rai/deck.html?c=${q}&view=guide">${ic("book")}Teacher guide</a></div></article>`; };
     const mods = R.modules.filter(m => !UI.raiCat || m.cat === UI.raiCat).map(m => { const list = R.activities.filter(a => a.mod === m.key && hit(a)); if (!list.length) return "";
       const c = R.cats.find(x => x.key === m.cat);
-      return `<section class="raimod"><h2 style="--c:${c.color}"><span>${esc(c.name)}</span>${esc(m.name)}</h2><div class="raigrid">${list.map(card).join("")}</div></section>`; }).join("");
+      return `<h3 class="unit" style="--c:${c.color};--l:${c.light}">${esc(m.name)} <small>${esc(c.name)}</small></h3><div class="agrid">${list.map(a => raiCard(a, ready)).join("")}</div>`; }).join("");
     return head("Robotics & AI Curriculum", `${R.activities.length} activities in ${R.cats.length} categories. Each one runs at three depths (Starter, Core, Advanced), so you choose what fits the class. ${ready.size} ${ready.size === 1 ? "has" : "have"} full slides and a teacher guide so far.`) +
       cats + `
       <div class="raibar"><label class="search"><input id="raiQ" value="${esc(UI.raiQ)}" placeholder="Search activities, concepts or parts" aria-label="Search the curriculum"></label>
@@ -1738,6 +1771,7 @@
     if (d.schstep) { UI.sch.groups = Math.max(1, Math.min(40, (+UI.sch.groups || S.defaultGroups) + +d.schstep)); renderModal(); return; }
     if ("schsave" in d) { saveSched(); return; }
     if (d.unroutine != null) { S.routine.splice(+d.unroutine, 1); save(); render(); toast("Slot removed from routine"); return; }
+    if (d.rai) { openModal("rai:" + d.rai); return; }
     if (d.open) { openModal(d.open); return; }
     if ("close" in d) { closeModal(); return; }
     if (d.mday) { const s = sess(modalCode); s.day = d.mday; setStatus(modalCode, "Next week"); save(); renderModal(); toast(`${esc(lab(getA(modalCode)))} planned for <b>${DAYFULL[d.mday]}</b>`); return; }

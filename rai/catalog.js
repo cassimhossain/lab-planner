@@ -18,7 +18,7 @@
 window.RAI = {
   version: 1,
   /* false while the curriculum is being written: the page works at #rai but is not in the menu */
-  live: false,
+  live: true,
   cats: [
     { key: "EF", name: "Engineering Foundations", color: "#E0892B", light: "#FDF1E3", icon: "bolt",
       about: "The electronics, coding and design every robot is built on." },

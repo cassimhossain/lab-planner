@@ -50,7 +50,7 @@ window.RAI = {
       hook: "A toaster, a washing machine and a Mars rover walk into a lab. Which one is a robot?",
       outcomes: ["Sort machines into robots and non-robots using sense, think, act", "Build a tiny robot brain: a button senses, the Arduino thinks, a light and buzzer act", "Explain where sensing, thinking and acting happen in a real robot"],
       tiers: { starter: "Sorting game with picture cards, then press-the-button robot", core: "Wire and code a sense-think-act gadget in Circuit Lab, then for real", advanced: "Add a second sensor and a decision rule that combines both" },
-      kit: ["Arduino Uno + USB cable", "Push button", "LED 5 mm (assorted)", "Resistor 220 ohm", "Buzzer", "Breadboard (half size)", "Jumper wires M-M", "Laptop"],
+      kit: ["Arduino Uno + USB cable", "Push button", "LED 5 mm (assorted)", "Resistor 220 ohm", "Passive buzzer", "Breadboard (half size)", "Jumper wires M-M", "Laptop"],
       sims: ["circuit-lab", "wokwi"], concepts: ["robot definition", "input, process, output", "sensors and actuators"] },
     { code: "EF-02", mod: "EF1", type: "HS", mins: 60, title: "Voltage, Current and Ohm's Law",
       hook: "Why does an LED burn out in a flash without a tiny resistor?",
@@ -377,4 +377,4 @@ window.RAI = {
   ]
 };
 /* activities whose rai/lessons/<code>.js is written (slides + teacher guide) */
-window.RAI.ready = ["ROB-08"];
+window.RAI.ready = ["AI-02", "AI-11", "EF-01", "IS-08", "ROB-08", "ROB-09"];

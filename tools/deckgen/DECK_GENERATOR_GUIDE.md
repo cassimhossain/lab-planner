@@ -7,12 +7,13 @@ down so the next deck looks like the last one. The generator lives in
 ```
 tools/deckgen/
   theme.css      the house style. Do not fork it per deck.
-  render.js      deck object -> HTML -> 16:9 PDF, via Playwright
+  render.js      deck object -> HTML -> 16:9 PDF, via Playwright (or
+                 playwright-core with the installed Google Chrome)
   lib.js         the title, divider, objectives and check slides
   art.js         54 hand-drawn doodles, shared with the web decks
   diagrams.js    hand-drawn explanatory figures (buses, H-bridges, graphs)
   circuits.js    hand-drawn wiring diagrams, one per build
-  fonts/         Baloo 2, Nunito, Caveat (woff2, embedded in the PDF)
+  fonts/         Baloo 2, Nunito, Patrick Hand (woff2, embedded in the PDF)
   decks/XX-00.js one file per deck
 ```
 
@@ -29,6 +30,13 @@ node render.js decks/EF-10.js out/EF-10.pdf --png
 
 `--png` also drops a PNG per slide in `out/EF-10-png/`, which is how you
 check a deck without opening the PDF.
+
+`--banner` also writes the portal tile, `library/banners/<CODE>.jpg`: the
+title slide's drawing on the category colour. `build_library.py` leaves
+the Robotics & AI banners alone, so this is the only thing that makes them.
+
+Without the full `playwright` package, `npm install --no-save playwright-core`
+in this folder is enough: it uses the Google Chrome already installed.
 
 ---
 
@@ -82,7 +90,7 @@ Every block is `{ t: "<type>", ... }`. Text accepts `**bold**` and
 - **box** `{h, icon, text, points[], art, code, color, style}` - the
   white hand-drawn panel with a coloured heading. The workhorse.
 - **note** `{l, text, teal}` - the yellow (or pale teal) sticky note, in
-  Caveat. Use for a tip, a warning, a "did you know".
+  Patrick Hand. Use for a tip, a warning, a "did you know".
 - **rows** `{items:[{t, a, icon, color, n}]}` - numbered outlined bars.
   Used for learning aims and for the objective check (where `a` carries
   the "Proof: ..." line). Rows stretch to fill whatever space is left.
@@ -113,11 +121,16 @@ Every block is `{ t: "<type>", ... }`. Text accepts `**bold**` and
   so it still matches, and copy the `<svg class="frame">` markup from an
   existing deck for the hand-drawn outline.
 
+  An icon on a box: write the heading as `<h3 ic="chip">` (any name from
+  `art.js`, or `icon` on a **box** block). The drawing sits to the left of
+  the text as an outline in the box's colour, the way the concept cards in
+  the old decks do it. Use it on short concept boxes, not on long ones.
+
 ## 4. Slide order
 
 Every deck in the library follows the same arc. Keep it.
 
-1. **Title** - `bare`, series in Caveat, big title with the key words in
+1. **Title** - `bare`, series in Patrick Hand, big title with the key words in
    the accent colour, the hook in blue, three pills, a doodle, a
    "did you know" note.
 2. **Let's think** - a question before any answer.
@@ -191,7 +204,7 @@ which is how the power pins are kept clear of the signal pins.
 ## 7. Drawing a new diagram
 
 `diagrams.js` builds everything from five helpers: `box`, `line`, `poly`,
-`arrow`, `tx` (labels) and `hand` (Caveat annotations). Every figure is
+`arrow`, `tx` (labels) and `hand` (Patrick Hand annotations). Every figure is
 wrapped by `S(w, h, body)`, which applies the `#rai-rough` filter, so it
 comes out looking drawn rather than plotted.
 
@@ -224,7 +237,7 @@ Rules that keep them readable:
 
 ## 9. After the PDF is built
 
-1. Put it at
+1. Build it with `--banner`, then put it at
    `Documents/Robotics Curriculum/Presentations/<Category>/<CODE>_<Title>_Slides.pdf`
 2. `python3 tools/build_library.py`
 3. Add the video links to `videos.js`

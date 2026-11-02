@@ -18,10 +18,10 @@ Curriculum decks and where to put them.
 | Edge doodles | 3–4 tiny, faint line doodles round the edge of every slide: star, sparkle, squiggle, leaf, lightning, gear, bulb. Never over the content. |
 | Top-left chip | `CODE · Title` in a pill, in the group/category colour. |
 | Top-right tag | `LEARN`, `MAKE` or `WRAP UP` in an outlined pill. |
-| Kicker | One short line above the title in **Caveat handwriting, orange-red `#E4572E`**: "Let's think...", "Objective 1 · Plant needs", "Build step 2 of 3", "Level up!". |
+| Kicker | One short line above the title in **Patrick Hand handwriting, orange-red `#E4572E`**: "Let's think...", "Objective 1 · Plant needs", "Build step 2 of 3", "Level up!". |
 | Title | Heavy rounded display font, dark ink `#1B2333`, one line if possible. |
 | Boxes | White with a **hand-drawn double outline** (two slightly wobbly lines) in one colour: green, blue, red, purple, amber or teal. Heading in the box colour, bold. A small line icon may sit before the heading. |
-| Sticky notes | Yellow (facts, "Did you know?", "Fascinating fact", "At home") or blue (teacher notes, "Teacher: ..."). Text in **Caveat handwriting**, tilted about 1°. |
+| Sticky notes | Yellow (facts, "Did you know?", "Fascinating fact", "At home") or blue (teacher notes, "Teacher: ..."). Text in **Patrick Hand handwriting**, tilted about 1°. |
 | Code | Dark rounded block, monospace, comments in grey. For young groups use **picture blocks** (coloured pills like ArduinoBlocks/mBlock), never typed code. |
 | Footer | Left: `Robotics & AI Club · <Series or Group> · Curriculum by Qasim Mushtaq`. Right: `n / total`. |
 | Colours | Category or group colour for the chip, tags and main accents. Red `#E0414B`, green `#2E9E5B`, blue `#2E6BE6`, purple `#7B3FC4`, amber `#F2A31B`, teal `#14967F`. |

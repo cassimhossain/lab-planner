@@ -14,7 +14,7 @@ Follow the existing decks: open any of them as the model, especially:
 The full written format is in `lab-planner/rai/SLIDE_GUIDE.md` (sections 1–5). In short:
 
 - 16:9, cream paper, soft colour blobs, faint hand-drawn edge doodles.
-- Hand-drawn boxes with double wobbly outlines; Caveat handwriting kickers in orange-red; yellow and blue sticky notes in handwriting.
+- Hand-drawn boxes with double wobbly outlines; Patrick Hand handwriting kickers in orange-red; yellow and blue sticky notes in handwriting.
 - **All pictures hand-drawn 2D doodles in the house style** (an Arduino drawn as a teal board, components drawn flat with a marker outline). **No emoji, no clip art, no photos or images copied from the internet.** The only exception is the video thumbnail and QR code on the video slide.
 - A few colours only, to keep the theme: the category colour plus red, green, blue, purple and amber for boxes.
 - Order: Title → LEARN (Let's think · Learning objectives with Proof · Video time with Watch for + QR · Objective slides · Real world · Our machine) → **Part 2 · Make it** divider → MAKE (Class game · Build it kit · Build step 1/2/3 · Test like an engineer · Level up! · optional Think about it) → WRAP UP (Objective check · Show what you know).

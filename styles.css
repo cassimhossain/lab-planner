@@ -1251,5 +1251,9 @@ table.kt td.box::after { content: ""; display: block; width: 16px; height: 16px;
 .acard:hover .abanner.rai svg { transform: scale(1.08) rotate(-3deg); }
 .mdeck.raihero { display: grid; place-items: center; background: radial-gradient(circle at 75% 20%, color-mix(in srgb, var(--c) 25%, transparent), transparent 55%), var(--l); text-decoration: none; }
 .raiart svg { width: 230px; height: auto; }
+/* dark mode: a quieter wash, and the drawings' marker lines turn light so
+   they read against it */
+:root[data-theme="dark"] .abanner.rai, :root[data-theme="dark"] .mdeck.raihero { background: radial-gradient(circle at 75% 20%, color-mix(in srgb, var(--c) 12%, transparent), transparent 55%), var(--l); }
+:root[data-theme="dark"] .abanner.rai g[stroke="#1B2333"], :root[data-theme="dark"] .raiart g[stroke="#1B2333"] { stroke: #C9D3E3; }
 .raidepth { display: grid; gap: 8px; } .raidepth > div { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; background: var(--surface-2, var(--bg)); color: var(--ink); text-decoration: none; }
 .raidepth .lvl { justify-self: start; }

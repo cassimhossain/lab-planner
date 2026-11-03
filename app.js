@@ -282,7 +282,7 @@
   }
   let buddyFrom = "home";
   const vBuddy = () => head("Study Buddy", "Ask anything about circuits, wiring, code, robots and AI. The same chat as the button in the corner, on a bigger screen.") +
-    `<div id="buddyPage" class="buddypage">${window.StudyBuddy ? "" : `<p class="muted">Study Buddy is loading…</p>`}</div>`;
+    `<div id="buddyPage" class="buddypage">${window.StudyBuddy ? "" : `<div class="vload" style="min-height:40vh">${window.Robo ? Robo.html("l", "Study Buddy is waking up…") : "Study Buddy is loading…"}</div>`}</div>`;
   function mountBuddy() { const el = $("#buddyPage"); if (el && window.StudyBuddy && window.StudyBuddy.mount) { el.innerHTML = ""; window.StudyBuddy.mount(el); } }
   /* index.html#open=CODE (from Circuit Lab) opens that lesson's details */
   function openFromHash() {
@@ -1244,9 +1244,11 @@
   setTimeout(() => (window.requestIdleCallback || (f => f()))(() => loadPdfJs().then(() => fetch(PDFJS + "pdf.worker.min.js")).catch(() => { })), 3000);
   const V = { doc: null, page: 1, n: 0, mode: "slides", file: "", tok: 0, open: false, deck: "", args: null };
   /* a placeholder the shape of what is coming, so the stage never sits empty */
-  const skel = mode => `<div class="vskel ${mode === "slides" ? "slide" : "page"}" aria-label="Loading"><span></span></div>`;
+  const skel = mode => `<div class="vskel" aria-label="Loading">${robo("l", mode === "slides" ? "Loading the slides…" : "Loading the document…")}</div>`;
   /* a deck shows its first slide's picture straight away while the real slides load */
-  const vwait = (thumb, n) => `<div class="vwait"><img src="${esc(thumb)}" alt=""><span id="vWait">${ic("loop")}<b>Loading ${n > 1 ? "slide " + n : "the slides"}…</b><em></em></span></div>`;
+  const vwait = (thumb, n) => `<div class="vwait"><img src="${esc(thumb)}" alt=""><span id="vWait">${robo("m", `Loading ${n > 1 ? "slide " + n : "the slides"}…`)}</span></div>`;
+  /* the start-up robot (robo.js) wherever something is loading */
+  const robo = (size, label) => window.Robo ? Robo.html(size, label) : `<span class="muted">${label || "Loading…"}</span>`;
   function vFail(title, msg, file) {
     const st = $("#vStage"); if (!st) return;
     st.innerHTML = `<div class="vfail" role="alert">${ic("wifi0")}<b>${esc(title)}</b><p>${esc(msg)}</p><div class="vbtns"><button class="vb" data-vretry>${ic("loop")}<span>Try again</span></button>${file ? `<a class="vb" href="${esc(file)}" target="_blank" rel="noopener">${ic("ext")}<span>Open the file directly</span></a>` : ""}</div></div>`;

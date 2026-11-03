@@ -412,7 +412,7 @@
     const ctx = context(), hint = hintOn;
     ST.msgs.push({ r: "u", t: q }); persist(); renderLog();
     busy = true; panel.classList.add("bd-busy");
-    const tmp = document.createElement("div"); tmp.className = "bd-m b typing"; tmp.innerHTML = `<span class="bd-dots"><i></i><i></i><i></i></span>`; log.appendChild(tmp); log.scrollTop = log.scrollHeight;
+    const tmp = document.createElement("div"); tmp.className = "bd-m b typing"; tmp.innerHTML = window.Robo ? Robo.html("s", "Thinking…") : `<span class="bd-dots"><i></i><i></i><i></i></span>`; log.appendChild(tmp); log.scrollTop = log.scrollHeight;
     const o = { ctx, hint, action };
     let msg;
     if (USE_AI && navigator.onLine !== false) {

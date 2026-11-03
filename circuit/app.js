@@ -1,13 +1,13 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=40";
-import { BOARDS, loadHex } from "./boards.js?v=40";
-import { layoutCircuit } from "./layout.js?v=40";
-import { SNIPPETS } from "./snippets.js?v=40";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=40";
-import * as T from "./tools.js?v=40";
-import { initHome, showHome, hideHome, isHome } from "./home.js?v=40";
-import { initUpload, showUpload, doFlash, boardChanged } from "./upload.js?v=40";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=40";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=41";
+import { BOARDS, loadHex } from "./boards.js?v=41";
+import { layoutCircuit } from "./layout.js?v=41";
+import { SNIPPETS } from "./snippets.js?v=41";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=41";
+import * as T from "./tools.js?v=41";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=41";
+import { initUpload, showUpload, doFlash, boardChanged } from "./upload.js?v=41";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=41";
 
 /* The simulator, the Arduino library bundler and the schematic drawer are
    roughly a third of the code and none of it is needed to open the page, so
@@ -19,7 +19,7 @@ let BUILTIN_LIBS = [], EXTRA_LIBS = [], enginePromise = null;
 function loadEngine() {
   if (enginePromise) return enginePromise;
   enginePromise = Promise.all([
-    import("./sim.js?v=40"), import("./libs.js?v=40"), import("./schematic.js?v=40"),
+    import("./sim.js?v=41"), import("./libs.js?v=41"), import("./schematic.js?v=41"),
   ]).then(([s, l, c]) => {
     Netlist = s.Netlist; Sim = s.Sim; Sim.muted = muted;
     prepareSketch = l.prepareSketch; BUILTIN_LIBS = l.BUILTIN_LIBS; EXTRA_LIBS = l.EXTRA_LIBS;
@@ -38,10 +38,10 @@ function loadCodeMirror() {
   if (cmPromise) return cmPromise;
   cmPromise = new Promise((res, rej) => {
     const css = document.createElement("link");
-    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=40";
+    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=41";
     document.head.appendChild(css);
     const sc = document.createElement("script");
-    sc.src = "../vendor/codemirror/codemirror.min.js?v=40";
+    sc.src = "../vendor/codemirror/codemirror.min.js?v=41";
     sc.onload = () => res(window.CodeMirror); sc.onerror = () => rej(new Error("CodeMirror failed to load"));
     document.head.appendChild(sc);
   });
@@ -845,6 +845,7 @@ async function buildHex(board) {
 let buildT = null;
 function buildBusy(on) {
   const box = $("#clbusy"); if (!box) return;
+  if (window.Robo && !box.dataset.robo) { box.dataset.robo = 1; box.innerHTML = window.Robo.html("l", "Compiling your sketch…"); }   // the start-up robot
   if (on) { clearTimeout(buildT); buildT = setTimeout(() => box.classList.add("on"), 250); }
   else { clearTimeout(buildT); buildT = null; box.classList.remove("on"); }
 }
@@ -857,7 +858,7 @@ async function runSim() {
   const btn = $("#runbtn"), board = noCodeOnce ? null : boardType(); noCodeOnce = false;
   if (!project.parts.length) return toast("Add some parts first");
   setSimState(board ? "compiling" : "running");
-  btn.disabled = true; btn.innerHTML = `<span class="spin"></span><span>Compiling…</span>`;
+  btn.disabled = true; btn.innerHTML = window.Robo ? Robo.html("s", "Compiling…") : `<span class="spin"></span><span>Compiling…</span>`;
   if (board) buildBusy(true);
   let program, bt = board;
   try {

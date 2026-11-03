@@ -4,8 +4,8 @@
    compiler). Picture output: Python turtle (Skulpt, bundled and offline),
    p5.js, Processing and a web page - those three run inside a sandboxed
    frame. The editor, toolbar, examples, saving and font size are shared. */
-import { EXAMPLES } from "./examples.js?v=18";
-import { runTurtle, stopTurtle, turtleHint, turtleReady, runFrame, stopFrame, docUrl, frameHint } from "./visual.js?v=18";
+import { EXAMPLES } from "./examples.js?v=19";
+import { runTurtle, stopTurtle, turtleHint, turtleReady, runFrame, stopFrame, docUrl, frameHint } from "./visual.js?v=19";
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -172,8 +172,8 @@ function emptyTerm() {
     ? `<div class="empty"><b>Press Run</b> (or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>) to run your Python program. Output appears here.<br>When the program asks for input, type your answer here and press <kbd>Enter</kbd>.<br>numpy, pandas and matplotlib work: plots show up right here.</div>`
     : `<div class="empty"><b>Press Run</b> (or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>) to compile and run your C++ program with g++.<br>If it reads input with <code>cin</code>, type the input in the <b>Input</b> box below first.<br>Needs an internet connection.</div>`;
 }
-const state = (t, cls = "") => { const r = $("#runstate"); r.textContent = t; r.className = "runstate " + cls; };
-const engine = (t, cls = "") => { const e = $("#engine"); e.innerHTML = `<i></i>${esc(t)}`; e.className = "engine " + cls; };
+const state = (t, cls = "") => { const r = $("#runstate"); r.innerHTML = /busy/.test(cls) && window.Robo ? Robo.html("s", esc(t)) : esc(t); r.className = "runstate " + cls; };
+const engine = (t, cls = "") => { const e = $("#engine"); e.innerHTML = /loading/i.test(t) && window.Robo ? Robo.html("s", esc(t)) : `<i></i>${esc(t)}`; e.className = "engine " + cls; };
 /* the Python worker keeps reporting after the student has switched tabs */
 const pyEngine = (t, cls = "") => { if (S.lang === "python") engine(t, cls); };
 function toast(m) { const t = $("#toast"); t.innerHTML = m; t.classList.add("on"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("on"), 2400); }

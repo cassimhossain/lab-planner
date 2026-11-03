@@ -352,8 +352,10 @@ function show(phase, f = 0, extra = "") {
   const pct = phase === "write" ? f * 70 : phase === "check" ? 70 + f * 30 : phase === "done" ? 100 : 0;
   const fill = $("#upfill");
   fill.style.width = pct + "%"; fill.parentElement.classList.toggle("wait", phase === "compile" || phase === "connect");
-  $("#upstate").textContent = phase === "done" ? "Done: the program is on the board and running." :
+  const text = phase === "done" ? "Done: the program is on the board and running." :
     (extra || PHASES[phase] || "") + (phase === "write" || phase === "check" ? ` ${Math.round(pct)}%` : "");
+  /* the start-up robot keeps the student company while it works */
+  $("#upstate").innerHTML = phase !== "done" && window.Robo ? window.Robo.html("s", esc(text)) : esc(text);
 }
 function fail(title, more) {
   const m = $("#upmsg");

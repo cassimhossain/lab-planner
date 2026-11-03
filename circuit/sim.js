@@ -1,14 +1,14 @@
 /* Circuit Lab - netlist + microcontroller simulation (avr8js, MIT). */
 import { CPU, avrInstruction, AVRTimer, AVRIOPort, AVRUSART, AVRADC, AVRTWI, AVREEPROM, EEPROMMemoryBackend, PinState } from "../vendor/avr8js.mjs";
-import { CARDS, PARTS } from "./parts.js?v=41";
-import { bbLayout } from "./elements.js?v=41";
-import { BOARDS, ESP_ADC_PINS } from "./boards.js?v=41";
-import { BATT } from "./elements.js?v=41";
-import { setupExtra, hcExtra } from "./sim2.js?v=41";
-import { setupExtra3 } from "./sim3.js?v=41";
-import { setupExtra4, hcExtra4 } from "./sim4.js?v=41";
-import { setupExtra5 } from "./sim5.js?v=41";
-import { setupExtra7, hcExtra7 } from "./sim7.js?v=41";
+import { CARDS, PARTS } from "./parts.js?v=42";
+import { bbLayout } from "./elements.js?v=42";
+import { BOARDS, ESP_ADC_PINS } from "./boards.js?v=42";
+import { BATT } from "./elements.js?v=42";
+import { setupExtra, hcExtra } from "./sim2.js?v=42";
+import { setupExtra3 } from "./sim3.js?v=42";
+import { setupExtra4, hcExtra4 } from "./sim4.js?v=42";
+import { setupExtra5 } from "./sim5.js?v=42";
+import { setupExtra7, hcExtra7 } from "./sim7.js?v=42";
 
 /* modules that talk over a plain serial port and are driven by their own library shim */
 const SERIAL_MODULES = [["mhz19", "MH-Z19"], ["dfplayer", "DFPlayer"]];

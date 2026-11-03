@@ -1084,3 +1084,8 @@ body.running .run::before { content: ""; }
 .labswitch .ic { width: 16px; height: 16px; }
 .top .brand > span { display: none; }          /* the switch already says which lab this is */
 @media (max-width: 1180px) { .labswitch span { display: none; } .labswitch a { padding: 6px 9px; } }
+
+/* Upload to board stands out from the other code buttons, in Arduino's teal */
+#flashbtn { background: #00979D; border-color: #00979D; color: #fff; }
+#flashbtn:hover { background: #00878C; border-color: #00878C; }
+#flashbtn .ic { color: #fff; }

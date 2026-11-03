@@ -971,6 +971,13 @@ li.done .rm-t { color: var(--ink-muted); }
 
 /* viewer: the shape of what is loading, and what to do when it can't */
 .vskel { display: grid; place-items: center; width: 100%; height: 100%; padding: 16px; }
+/* while a deck loads: its first slide's picture, softened, with the progress on top */
+.vwait { position: relative; display: grid; place-items: center; width: 100%; height: 100%; padding: 16px; }
+.vwait img { width: min(92%, calc((100vh - 120px) * 16 / 9)); aspect-ratio: 16 / 9; object-fit: contain; border-radius: 8px; filter: saturate(.85) brightness(.9); }
+.vwait span { position: absolute; display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px; background: rgba(11, 20, 36, .82); color: #fff; font-weight: 700; font-size: 14px; box-shadow: 0 6px 24px rgba(0, 0, 0, .3); }
+.vwait span .ic { width: 16px; height: 16px; animation: vspin 1s linear infinite; }
+.vwait span em { font-style: normal; color: #F5B83D; min-width: 3ch; }
+@keyframes vspin { to { transform: rotate(360deg); } }
 .vskel span { display: block; border-radius: 8px; background: linear-gradient(100deg, #172338 30%, #22324F 50%, #172338 70%) 0 0 / 300% 100%; animation: vshimmer 1.4s linear infinite; }
 .vskel.slide span { width: min(92%, calc((100vh - 120px) * 16 / 9)); aspect-ratio: 16 / 9; }
 .vskel.page span { width: min(920px, 100%); aspect-ratio: 210 / 297; align-self: start; }

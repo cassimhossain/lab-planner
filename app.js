@@ -1229,8 +1229,10 @@
     setTimeout(() => { if (BUSY.n === 0) el.classList.remove("on"); }, left);
   }
 
-  /* ---------- PDF VIEWER (PDF.js from cdnjs; falls back to the browser's own viewer) ---------- */
-  const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+  /* ---------- PDF VIEWER (PDF.js, kept in vendor/; falls back to the browser's own viewer) ----------
+     On a slow connection the reader itself (1.4 MB) was most of the wait, so it
+     comes from this site and starts loading as soon as the portal is idle. */
+  const PDFJS = "vendor/pdfjs/";
   let pdfReady = null;
   function loadPdfJs() {
     if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
@@ -1238,9 +1240,13 @@
       sc.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js"; res(window.pdfjsLib); };
       sc.onerror = () => { pdfReady = null; rej(new Error("pdf.js")); }; document.head.appendChild(sc); }));
   }
+  /* the reader and its worker load while the portal is idle, so the first deck opens fast */
+  setTimeout(() => (window.requestIdleCallback || (f => f()))(() => loadPdfJs().then(() => fetch(PDFJS + "pdf.worker.min.js")).catch(() => { })), 3000);
   const V = { doc: null, page: 1, n: 0, mode: "slides", file: "", tok: 0, open: false, deck: "", args: null };
   /* a placeholder the shape of what is coming, so the stage never sits empty */
   const skel = mode => `<div class="vskel ${mode === "slides" ? "slide" : "page"}" aria-label="Loading"><span></span></div>`;
+  /* a deck shows its first slide's picture straight away while the real slides load */
+  const vwait = (thumb, n) => `<div class="vwait"><img src="${esc(thumb)}" alt=""><span id="vWait">${ic("loop")}<b>Loading ${n > 1 ? "slide " + n : "the slides"}…</b><em></em></span></div>`;
   function vFail(title, msg, file) {
     const st = $("#vStage"); if (!st) return;
     st.innerHTML = `<div class="vfail" role="alert">${ic("wifi0")}<b>${esc(title)}</b><p>${esc(msg)}</p><div class="vbtns"><button class="vb" data-vretry>${ic("loop")}<span>Try again</span></button>${file ? `<a class="vb" href="${esc(file)}" target="_blank" rel="noopener">${ic("ext")}<span>Open the file directly</span></a>` : ""}</div></div>`;
@@ -1256,7 +1262,7 @@
         <a class="vb" href="${esc(file)}" download aria-label="Download" title="Download">${ic("down")}</a>
         <a class="vb" href="${esc(file)}" target="_blank" rel="noopener" aria-label="Open in new tab" title="Open in new tab">${ic("ext")}</a>
         <button class="vb close" data-vclose aria-label="Close">${ic("x")}</button></div></div>
-      <div class="vstage ${mode === "slides" ? "slides" : "scroll"}" id="vStage">${skel(mode)}</div>
+      <div class="vstage ${mode === "slides" ? "slides" : "scroll"}" id="vStage">${mode === "slides" && vcode && DECK[vcode] && DECK[vcode].thumb ? vwait(DECK[vcode].thumb, V.page) : skel(mode)}</div>
       <div class="vhelp" id="vHelp" hidden><b>Keys</b><span><kbd>→</kbd> <kbd>Space</kbd> next slide</span><span><kbd>←</kbd> previous slide</span><span><kbd>Home</kbd> <kbd>End</kbd> first and last</span><span><kbd>F</kbd> full screen</span><span><kbd>Esc</kbd> close</span><span>On a phone: swipe, or tap the sides</span></div>
       ${mode === "slides" ? `<button class="vzone l" data-vgo="-1" aria-label="Previous slide"></button><button class="vzone r" data-vgo="1" aria-label="Next slide"></button>` : ""}
       <div class="vprog"><i id="vProg"></i></div>`;
@@ -1269,7 +1275,11 @@
       $("#vStage").innerHTML = `<iframe class="vframe" src="${esc(file)}#view=Fit" title="${esc(title)}"></iframe>`; return;
     }
     try {
-      const doc = await lib.getDocument(file).promise;
+      /* only the bytes the slide on screen needs: GitHub serves ranges, so slide 1
+         appears long before the whole file has arrived */
+      const task = lib.getDocument({ url: file, rangeChunkSize: 65536, disableAutoFetch: true });
+      task.onProgress = p => { const w = $("#vWait"); if (w && p.total && V.file === file) w.querySelector("em").textContent = Math.min(99, Math.round(100 * p.loaded / p.total)) + "%"; };
+      const doc = await task.promise;
       if (V.file !== file || !V.open) return;
       V.doc = doc; V.n = doc.numPages; if (V.page > V.n) V.page = 1;
       if (mode === "slides") { renderSlide(); if (V.page > 1) toast(`Back at slide <b>${V.page}</b>. Press Home to start again.`); } else renderScroll();
@@ -1287,6 +1297,8 @@
     c.width = Math.floor(vp.width); c.height = Math.floor(vp.height); c.style.width = Math.floor(vp.width / dpr) + "px"; c.style.height = Math.floor(vp.height / dpr) + "px";
     await page.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise; if (tok !== V.tok) return;
     st.replaceChildren(c);
+    /* fetch the next slide's text, pictures and fonts now, so pressing → is instant */
+    if (V.page < V.n) { const d = V.doc; d.getPage(V.page + 1).then(p => p.getOperatorList()).catch(() => { }); }
   }
   function renderScroll() {
     const st = $("#vStage"); st.innerHTML = ""; vCounter();

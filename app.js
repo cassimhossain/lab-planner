@@ -44,6 +44,9 @@
   const vidOf = id => { const c = String(id).split("@")[0].split(" ")[0]; return (VIDS[c] || [])[0] || null; };
   const LGROUPS = [{ code: "F", name: "Foundation", ages: "All age groups", color: "var(--tr-f)", light: "var(--tr-f-tint)" }].concat(D.groups);
   const LG = Object.fromEntries(LGROUPS.map(g => [g.code, g]));
+  /* Robotics & AI Curriculum decks are filed by category (EF, ROB, AI, IS), not
+     age group; the viewer and search look their colour up here too */
+  if (window.RAI) window.RAI.cats.forEach(c => { const k = c.key.toLowerCase(); if (!LG[c.key]) LG[c.key] = { code: c.key, name: c.name, color: `var(--cat-${k})`, light: `var(--cat-${k}-tint)` }; });
   const deckOf = id => DECK[String(id).split("@")[0].split(" ")[0]] || null;
   const deckTitle = d => { const a = BYCODE[d.code] || BYCODE[d.code + " (LE)"]; return a ? a.title : d.title; };
   const phaseOf = a => (a.phase === "Intro" ? "Foundation" : a.phase);

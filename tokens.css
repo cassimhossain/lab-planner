@@ -147,10 +147,12 @@
     --tr-jm: #7FA8F5; --tr-jm-tint: #1A2A4D;
     --tr-yi: #B394F2; --tr-yi-tint: #2A2047;
     --tr-tl: #F2837F; --tr-tl-tint: #3A1C22;
-    --cat-ef: #F2A65A; --cat-ef-tint: #3A2814;
-    --cat-rob: #7FA8F5; --cat-rob-tint: #1A2A4D;
-    --cat-ai: #B394F2; --cat-ai-tint: #2A2047;
-    --cat-is: #4CC9B0; --cat-is-tint: #12302C;
+    /* dark tints are the slate surface with a hint of the colour: a plain
+       darkened orange turns brown */
+    --cat-ef: #F0AE6E; --cat-ef-tint: #2F2C33;
+    --cat-rob: #7FA8F5; --cat-rob-tint: #212E47;
+    --cat-ai: #B394F2; --cat-ai-tint: #282B47;
+    --cat-is: #4CC9B0; --cat-is-tint: #1A323E;
 
     --trace-ink: rgba(143, 176, 232, .06);
 

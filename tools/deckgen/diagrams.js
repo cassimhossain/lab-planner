@@ -257,4 +257,46 @@ DIAGRAMS.pwmDuty = () => S(400, 190, `
   ${tx(336, 174, "90%: flat out", C.orange, 12, 700)}
   ${hand(200, 32, "the motor never gets half a volt. It gets 5 V, switched on and off fast.")}`);
 
+/* ---------------- AI-01 · rules versus learning ---------------- */
+
+/* the two ways to make a computer smart: you write the rules, or it finds them */
+DIAGRAMS.rulesVsLearning = () => S(400, 236, `
+  ${tx(12, 22, "Normal programming", C.blue, 13, 700, "start")}
+  ${box(12, 34, 82, 40, C.blue, "Rules", "you write")}
+  ${box(12, 82, 82, 30, C.blue, "Data")}
+  ${arrow(98, 74, 150, 74, C.blue)}
+  ${box(154, 52, 92, 44, C.blue, "Program")}
+  ${arrow(250, 74, 300, 74, C.blue)}
+  ${box(304, 54, 84, 40, C.blue, "Answers")}
+  ${line(12, 124, 388, 124, C.muted, 1.4, "5 5")}
+  ${tx(12, 148, "Machine learning", C.purple, 13, 700, "start")}
+  ${box(12, 158, 82, 30, C.purple, "Examples")}
+  ${box(12, 196, 82, 36, C.purple, "Answers", "labels")}
+  ${arrow(98, 196, 150, 196, C.purple)}
+  ${box(154, 174, 92, 44, C.purple, "Learning")}
+  ${arrow(250, 196, 300, 196, C.purple)}
+  ${box(304, 176, 84, 40, C.purple, "Rules", "it finds")}
+  ${hand(345, 140, "the arrows swap round", C.orange, 16)}`);
+
+/* learning a pattern: labelled examples on two features, the line learning
+   finds between them, and a new picture placed against it */
+DIAGRAMS.patternScatter = () => {
+  const cats = [[70, 60], [92, 84], [60, 96], [110, 58], [84, 120], [124, 98], [102, 140]];
+  const dogs = [[230, 150], [262, 118], [290, 160], [252, 186], [310, 130], [278, 200], [226, 196]];
+  const dot = ([x, y], c) => `<circle cx="${x}" cy="${y}" r="7" fill="${c}" stroke="${c}"/>`;
+  return S(400, 236, `
+  ${arrow(40, 216, 380, 216, C.muted, 1.8)}${arrow(40, 216, 40, 20, C.muted, 1.8)}
+  ${tx(210, 234, "ears: rounder →", C.muted, 11)}
+  ${tx(34, 120, "whiskers: longer ↑", C.muted, 11, 400, "end").replace("<text", "<text transform=\"rotate(-90 26 120)\"")}
+  ${cats.map(p => dot(p, C.orange)).join("")}${dogs.map(p => dot(p, C.blue)).join("")}
+  ${line(120, 214, 300, 30, C.green, 2.6, "7 6")}
+  ${hand(318, 46, "the line it learned", C.green, 15)}
+  <circle cx="170" cy="112" r="10" fill="#fff" stroke="${C.purple}" stroke-width="2.8"/>${tx(170, 117, "?", C.purple, 14, 700)}
+  ${hand(170, 92, "new picture", C.purple, 15)}
+  ${hand(170, 148, "cat side: 87% cat", C.purple, 15)}
+  <circle cx="300" cy="226" r="0"/>
+  ${dot([316, 70], C.orange)}${tx(328, 74, "cat", C.body, 12, 700, "start")}
+  ${dot([316, 92], C.blue)}${tx(328, 96, "dog", C.body, 12, 700, "start")}`);
+};
+
 module.exports = { DIAGRAMS, C };

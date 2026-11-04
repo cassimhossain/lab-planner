@@ -2,6 +2,16 @@
 window.LIBRARY = {
  "decks": [
   {
+   "code": "AI-01",
+   "group": "AI",
+   "title": "What Is AI Rules versus Learning",
+   "file": "library/slides/AI-01_What_Is_AI_Rules_versus_Learning_Slides.pdf",
+   "thumb": "library/thumbs/AI-01.jpg",
+   "banner": "library/banners/AI-01.jpg",
+   "pages": 17,
+   "kb": 2494
+  },
+  {
    "code": "EF-10",
    "group": "EF",
    "title": "Talking Chips I2C UART and SPI",

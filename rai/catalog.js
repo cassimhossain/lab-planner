@@ -380,4 +380,4 @@ window.RAI = {
 };
 /* activities with a teacher-guide PDF at library/guides/<CODE>_Teacher_Guide.pdf
    (slides are found automatically: any deck in library.js with the same code) */
-window.RAI.guides = ["EF-10", "ROB-05", "ROB-06", "ROB-07", "ROB-10"];
+window.RAI.guides = ["EF-10", "ROB-05", "ROB-06", "ROB-07", "ROB-10", "AI-01"];

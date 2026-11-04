@@ -106,3 +106,20 @@ h3 { font: 800 12pt/1.2 "Deck Display"; color: var(--c); margin-bottom: 1.5mm; }
 .code { background: #232A3D; color: #E6EAF4; border-radius: 8px; padding: 3.5mm 4mm; margin-top: 2mm;
   font: 8.6pt/1.5 ui-monospace, Menlo, monospace; white-space: pre; break-inside: avoid; }
 .code .cm { color: #8A94A6; } .code .kw { color: #BCA6F0; }
+
+/* ---------- printable sheets: one per page, cards to cut out ---------- */
+.print-sheet { break-before: page; }
+.ps-h { display: flex; align-items: center; gap: 10px; margin-bottom: 3mm; }
+.ps-h b { font: 800 16pt "Deck Display"; color: var(--ink); }
+.ps-h small { margin-left: auto; font-size: 8.5pt; color: var(--muted); }
+.ps-intro { margin-bottom: 4mm; }
+.cards { display: grid; gap: 0; border-top: 1.5px dashed #9AA3B2; border-left: 1.5px dashed #9AA3B2; }
+.cards.c2 { grid-template-columns: repeat(2, 1fr); } .cards.c3 { grid-template-columns: repeat(3, 1fr); } .cards.c4 { grid-template-columns: repeat(4, 1fr); }
+.card { position: relative; min-height: 50mm; padding: 5mm 4mm 4mm; border-right: 1.5px dashed #9AA3B2; border-bottom: 1.5px dashed #9AA3B2;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 2mm; break-inside: avoid; }
+.card .cd-ic { font-size: 28pt; line-height: 1; }
+.card b { font: 800 14pt/1.2 "Deck Display"; color: var(--ink); }
+.card small { font-size: 9.5pt; color: var(--body); line-height: 1.35; }
+.card em { position: absolute; top: 3mm; right: 3mm; font-style: normal; font: 800 9pt "Deck Display"; padding: 1px 8px; border-radius: 99px; border: 1.5px solid var(--c); color: var(--c); }
+.tbl.ws td { height: 15mm; }
+.ps-foot { margin-top: 4mm; font-family: "Deck Hand"; font-size: 12pt; color: var(--ink); }

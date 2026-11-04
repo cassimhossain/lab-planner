@@ -1,0 +1,173 @@
+/* Teacher guide: AI-01 What Is AI? Rules versus Learning. Built by guide.js. */
+module.exports = {
+  code: "AI-01",
+  grouping: "Pairs (whole class for the games)",
+
+  overview: "The first lesson of the AI module. Students try to write rules for spotting a cat, watch the rules break, and meet the other way to make a computer smart: show it examples with the right answers and let it find the pattern. They sort everyday technology into rule programs and learning systems, play at being the AI in a human classifier game, then train two real AIs in the browser (AI for Oceans and Quick, Draw!). No code is written, though one slide shows a short Python rule program and the dog that fools it.",
+  mustLand: "A rule program does exactly what a person wrote. Machine learning finds the rules itself from examples with answers, so it is only as good as its examples, and it is always guessing.",
+
+  outcomes: [
+    "Tell a **rule-based program** from a **learning system**, and give a reason.",
+    "Explain that AI **learns patterns from examples** with labels.",
+    "Find **AI in everyday apps** and say what it probably learned from.",
+    "Show **where rules break** and why examples help.",
+  ],
+
+  depths: {
+    starter: "Run the cat-rules hook, the Smart or not smart sorting game and the human classifier with picture cards. Use Quick, Draw! as the one computer activity. Skip the Python slide and the dot diagram, or just point at the dots.",
+    core: "Full lesson: both games, then AI for Oceans (fish or not fish, then one word level) and Quick, Draw! if time allows.",
+    advanced: "Add the mango worksheet: write five rules, then break them. In AI for Oceans, label a new word deliberately badly and explain the result as bias.",
+  },
+
+  kit: [
+    "Printed cards from the end of this guide: one set of 12 Smart or not smart cards per pair",
+    "One set of 16 picture cards for the human classifier (one for the teacher is enough)",
+    "Mango worksheet, one per pair (advanced)",
+    "A laptop or tablet per pair, with internet, for AI for Oceans and Quick, Draw!",
+    "Scissors, or cut the cards before the lesson",
+  ],
+  sims: [
+    "**AI for Oceans** (code.org/oceans): free, no login. Train a bot to tell fish from rubbish, then teach it words like angry.",
+    "**Quick, Draw!** (quickdraw.withgoogle.com): a neural network guesses your doodles. Learned from over 50 million drawings.",
+  ],
+  prep: [
+    "Print and cut the card sheets at the end of this guide.",
+    "Open code.org/oceans and quickdraw.withgoogle.com on one laptop to check the school network allows them.",
+    "Decide the secret rule for the human classifier (things with wheels works well) and sort the picture cards into YES and NO.",
+    "Write the keywords on the board: rule, example, label, pattern, training, prediction.",
+    "Have the slides open on the projector at slide 1.",
+  ],
+
+  timing: [
+    [4, "Let's think", "Write rules for a cat in 60 seconds, then break them (slide 2)."],
+    [2, "Aims", "The four aims and keywords (slide 3)."],
+    [14, "Teach", "Rules vs learning, the Python dog, the dot diagram, what AI can't do, AI in your pocket (slides 4 to 8)."],
+    [6, "Smart or not smart?", "Sort the 12 cards into rules and learning, with reasons (slide 10)."],
+    [8, "Be the AI", "Human classifier: learn a secret rule from labelled cards, then round two (slide 11)."],
+    [10, "AI for Oceans", "Fish or not fish, then one word level (slide 12)."],
+    [6, "Quick, Draw!", "Six doodles, then look at a missed one (slide 13)."],
+    [4, "Where rules break", "The table, and break a partner's mango rule (slide 14)."],
+    [6, "Check and exit ticket", "Self-rating and the ripe mango question (slides 16, 17)."],
+  ],
+
+  steps: [
+    { phase: "Let's think", mins: 4, slides: "1-2",
+      say: ["You have 60 seconds. Write rules a computer could follow to tell a cat from anything else.",
+        "Now let's break them. A Sphynx cat has no fur. A Scottish Fold has folded ears. A dog has fur, four legs and whiskers.",
+        "How did you learn what a cat is? Did anyone give you a list of rules?"],
+      do: ["Collect three or four rule lists on the board, then break each one with the examples on the slide.", "Keep the lists: you will come back to them at the end."],
+      watch: "students saying 'add more rules'. Let them try one more; every new rule creates a new exception. That frustration is the point." },
+    { phase: "Aims", mins: 2, slides: "3",
+      say: ["Today you will find out how a phone recognises cats without anyone writing a cat rule."] },
+    { phase: "Teach", mins: 14, slides: "4-8",
+      say: ["There are two ways to make a computer smart. In normal programming a person writes the rules. In machine learning a person gives examples with the right answers, and the computer finds the rules itself. The arrows swap round.",
+        "Here is a cat detector made of rules, in Python. Fur, whiskers, four legs. Now give it a dog. It says cat.",
+        "Each dot is one picture with its answer. Training finds the line that best separates cats from dogs. A new picture lands on one side: that is the guess, with how sure it is.",
+        "But it doesn't understand cats. It only knows its examples. If every wolf photo had snow, it learns snow."],
+      do: ["Slide 5: ask when rules are the better tool. Calculator, Metro fare, exam marks: every case is known.",
+        "Slide 6: point to the purple question mark. Ask which side it is on and why the computer is only 87% sure.",
+        "Slide 8: ask each pair to add one app of their own to the list."],
+      watch: "students who think AI 'knows' or 'understands'. Keep using the words pattern and guess." },
+    { phase: "Smart or not smart?", mins: 6, slides: "9-10",
+      say: ["Two piles: follows rules, or learned from examples. One sentence of reason for every card.",
+        "The test: could a person write down every rule it uses? Then it's a rule program."],
+      do: ["Hand out the 12 cards per pair.", "After 4 minutes, pairs swap and check another pair's piles.", "Go through the tricky ones together: automatic door, AC at 24°C."],
+      watch: "'useful' being confused with 'learning'. An automatic door is useful and follows one rule." },
+    { phase: "Be the AI", mins: 8, slides: "11",
+      say: ["Our AI never hears the rule. It only sees examples marked YES or NO. Let's see if it can find the pattern."],
+      do: ["One volunteer steps outside. The class agrees the secret rule (things with wheels).",
+        "Show 6 cards with YES or NO, then 4 new cards: the AI answers. Count right answers on the board.",
+        "Show 6 more, very different examples (a wheelchair, a trolley, a boat), then test again.",
+        "Round two: a sneaky rule, like 'things that are red', where most YES cards also happen to be vehicles."],
+      watch: "the AI guessing the rule out loud. That's fine: it is finding the pattern, which is exactly what training does." },
+    { phase: "AI for Oceans", mins: 10, slides: "12",
+      say: ["You won't write a single rule. You only give examples with answers."],
+      do: ["Pairs open code.org/oceans and label at least 30 objects as fish or not fish.", "Run it and count mistakes.", "Next level: teach a word like angry. Discuss what the bot was really looking at."],
+      watch: "pairs clicking through without reading. Ask them how many mistakes and why." },
+    { phase: "Quick, Draw!", mins: 6, slides: "13",
+      say: ["It learned from over 50 million doodles. It recognises how most people draw a thing, not the thing itself."],
+      do: ["Six doodles each. At the end, open one it missed and look at other people's drawings for that word."] },
+    { phase: "Where rules break", mins: 4, slides: "14",
+      say: ["Sometimes a rule is exactly right. A traffic-light timer never needs to learn anything."],
+      do: ["Read the table. Pairs write one rule for a ripe mango and try to break their partner's rule (worksheet for advanced)."] },
+    { phase: "Check and exit ticket", mins: 6, slides: "16-17",
+      say: ["Rate yourself on each aim and be ready to show the proof."],
+      do: ["Exit ticket: a fruit shop wants a program that spots ripe mangoes. Rules or learning? One reason.", "Go back to the cat rules from the start: who would change their answer now?"] },
+  ],
+
+  misconceptions: [
+    ["AI understands things like a person does.", "It finds patterns in examples. It has no idea what a cat is, only what cat pictures had in common."],
+    ["Anything clever or automatic is AI.", "An automatic door or a timer is clever but follows fixed rules a person wrote. AI here means learning from examples."],
+    ["A computer can't be wrong.", "A learning system is always guessing. That's why good AI shows how confident it is."],
+    ["More rules will fix a rule program.", "Every new rule makes new exceptions. That's why messy jobs like faces and voices are learned, not written."],
+    ["AI learns by itself from nothing.", "It learns from examples that people collected and labelled. Bad or narrow examples make a bad AI."],
+  ],
+
+  trouble: [
+    ["AI for Oceans or Quick, Draw! is blocked", "Try the other one, or play Quick, Draw! on the projector with the class shouting doodle ideas."],
+    ["Internet is down", "Run both games longer, and do the mango worksheet as a class. All the learning objectives can be met unplugged."],
+    ["The human classifier guesses the rule instantly", "Use a harder rule (things you can eat, things that use electricity) or fewer examples."],
+    ["Pairs disagree about a card", "Good: ask both to explain. The test is whether a person could write down every rule it uses."],
+    ["Students finish AI for Oceans early", "Move them to the Level up slide: teach a word with deliberately bad labels."],
+  ],
+
+  rubric: [
+    ["Rules vs learning", "Sorts most cards with help.", "Sorts all 12 and gives a reason for each.", "Explains when rules are the better tool, with an example."],
+    ["Patterns from examples", "Says AI learns from pictures.", "Explains labels, training and a prediction in their own words.", "Explains why narrow examples lead to wrong guesses (the wolf and snow)."],
+    ["AI in everyday life", "Names one app that uses AI.", "Names two apps and what each learned from.", "Questions a claim: says what examples an app would need and where it could go wrong."],
+  ],
+
+  answers: [
+    ["Smart or not smart: follows rules", "Calculator, traffic-light timer, automatic door, microwave, AC set to 24°C, alarm clock."],
+    ["Smart or not smart: learned from examples", "Face unlock, voice typing, YouTube recommendations, spam filter, Google Translate, photo search for \"beach\"."],
+    ["Slide 5: why does the dog fool the program?", "Dogs also have fur, whiskers and four legs. The rules describe some features of a cat, not what makes a cat a cat."],
+    ["Slide 6: why only 87% sure?", "The new picture is near the line, between the two groups, so it shares features with both."],
+    ["Slide 7: why did the wolf model fail?", "Every wolf photo it learned from had snow, so snow was the easiest pattern to learn. It never learned what a wolf looks like."],
+    ["Exit ticket: ripe mangoes", "Learning. Ripeness shows in colour, spots, softness and shape in many combinations across many varieties: too many cases to write as rules, but easy to show as labelled examples."],
+  ],
+
+  safety: [
+    "Online tools: students stay on the two sites given and don't sign in or share personal details.",
+    "Quick, Draw! keeps doodles to improve the AI: tell students not to draw or write anything personal.",
+    "The human classifier game involves moving around the room: keep bags off the floor.",
+  ],
+
+  printables: [
+    {
+      title: "Smart or not smart? Sorting cards",
+      intro: "One set per pair. Sort into two piles: **follows rules** and **learned from examples**. The answers are in section 11.",
+      cols: 3,
+      cards: [
+        { icon: "🧮", t: "Calculator", s: "Adds, subtracts and divides" },
+        { icon: "🚦", t: "Traffic-light timer", s: "Red for 60 seconds, then green" },
+        { icon: "🚪", t: "Automatic door", s: "Opens when something moves" },
+        { icon: "♨️", t: "Microwave", s: "Heats for the time you set" },
+        { icon: "❄️", t: "AC set to 24°C", s: "Turns cooling on and off to stay at 24°C" },
+        { icon: "⏰", t: "Alarm clock", s: "Rings at 6:30 every morning" },
+        { icon: "📱", t: "Face unlock", s: "Opens the phone for your face only" },
+        { icon: "🎙️", t: "Voice typing", s: "Types the Urdu or English you speak" },
+        { icon: "▶️", t: "YouTube recommendations", s: "Suggests the next video" },
+        { icon: "📧", t: "Spam filter", s: "Moves junk emails out of your inbox" },
+        { icon: "🌐", t: "Google Translate", s: "Turns English into Urdu" },
+        { icon: "🖼️", t: "Photo search", s: "Type \"beach\" and find your beach photos" },
+      ],
+    },
+    {
+      title: "Be the AI: picture cards",
+      intro: "For the human classifier. Secret rule suggestion: **things with wheels**. Sort into YES and NO before the lesson. For round two choose a sneaky rule, like things that are red.",
+      cols: 4,
+      cards: [
+        { icon: "🚲", t: "Bicycle" }, { icon: "🚗", t: "Car" }, { icon: "🚌", t: "Bus" }, { icon: "🛺", t: "Rickshaw" },
+        { icon: "🛹", t: "Skateboard" }, { icon: "🦽", t: "Wheelchair" }, { icon: "🛒", t: "Trolley" }, { icon: "🚂", t: "Train" },
+        { icon: "⛵", t: "Boat" }, { icon: "🐎", t: "Horse" }, { icon: "👟", t: "Shoe" }, { icon: "☂️", t: "Umbrella" },
+        { icon: "🌳", t: "Tree" }, { icon: "📚", t: "Books" }, { icon: "🪑", t: "Chair" }, { icon: "🐟", t: "Fish" },
+      ],
+    },
+    {
+      title: "Rules for a ripe mango",
+      intro: "Write rules a computer could follow to decide **ripe** or **not ripe**. Then swap with your partner: can they find a mango that breaks each rule?",
+      table: { cols: ["#", "My rule", "A mango that breaks it"], rows: 6, first: ["1", "2", "3", "4", "5", "6"] },
+      foot: "Could you ever finish this list? What would a learning system need instead?",
+    },
+  ],
+};

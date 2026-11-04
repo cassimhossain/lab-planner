@@ -8,7 +8,9 @@
    node guide.js guides/EF-10.js          -> library/guides/EF-10_Teacher_Guide.pdf
    node guide.js guides/EF-10.js --png    also a PNG of each page in out/<CODE>-guide/
 
-   The twelve sections are the ones in rai/SLIDE_GUIDE.md, section 5. */
+   The twelve sections are the ones in rai/SLIDE_GUIDE.md, section 5.
+   Optional: appendix (a code listing) and printables (cut-out card sheets and
+   worksheets, each on its own page at the end). */
 
 const fs = require("fs");
 const path = require("path");
@@ -96,6 +98,11 @@ ${sec("Assessment rubric", rubric, "keep")}
 ${sec("Answers", answers)}
 ${sec("Safety", `<ul class="safety">${g.safety.map(s => `<li>${md(s)}</li>`).join("")}</ul>`, "keep")}
 ${g.appendix ? sec(g.appendix.title, `<p>${md(g.appendix.text)}</p>${code(g.appendix.code)}`) : ""}
+${(g.printables || []).map(pr => `<section class="print-sheet"><div class="ps-h"><span class="chip">${esc(a.code)}</span><b>${esc(pr.title)}</b><small>Print, then cut along the dashed lines</small></div>
+  ${pr.intro ? `<p class="ps-intro">${md(pr.intro)}</p>` : ""}
+  ${pr.cards ? `<div class="cards c${pr.cols || 3}">${pr.cards.map(cd => `<div class="card"><span class="cd-ic">${cd.icon || ""}</span><b>${md(cd.t)}</b>${cd.s ? `<small>${md(cd.s)}</small>` : ""}${cd.tag ? `<em>${esc(cd.tag)}</em>` : ""}</div>`).join("")}</div>` : ""}
+  ${pr.table ? `<table class="tbl ws">${`<tr>${pr.table.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr>`}${Array.from({ length: pr.table.rows || 6 }, (_, i) => `<tr>${pr.table.cols.map((c, j) => `<td>${j === 0 && pr.table.first ? md(pr.table.first[i] || "") : ""}</td>`).join("")}</tr>`).join("")}</table>` : ""}
+  ${pr.foot ? `<p class="ps-foot">${md(pr.foot)}</p>` : ""}</section>`).join("")}
 </body></html>`;
 }
 

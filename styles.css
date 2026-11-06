@@ -1267,3 +1267,61 @@ table.kt td.box::after { content: ""; display: block; width: 16px; height: 16px;
 :root[data-theme="dark"] .gtab.on[data-raicat]::before { background: var(--c); }
 .raidepth { display: grid; gap: 8px; } .raidepth > div { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; background: var(--surface-2, var(--bg)); color: var(--ink); text-decoration: none; }
 .raidepth .lvl { justify-self: start; }
+
+/* ---------- Attendance: easy to read ----------
+   One student per row, full names, the state spelled out on the right, and
+   the Save bar always in reach. */
+.atfind { margin: 0 0 10px; }
+.atfind.sm { width: min(260px, 100%); height: 40px; margin: 0 0 0 auto; }
+.atlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: none; overflow: visible; }
+.atlist > .atrow { display: block; padding: 0; background: none; border-radius: 0; }
+.atrow[hidden] { display: none; }
+.atrow button { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 54px; padding: 8px 12px 8px 10px; border: 1.5px solid var(--line-2); border-radius: var(--r-md);
+  background: var(--surface); color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: background var(--dur-fast), border-color var(--dur-fast); }
+.atrow button:hover { border-color: var(--line-strong); }
+.atno { width: 26px; flex: none; text-align: right; font: 700 13px var(--font-mono, ui-monospace, monospace); color: var(--ink-muted); }
+.atnm { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.atnm b { font-size: 16.5px; font-weight: 700; letter-spacing: .1px; line-height: 1.3; }
+.atnm small { font-size: 13px; color: var(--ink-muted); font-weight: 600; padding: 1px 8px; border-radius: 99px; background: var(--surface-2); }
+.atst { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 112px; padding: 7px 12px; border-radius: 99px; font-weight: 800; font-size: 13.5px;
+  background: var(--surface-2); color: var(--ink-muted); flex: none; }
+.atst .ic { width: 15px; height: 15px; }
+.atrow.on button { border-color: color-mix(in srgb, var(--ok-ink) 22%, var(--line-2)); }
+.atrow.on .atst { background: var(--ok-bg); color: var(--ok-ink); }
+.atrow.off button { background: var(--err-bg); border-color: color-mix(in srgb, var(--err-ink) 40%, transparent); }
+.atrow.off .atst { background: var(--err-ink); color: #fff; }
+.atrow.off .atnm b { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--err-ink) 55%, transparent); }
+:root[data-theme="dark"] .atrow.off .atst { color: #0B1424; }
+.atnone { margin: 8px 0 0; }
+/* the Save bar stays at the bottom of the screen while the list scrolls */
+.attake .atfoot { position: sticky; bottom: 0; z-index: 2; background: var(--surface); margin: 0 -1px; padding: 14px 0 14px; flex-wrap: wrap; gap: 10px 14px; box-shadow: 0 -10px 18px -14px rgba(15, 27, 45, .35); }
+.atsum { flex: 1 1 100%; order: -1; font-size: 14px; color: var(--ink); line-height: 1.45; }
+.atsum b { color: var(--ink); }
+/* Save sits on the left so the floating Study Buddy button never covers it */
+.attake .atfoot { justify-content: flex-start; }
+/* Students & history: a bar for each student's attendance */
+.atroster td { vertical-align: middle; }
+.atroster td b { font-size: 15px; }
+.atbar { display: inline-block; vertical-align: middle; width: 90px; height: 8px; border-radius: 99px; background: var(--surface-3, var(--line)); overflow: hidden; margin-right: 10px; }
+.atbar i { display: block; height: 100%; border-radius: inherit; background: var(--ok-ink); }
+.atbar.low i { background: var(--err-ink); }
+.atpct { display: inline-flex; flex-direction: column; vertical-align: middle; font-weight: 800; font-size: 14px; line-height: 1.15; }
+.atpct small { font-weight: 600; font-size: 11.5px; color: var(--ink-muted); }
+.atroster tr[hidden] { display: none; }
+@media (max-width: 640px) { .atst { min-width: 0; padding: 6px 10px; } .atnm b { font-size: 15.5px; } .atbar { width: 56px; } }
+.attake .atfoot > .btn:not(.primary) { order: 2; }
+
+.atatt { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; }
+.atatt .atbar { margin: 0; }
+/* Students & history: the list full width, the classes below it */
+.atlayout { grid-template-columns: 1fr; }
+.atroster td:first-child { white-space: nowrap; }
+/* Google Sheet tab: the sync state at a glance, short tips, numbered steps */
+.atstate { display: inline-flex; align-items: center; gap: 7px; margin-top: 4px; padding: 5px 12px; border-radius: 99px; font-weight: 700; font-size: 14px; }
+.atstate .ic { width: 15px; height: 15px; }
+.atstate.ok { background: var(--ok-bg); color: var(--ok-ink); }
+.atstate.bad { background: var(--err-bg); color: var(--err-ink); }
+.attips { margin: 4px 0 14px 18px; padding: 0; color: var(--ink-2, var(--ink)); line-height: 1.6; font-size: 14.5px; }
+.atsteps { list-style: none; counter-reset: st; padding: 0; }
+.atsteps li { counter-increment: st; position: relative; padding: 4px 0 10px 40px; line-height: 1.55; }
+.atsteps li::before { content: counter(st); position: absolute; left: 0; top: 2px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--primary); color: var(--on-primary); font-weight: 800; font-size: 14px; }

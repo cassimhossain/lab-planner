@@ -1407,11 +1407,18 @@
     const n = parseInt(c.replace(/^(GRADE|CLASS)/, ""), 10);
     return n >= 1 && n <= 5 ? "G1" : n >= 6 && n <= 8 ? "G2" : n >= 9 ? "G3" : "";
   }
-  const AUI = { view: "take", g: "", date: "", lesson: "", marks: {}, editing: "", connecting: false };
+  const AUI = { view: "take", g: "", date: "", lesson: "", marks: {}, editing: "", connecting: false, find: "" };
   const todayIso = () => iso(new Date());
-  const studentsOf = gc => AT.students.filter(s => s.group === gc).sort((a, b) => a.name.localeCompare(b.name));
+  const studentsOf = gc => AT.students.filter(s => s.group === gc).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+  /* names typed in capitals are hard to read in a list: shown as Abdul Sami Shah, saved as typed */
+  const nice = n => /[a-z]/.test(n) ? n : String(n).toLowerCase().replace(/(^|[\s.\-'])([a-z])/g, (m, p, c) => p + c.toUpperCase());
+  /* the search boxes on the attendance tabs filter the rows in place, so typing keeps its focus */
+  const atFind = (inp, sel) => { const q = inp.value.trim().toLowerCase(); AUI.find = inp.value;
+    document.querySelectorAll(sel).forEach(r => { r.hidden = !!q && !r.dataset.find.includes(q); });
+    const none = document.getElementById(inp.dataset.none); if (none) none.hidden = ![...document.querySelectorAll(sel)].every(r => r.hidden); };
   const classesOf = gc => AT.classes.filter(c => c.group === gc).sort((a, b) => (a.date + a.id).localeCompare(b.date + b.id));
   function startDraft(gc, cls) {
+    if (AUI.g !== gc) AUI.find = "";
     AUI.g = gc; AUI.editing = cls ? cls.id : ""; AUI.date = cls ? cls.date : todayIso(); AUI.lesson = cls ? cls.lesson : "";
     AUI.marks = {}; studentsOf(gc).forEach(s => { AUI.marks[s.id] = cls ? (cls.marks[s.id] || "") : "p"; });
   }
@@ -1584,7 +1591,7 @@
     const fix = unsure.length ? `<div class="warn">${plural(unsure.length, "student")} couldn't be placed from their class: ${unsure.map(s => `${esc(s.name)} <select data-atgroup="${s.id}" aria-label="Group for ${esc(s.name)}"><option value="">Pick a group</option>${AGROUPS.map(x => `<option value="${x.code}">${esc(x.name)}</option>`).join("")}</select>`).join(" · ")}</div>` : "";
     return head0 + vtabs + fix + tabs + (AUI.view === "students" ? vAtStudents(g) : vAtTake(g));
   }
-  /* marking one class: the lesson, then everyone in the group as tiles that fit on screen */
+  /* marking one class: the lesson, then everyone in the group, one per row */
   function vAtTake(g) {
     const list = studentsOf(g.code), cs = classesOf(g.code);
     list.forEach(s => { if (!(s.id in AUI.marks)) AUI.marks[s.id] = AUI.editing ? "" : "p"; });
@@ -1600,11 +1607,15 @@
         <input id="atLesson" class="atinput" placeholder="Type the lesson, e.g. Traffic light, or a code like JM-04" value="${esc(AUI.lesson)}" autocomplete="off">
         ${sugg.length ? `<div class="atsugg">${sugg.map(a => `<button class="prow" data-atlesson="${esc(a.code)}" style="--c:${GROUPS[a.group].color};--l:${GROUPS[a.group].light}"><span class="acode">${esc(lab(a))}</span><span class="nt">${esc(a.title)}<small>${esc(GROUPS[a.group].name)} · ${esc(a.unit)}</small></span><span class="nplan">Use</span></button>`).join("")}</div>` : ""}</div>
       <div class="m-sec"><label>Students <i>${presentN} present · ${absentN} absent</i><span class="atall"><button class="linkbtn navy" data-atall="p">All present</button><button class="linkbtn navy" data-atall="a">All absent</button></span></label>
-        ${list.length ? `<p class="athelp">${AUI.editing ? "Tap a name to switch between present and absent." : "Everyone starts as present. Tap a name to mark them absent."}</p>
-        <div class="attiles">${list.map(s => { const m = AUI.marks[s.id];
-          return `<button class="attile ${m === "a" ? "off" : m === "p" ? "on" : ""}" data-attog="${s.id}" aria-pressed="${m === "p"}" aria-label="${esc(s.name)}: ${m === "a" ? "absent" : m === "p" ? "present" : "not marked"}"><span class="attick">${ic(m === "a" ? "x" : "check")}</span><span class="attn"><b>${esc(s.name)}</b><small>${esc(s.cls)}</small></span></button>`; }).join("")}</div>`
+        ${list.length ? `<p class="athelp">${AUI.editing ? "Tap a student to switch between present and absent." : "Everyone starts as present. Tap a student to mark them absent."}</p>
+        ${list.length > 8 ? `<input class="atinput atfind" id="atFind" data-rows=".atrow" data-none="atNone" placeholder="Find a student" value="${esc(AUI.find)}" autocomplete="off">` : ""}
+        <ol class="atlist">${list.map((s, i) => { const m = AUI.marks[s.id], q = AUI.find.trim().toLowerCase(), f = (s.name + " " + s.cls).toLowerCase();
+          return `<li class="atrow ${m === "a" ? "off" : m === "p" ? "on" : ""}" data-find="${esc(f)}"${q && !f.includes(q) ? " hidden" : ""}><button data-attog="${s.id}" aria-pressed="${m === "p"}" aria-label="${esc(nice(s.name))}: ${m === "a" ? "absent" : m === "p" ? "present" : "not marked"}">
+            <span class="atno">${i + 1}</span><span class="atnm"><b>${esc(nice(s.name))}</b>${s.cls ? `<small>${esc(s.cls)}</small>` : ""}</span>
+            <span class="atst">${ic(m === "a" ? "x" : m === "p" ? "check" : "minus")}${m === "a" ? "Absent" : m === "p" ? "Present" : "Not marked"}</span></button></li>`; }).join("")}</ol>
+        <p class="muted atnone" id="atNone" hidden>No student matches that search.</p>`
           : `<p class="muted">No students in this group yet. Import the class list, or give students this group under Students &amp; history.</p>`}</div>
-      <div class="m-foot atfoot">${AUI.editing ? `<button class="btn danger" data-at="delclass">Delete this class</button><button class="btn" data-at="cancel">Cancel</button>` : "<span></span>"}<button class="btn primary big" data-at="save" ${list.length ? "" : "disabled"}>${ic("check")}${AUI.editing ? "Save changes" : "Save attendance"}</button></div></div>`;
+      <div class="m-foot atfoot"><div class="atsum">${absentN ? `<b>Absent (${absentN}):</b> ${list.filter(s => AUI.marks[s.id] === "a").map(s => esc(nice(s.name))).join(", ")}` : presentN === list.length && list.length ? "<b>Everyone is here.</b>" : `<b>${list.length - presentN - absentN} not marked yet.</b>`}</div>${AUI.editing ? `<button class="btn danger" data-at="delclass">Delete this class</button><button class="btn" data-at="cancel">Cancel</button>` : "<span></span>"}<button class="btn primary big" data-at="save" ${list.length ? "" : "disabled"}>${ic("check")}${AUI.editing ? "Save changes" : "Save attendance"}</button></div></div>`;
   }
   /* the group's classes so far and its students, kept off the marking screen */
   function vAtStudents(g) {
@@ -1613,25 +1624,27 @@
         <label class="attotal">Planned classes <input type="number" min="1" max="60" id="atTotal" value="${atTotal(g.code)}" aria-label="Planned classes for ${esc(g.name)}"></label></div>
       ${cs.length ? `<div class="athist">${cs.map((c, i) => { const p = Object.values(c.marks).filter(v => v === "p").length, a = Object.values(c.marks).filter(v => v === "a").length;
         return `<button class="athrow" data-atedit="${c.id}" title="Open to change it"><span class="athn">${i + 1}</span><span class="atht"><b>${c.date ? fmt(new Date(c.date + "T00:00:00"), { weekday: "short", day: "numeric", month: "short" }) : "No date"}</b><small>${esc(c.lesson) || "No lesson recorded"}</small></span><span class="athc"><em class="ok">${p}</em><em class="no">${a}</em></span></button>`; }).join("")}</div>` : `<p class="muted">No classes recorded for this group yet.</p>`}</div>`;
-    const roster = `<div class="card"><div class="panel-h"><h2>Students <small class="muted">${list.length}</small></h2></div>
-      ${list.length ? `<table class="kt atroster"><thead><tr><th>Name</th><th>Class</th><th class="c">Attended</th><th class="c">%</th><th>Group</th><th></th></tr></thead><tbody>${list.map(s => {
+    const roster = `<div class="card"><div class="panel-h"><h2>Students <small class="muted">${list.length}</small></h2>${list.length > 8 ? `<input class="atinput atfind sm" id="atFindS" data-rows=".atroster tbody tr" data-none="atNoneS" placeholder="Find a student" value="${esc(AUI.find)}" autocomplete="off">` : ""}</div>
+      ${list.length ? `<table class="kt atroster"><thead><tr><th>Name</th><th>Class</th><th>Attendance</th><th>Group</th><th></th></tr></thead><tbody>${list.map(s => {
         const mine = cs.filter(c => c.marks[s.id]), here = mine.filter(c => c.marks[s.id] === "p").length, pct = mine.length ? Math.round(100 * here / mine.length) : null;
-        return `<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.cls)}</td><td class="c">${here} / ${mine.length}</td><td class="c ${pct != null && pct < 75 ? "atlow" : ""}">${pct == null ? "–" : pct + "%"}</td>
+        const q = AUI.find.trim().toLowerCase(), f = (s.name + " " + s.cls).toLowerCase();
+        return `<tr data-find="${esc(f)}"${q && !f.includes(q) ? " hidden" : ""}><td><b>${esc(nice(s.name))}</b></td><td>${esc(s.cls)}</td>
+          <td>${pct == null ? `<span class="muted">No classes yet</span>` : `<span class="atatt"><span class="atbar ${pct < 75 ? "low" : ""}" title="${here} of ${mine.length} classes"><i style="width:${pct}%"></i></span><span class="atpct ${pct < 75 ? "atlow" : ""}">${pct}%<small>${here} of ${mine.length}${pct < 75 ? " · low" : ""}</small></span></span>`}</td>
           <td><select data-atgroup="${s.id}" aria-label="Group for ${esc(s.name)}">${AGROUPS.map(x => `<option value="${x.code}" ${x.code === s.group ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select></td>
-          <td><button class="kdel" data-atdel="${s.id}" aria-label="Remove ${esc(s.name)}">${ic("x")}</button></td></tr>`; }).join("")}</tbody></table>` : ""}
+          <td><button class="kdel" data-atdel="${s.id}" aria-label="Remove ${esc(s.name)}">${ic("x")}</button></td></tr>`; }).join("")}</tbody></table><p class="muted atnone" id="atNoneS" hidden>No student matches that search.</p>` : ""}
       <form class="atadd" data-atform><input id="atNewName" placeholder="Add a student: name" aria-label="Student name"><input id="atNewCls" placeholder="Class, e.g. 5A or IG II" aria-label="Class"><button class="btn" type="submit">${ic("plus")}Add</button></form></div>`;
-    return `<div class="atlayout"><div>${history}</div><div>${roster}</div></div>`;
+    return `<div class="atlayout"><div>${roster}</div><div>${history}</div></div>`;
   }
   /* connecting the Google Sheet, and the backups */
   function vAtSheet() {
     const bk = AT.lastBackup ? Math.floor((Date.now() - new Date(AT.lastBackup)) / 864e5) : -1, nag = !SH.url && AT.classes.length && (bk < 0 || bk > 7);
-    const files = `<div class="card atfiles"><div class="panel-h"><h2>Files</h2></div>
+    const files = `<div class="card atfiles"><div class="panel-h"><h2>Backups and Excel</h2></div>
       <p class="muted">${SH.url ? "The sheet is the register. A backup file is still handy before big changes." : `<b class="${nag ? "atlow" : ""}">${bk < 0 ? "No backup yet." : `Last backup ${bk} days ago.`}</b> Without a sheet, attendance lives in this browser only: download a backup each week, and load it on another computer.`}</p>
-      <div class="btnrow"><button class="btn" data-at="export">${ic("sheet")}Register (Excel)</button><button class="btn" data-at="backup">${ic("down")}Download backup</button><label class="btn file">Load backup<input type="file" id="atRestore" accept=".json,application/json"></label></div></div>`;
+      <div class="btnrow"><button class="btn" data-at="export">${ic("sheet")}Download the register (Excel)</button><button class="btn" data-at="backup">${ic("down")}Download a backup</button><label class="btn file">${ic("file")}Load a backup<input type="file" id="atRestore" accept=".json,application/json"></label></div></div>`;
     if (SH.url) {
       const ago = SH.synced ? Math.round((Date.now() - new Date(SH.synced)) / 60000) : -1;
-      return `<div class="card atsheet on"><div class="atsheet-h">${ic("sheet")}<div><h2>Connected to your Google Sheet</h2><p>${SYNC.err ? esc(SYNC_ERR[SYNC.err] || "Not synced.") : ago < 0 ? "Not synced yet." : ago < 1 ? "Synced just now." : `Last synced ${ago} min ago.`}${SH.pending.length ? ` ${plural(SH.pending.length, "change")} waiting to be sent.` : ""}</p></div></div>
-        <p class="muted">Mark attendance here, or edit the sheet directly: P or A in a cell, the lesson, the date. Add or move students on its Students tab. This page picks up the sheet's changes whenever you open it.</p>
+      return `<div class="card atsheet on"><div class="atsheet-h">${ic("sheet")}<div><h2>Connected to your Google Sheet</h2><p class="atstate ${SYNC.err ? "bad" : "ok"}">${ic(SYNC.err ? "x" : "check")}${SYNC.err ? esc(SYNC_ERR[SYNC.err] || "Not synced.") : ago < 0 ? "Not synced yet." : ago < 1 ? "Synced just now." : `Last synced ${ago} min ago.`}${SH.pending.length ? ` ${plural(SH.pending.length, "change")} waiting to be sent.` : ""}</p></div></div>
+        <ul class="attips"><li>Mark attendance on the <b>Take attendance</b> tab, or type <b>P</b> or <b>A</b> straight into the sheet.</li><li>Add or move students on the sheet's <b>Students</b> tab.</li><li>Changes made in the sheet show up here whenever you open this page.</li></ul>
         <div class="btnrow">${SH.sheetUrl ? `<a class="btn primary" href="${esc(SH.sheetUrl)}" target="_blank" rel="noopener">${ic("sheet")}Open the Google Sheet</a>` : ""}<button class="btn" data-at="sync" ${SYNC.busy ? "disabled" : ""}>${ic("reload")}${SYNC.busy ? "Syncing…" : "Sync now"}</button><button class="btn" data-at="disconnect">Disconnect</button></div>
         <p class="athelp">This browser remembers the PIN. On a computer students also use, disconnect when you're done.</p></div>` + files;
     }
@@ -1668,7 +1681,7 @@
     const t = e.target.closest("button, a"); if (!t || !document.body.contains(t)) return; const d = t.dataset;
     if (d.atgo) { AUI.view = "take"; startDraft(d.atgo); return; }
     if (route() !== "attendance") return;
-    if (d.atview) { AUI.view = d.atview; render(); return; }
+    if (d.atview) { AUI.view = d.atview; AUI.find = ""; render(); return; }
     if (d.atg) { startDraft(d.atg); render(); return; }
     if (d.attog) { AUI.marks[d.attog] = AUI.marks[d.attog] === "p" ? "a" : "p"; renderKeep(); return; }
     if (d.atall) { studentsOf(AUI.g).forEach(s => { AUI.marks[s.id] = d.atall; }); render(); return; }
@@ -1707,6 +1720,7 @@
     if (t.dataset.atgroup) { if (t.value) { change({ t: "updStudent", id: t.dataset.atgroup, group: t.value }); startDraft(AUI.g); render(); } return; }
   });
   document.addEventListener("input", e => {
+    if (e.target.id === "atFind" || e.target.id === "atFindS") return atFind(e.target, e.target.dataset.rows);
     if (e.target.id !== "atLesson") return;
     AUI.lesson = e.target.value; renderKeep();
   });

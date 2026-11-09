@@ -1,14 +1,15 @@
 /* Circuit Lab - netlist + microcontroller simulation (avr8js, MIT). */
 import { CPU, avrInstruction, AVRTimer, AVRIOPort, AVRUSART, AVRADC, AVRTWI, AVREEPROM, EEPROMMemoryBackend, PinState } from "../vendor/avr8js.mjs";
-import { CARDS, PARTS } from "./parts.js?v=42";
-import { bbLayout } from "./elements.js?v=42";
-import { BOARDS, ESP_ADC_PINS } from "./boards.js?v=42";
-import { BATT } from "./elements.js?v=42";
-import { setupExtra, hcExtra } from "./sim2.js?v=42";
-import { setupExtra3 } from "./sim3.js?v=42";
-import { setupExtra4, hcExtra4 } from "./sim4.js?v=42";
-import { setupExtra5 } from "./sim5.js?v=42";
-import { setupExtra7, hcExtra7 } from "./sim7.js?v=42";
+import { CARDS, PARTS } from "./parts.js?v=47";
+import { bbLayout } from "./elements.js?v=47";
+import { BOARDS, ESP_ADC_PINS } from "./boards.js?v=47";
+import { BATT } from "./elements.js?v=47";
+import { setupExtra, hcExtra } from "./sim2.js?v=47";
+import { setupExtra3 } from "./sim3.js?v=47";
+import { setupExtra4, hcExtra4 } from "./sim4.js?v=47";
+import { setupExtra5 } from "./sim5.js?v=47";
+import { setupExtra7, hcExtra7 } from "./sim7.js?v=47";
+import { Analog } from "./analog.js?v=47";
 
 /* modules that talk over a plain serial port and are driven by their own library shim */
 const SERIAL_MODULES = [["mhz19", "MH-Z19"], ["dfplayer", "DFPlayer"]];
@@ -150,6 +151,7 @@ export class Sim {
     this.project = project; this.rt = rt; this.net = net; this.onSerial = onSerial; this.onWarn = onWarn || (() => {}); this.onNet = onNet || (() => {});
     const B = this.B = net.board, M = this.M = B.mcu;
     this.logic = B.logic;
+    this.PULLUP = PinState.InputPullUp; this.batt = BATT;   // for the circuit solver (analog.js)
     const cpu = this.cpu = new CPU(program, M.sram);
     this.timers = M.timers.map(t => new AVRTimer(cpu, t));
     this.ports = {}; Object.entries(M.ports).forEach(([k, cfg]) => { this.ports[k] = new AVRIOPort(cpu, cfg); });
@@ -184,6 +186,8 @@ export class Sim {
     cpu.writeHooks[0x3e] = v => { if (v === 0xc1) this.hypercall(); return true; };
     this.setupI2C();
     this.setupDevices();
+    /* solve the circuit once before the sketch starts, so its first analogRead is already right */
+    this.ana = new Analog(this); this.ana.update(true);
     this.refreshInputs();
   }
   portOf(n) { const pp = this.M.pinPort(n); return pp; }
@@ -232,7 +236,10 @@ export class Sim {
     const v = lv ? lv.v : (st === PinState.InputPullUp ? this.logic : 0);
     const pp = this.portOf(n); if (pp) this.ports[pp[0]].setPin(pp[1], v > this.logic / 2);
     const ch = this.adcOf[n];
-    if (ch != null) this.adc.channelValues[ch] = this.B.esp ? clamp(v * 5 / 3.3, 0, 5) : clamp(v, 0, 5);
+    /* an analog pin reads the solved voltage, so a divider or a pot with a load reads true */
+    const va = ch != null && this.ana && this.ana.ok && r ? this.ana.volts(r) : null;
+    const vv = va != null ? va : v;
+    if (ch != null) this.adc.channelValues[ch] = this.B.esp ? clamp(vv * 5 / 3.3, 0, 5) : clamp(vv, 0, 5);
   }
   refreshInputs() {
     for (let n = 0; n < this.npins; n++) if (this.net.pinRoot[n]) this.updateInput(n);
@@ -249,7 +256,7 @@ export class Sim {
     const w = this.nwatch[this.net.find(r)];
     if (w && !this._inw) { this._inw = 1; try { w.forEach(f => f(null, this.cpu.cycles, false)); } finally { this._inw = 0; } }
   }
-  switchChanged(pid) { Object.entries(this.net.sw).forEach(([r, es]) => es.forEach(e => { if (e.pid === pid) { this.netChanged(r); this.netChanged(e.o); } })); }
+  switchChanged(pid) { if (this.ana) this.ana.update(); Object.entries(this.net.sw).forEach(([r, es]) => es.forEach(e => { if (e.pid === pid) { this.netChanged(r); this.netChanged(e.o); } })); }
   addOutput(r, fn) { (this.outputs[r] = this.outputs[r] || []).push(fn); }
   /* exact analog value (volts) sampled when the sketch reads the pin, not once per frame */
   liveAnalog(r, fn) {
@@ -521,19 +528,21 @@ export class Sim {
       const ana = (pin, fn) => this.addOutput(R(pin), () => ok() ? clamp(fn(), 0, 1) * this.supply(part) : null);
       const leds = (sigOn) => { D.frame = () => { el.led && el.led("pwr", ok()); el.led && el.led("sig", ok() && sigOn()); }; };
       switch (part.type) {
-        case "led": D.frame = () => { const b = this.ledLevel(R("A"), R("C")); el.value = b > 0.02; el.brightness = Math.max(0.15, b); }; break;
+        case "led": D.frame = () => { const b = this.ledOut(id, R("A"), R("C")); el.value = b > 0.02; el.brightness = Math.max(0.15, b); }; break;
         case "rgbled": D.frame = () => {
           const com = R("COM"), ca = (sim.common || "cathode") === "cathode";
-          const ch = pin => this.ledLevel(ca ? R(pin) : com, ca ? com : R(pin), true);
+          const ch = pin => this.ledOut(id + "|" + pin, ca ? R(pin) : com, ca ? com : R(pin), true);
           el.ledRed = ch("R"); el.ledGreen = ch("G"); el.ledBlue = ch("B");
         }; break;
         case "seg7": D.frame = () => {
           const com = R("COM.1"), ca = (sim.common || "cathode") === "cathode";
-          el.values = ["A", "B", "C", "D", "E", "F", "G", "DP"].map(s => this.ledLevel(ca ? R(s) : com, ca ? com : R(s), true) > 0.3 ? 1 : 0);
+          el.values = ["A", "B", "C", "D", "E", "F", "G", "DP"].map(s => this.ledOut(id + "|" + s, ca ? R(s) : com, ca ? com : R(s), true) > 0.3 ? 1 : 0);
         }; break;
         case "buzzer": this.setupBuzzer(D, R("2"), R("1")); break;
         case "pot": {
-          this.addOutput(R("SIG"), () => { const hi = this.level(R("VCC")), lo = this.level(R("GND")); if (!hi || !lo) return null; const f = (el.value - (el.min ?? 0)) / (((el.max ?? 1023) - (el.min ?? 0)) || 1); return lo.v + (hi.v - lo.v) * f; });
+          const wiper = () => { const hi = this.level(R("VCC")), lo = this.level(R("GND")); if (!hi || !lo) return null; const f = (el.value - (el.min ?? 0)) / (((el.max ?? 1023) - (el.min ?? 0)) || 1); return lo.v + (hi.v - lo.v) * f; };
+          wiper._resistive = true;   // analog.js solves the pot as a real 10 kΩ track instead
+          this.addOutput(R("SIG"), wiper);
           el.addEventListener("input", () => this.netChanged(R("SIG")));
           break;
         }
@@ -623,7 +632,26 @@ export class Sim {
   }
   supply(part) { const pw = (PARTDEF[part.type] || {}).pw; const v = pw && pw.vcc ? this.level(this.net.root(part.id, pw.vcc[0])) : null; return v ? v.v : this.logic; }
   setupI2CLcd() {}
-  /* LED brightness 0..1 from anode/cathode nets */
+  /* LED brightness 0..1 from the current the circuit solver found: about
+     15 mA looks fully bright, 3 mA (a 1 kΩ resistor on 5 V) clearly dimmer,
+     0.3 mA (10 kΩ) faint, and a megaohm leaves it off, as on a real bench.
+     A PWM pin scales it by its duty. Falls back to the old net rule if the
+     solver could not run. */
+  ledOut(key, ra, rc, quiet) {
+    const A = this.ana;
+    if (!A || !A.ok) return this.ledLevel(ra, rc, quiet);
+    const I = A.current(key);
+    if (!I) {
+      if (!quiet && A.vd(key) < -1.5) this.warnings.add("An LED looks backwards: the long leg (A, anode) goes to the + side.");
+      return 0;
+    }
+    if (I > 0.04) this.warnings.add(`An LED is getting ${Math.round(I * 1000)} mA. About 20 mA is safe: add a resistor in series (220 Ω on 5 V, 100 Ω on 3.3 V, 470 Ω on 9 V).`);
+    let b = I < 2e-5 ? 0 : Math.min(1, Math.sqrt(I / 0.015));
+    const a = this.level(ra);
+    if (a && a.pin != null && this.pin[a.pin].duty < 0.98) b *= this.pin[a.pin].duty;
+    return b;
+  }
+  /* the old rule: lit when the anode's net is high and the cathode's low */
   ledLevel(ra, rc, quiet) {
     const a = this.level(ra), c = this.level(rc);
     if (!a || !c) return 0;
@@ -862,6 +890,10 @@ export class Sim {
     const c = this.cpu.cycles;
     for (const p of this.pin) { if (p.pwm != null) { p.duty = p.pwm; continue; } const span = c - p.win; if (p.lv) p.hi += c - p.last; p.duty = span > 0 ? Math.min(1, p.hi / span) : p.lv; p.hi = 0; p.win = c; p.last = c; }
     this.warnings.clear();
+    if (!this.ana) this.ana = new Analog(this);
+    /* when the solution changes, every analog pin reads its new voltage */
+    if (this.ana.update()) for (let n = 0; n < this.npins; n++) if (this.adcOf[n] != null && this.net.pinRoot[n]) this.updateInput(n);
+    if (this.ana.ok) for (const [n, I] of this.ana.pinI) if (I > 0.04) this.warnings.add(`Pin ${n} is supplying ${Math.round(I * 1000)} mA. An Arduino pin can give about 20 mA (40 mA at most): add a resistor, or drive the load with a transistor.`);
     for (const D of this.devices) { if (D.frame) D.frame(dt); if (D.frame2) D.frame2(dt); }
     this.onWarn([...this.warnings, ...this.notes]);
   }

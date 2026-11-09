@@ -27,3 +27,4 @@ tools/deckgen/out/
 tools/deckgen/.deck.html
 tools/deckgen/.guide.html
 desktop/compiler-src/
+.playwright-mcp/

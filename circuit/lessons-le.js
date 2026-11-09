@@ -178,7 +178,7 @@ void loop() {
     board: null, title: "Lemon Battery LED Lamp", goal: "Three lemons with a zinc nail and a copper coin each make about 2.7 volts: enough for a red LED.",
     parts: [{ t: "battery", attrs: { kind: "lemon" }, rails: { "+": "bp", "-": "bn" } }, { t: "led", color: "red", pin: "+", direct: true }],
     try: ["Press Start: the red LED glows.", "Change the battery Type to 2xAA to compare.", "Real lemons give very little current, so the real LED is dim: try it in a dark room."],
-    note: "Circuit Lab shows if the LED gets enough voltage, not how bright a real lemon battery can make it.",
+    note: "Lemons push about 2.7 volts but only a tiny current, so the LED glows faintly, just as a real one does. Switch to 2xAA to see the difference.",
   },
   "LE-04": null,
   "LE-05": {

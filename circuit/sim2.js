@@ -49,7 +49,7 @@ export function setupExtra(sim, D, H) {
     case "ledbar": {
       D.frame = () => {
         const vals = [];
-        for (let i = 1; i <= 10; i++) vals.push(sim.ledLevel(R("A" + i), R("C" + i), true) > 0.25 ? 1 : 0);
+        for (let i = 1; i <= 10; i++) vals.push(sim.ledOut(D.part.id + "|" + i, R("A" + i), R("C" + i), true) > 0.25 ? 1 : 0);
         el.values = vals;
       };
       return true;

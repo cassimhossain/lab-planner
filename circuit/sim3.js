@@ -187,7 +187,9 @@ export function setupExtra3(sim, D, H) {
       return true;
     }
     case "diode": {
-      sim.addOutput(R("K"), () => { const a = sim.level(R("A")); return a && a.v > 0.7 ? a.v - 0.7 : null; });
+      const k = () => { const a = sim.level(R("A")); return a && a.v > 0.7 ? a.v - 0.7 : null; };
+      k._resistive = true;   // analog.js solves the diode itself
+      sim.addOutput(R("K"), k);
       D.frame = () => sim.netChanged(R("K"));
       return true;
     }

@@ -12,12 +12,12 @@
    index.html and in VERSION below, and the old cache is thrown away whole on
    the next visit, so a student never runs half an old version. */
 
-const VERSION = "v42";
+const VERSION = "v47";
 const CACHE = "circuitlab-" + VERSION;
-const V = "?" + VERSION.replace("v", "v=");          // "?v=42", the same string the page uses
+const V = "?" + VERSION.replace("v", "v=");          // "?v=47", the same string the page uses
 const BUDDY_V = "72";                                  // Study Buddy and lesson data: the portal's number
 
-const MODULES = ["app", "assist", "boards", "home", "elements", "elements2", "elements3", "elements4", "elements5",
+const MODULES = ["analog", "app", "assist", "boards", "home", "elements", "elements2", "elements3", "elements4", "elements5",
   "layout", "lessons", "lessons-jm", "lessons-le", "lessons-tl", "lessons-yi",
   "libs", "libs2", "libs3", "libs4", "libs5",
   "parts", "parts2", "parts3", "parts4", "parts5", "parts6", "parts7", "parts8",
@@ -36,7 +36,7 @@ const SHELL = [
   "../vendor/codemirror/codemirror.min.js" + V,
   "../vendor/codemirror/codemirror.css" + V,
   "../vendor/avr8js.mjs",
-  "../logo.svg",
+  "../logo.svg", "../robo.js" + V,
   "../theme.js" + V, "../tokens.css" + V,
   ...FONTS.map(f => "../fonts/" + f + ".woff2"),
   /* Study Buddy and the lesson data its built-in answers come from, so it

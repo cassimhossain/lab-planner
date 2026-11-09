@@ -1,13 +1,13 @@
 /* Circuit Lab - editor. Build circuits, write Arduino / ESP32 code, run them in the browser. */
-import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=42";
-import { BOARDS, loadHex } from "./boards.js?v=42";
-import { layoutCircuit } from "./layout.js?v=42";
-import { SNIPPETS } from "./snippets.js?v=42";
-import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=42";
-import * as T from "./tools.js?v=42";
-import { initHome, showHome, hideHome, isHome } from "./home.js?v=42";
-import { initUpload, showUpload, doFlash, boardChanged } from "./upload.js?v=42";
-import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=42";
+import { PARTS, CATS, CARDS, DEFAULT_PINS, bbGroupOf, defaultPin, SHELF, SHELF_ORDER } from "./parts.js?v=47";
+import { BOARDS, loadHex } from "./boards.js?v=47";
+import { layoutCircuit } from "./layout.js?v=47";
+import { SNIPPETS } from "./snippets.js?v=47";
+import { LESSONS, STARTERS, GROUPS } from "./lessons.js?v=47";
+import * as T from "./tools.js?v=47";
+import { initHome, showHome, hideHome, isHome } from "./home.js?v=47";
+import { initUpload, showUpload, doFlash, boardChanged } from "./upload.js?v=47";
+import { installAutocomplete, applyTheme, currentTheme, toggleTheme, toggleFullscreen, isFullscreen } from "./assist.js?v=47";
 
 /* The simulator, the Arduino library bundler and the schematic drawer are
    roughly a third of the code and none of it is needed to open the page, so
@@ -19,7 +19,7 @@ let BUILTIN_LIBS = [], EXTRA_LIBS = [], enginePromise = null;
 function loadEngine() {
   if (enginePromise) return enginePromise;
   enginePromise = Promise.all([
-    import("./sim.js?v=42"), import("./libs.js?v=42"), import("./schematic.js?v=42"),
+    import("./sim.js?v=47"), import("./libs.js?v=47"), import("./schematic.js?v=47"),
   ]).then(([s, l, c]) => {
     Netlist = s.Netlist; Sim = s.Sim; Sim.muted = muted;
     prepareSketch = l.prepareSketch; BUILTIN_LIBS = l.BUILTIN_LIBS; EXTRA_LIBS = l.EXTRA_LIBS;
@@ -38,10 +38,10 @@ function loadCodeMirror() {
   if (cmPromise) return cmPromise;
   cmPromise = new Promise((res, rej) => {
     const css = document.createElement("link");
-    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=42";
+    css.rel = "stylesheet"; css.href = "../vendor/codemirror/codemirror.css?v=47";
     document.head.appendChild(css);
     const sc = document.createElement("script");
-    sc.src = "../vendor/codemirror/codemirror.min.js?v=42";
+    sc.src = "../vendor/codemirror/codemirror.min.js?v=47";
     sc.onload = () => res(window.CodeMirror); sc.onerror = () => rej(new Error("CodeMirror failed to load"));
     document.head.appendChild(sc);
   });
@@ -1316,9 +1316,31 @@ function onMove(e) {
     const p = project.parts.find(q => q.id === drag.id), g = 4.8;
     const nx = Math.round((wx - drag.dx) / g) * g, ny = Math.round((wy - drag.dy) / g) * g;
     p.x = nx; p.y = ny; placePart(p);
+    bbSnap(p);
     drag.riders.forEach(r => { r.q.x = nx + r.dx; r.q.y = ny + r.dy; placePart(r.q); });
     drawWires();
   }
+}
+/* A part dragged onto the breadboard clicks into its holes, as on a real
+   board (and in Tinkercad). Parts move in half-hole steps, so without this a
+   leg could rest between two holes: it looked plugged in but joined nothing.
+   It only snaps when every leg lands on a hole, so a module hanging off the
+   edge of the board is left where it is. */
+function bbSnap(p) {
+  if (p.type === "breadboard" || BOARDS[p.type]) return;
+  const pins = pinsWorld(p); if (!pins.length) return;
+  let best = null;
+  for (const b of project.parts) {
+    if (b.type !== "breadboard") continue;
+    const holes = pinsWorld(b);
+    for (const q of pins) for (const h of holes) {
+      const dx = h.x - q.x, dy = h.y - q.y, d = Math.hypot(dx, dy);
+      if (d > 6.5 || (best && d >= best.d)) continue;
+      const fits = pins.every(o => holes.some(k => Math.abs(k.x - (o.x + dx)) < 1.2 && Math.abs(k.y - (o.y + dy)) < 1.2));
+      if (fits) best = { dx, dy, d };
+    }
+  }
+  if (best && best.d > 0.01) { p.x += best.dx; p.y += best.dy; placePart(p); }
 }
 let pinDown = null, nudgeT = null;
 function onUp(e) {

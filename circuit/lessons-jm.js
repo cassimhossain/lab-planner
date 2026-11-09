@@ -17,7 +17,7 @@ export default {
     board: null, title: "Series & Parallel Circuit Lab", goal: "Two LEDs in parallel: each has its own path from + to −, so both shine fully and one can fail without the other going out.",
     parts: [{ t: "battery", attrs: { kind: "9V" }, rails: { "+": "switch", "-": "bn" } }, { t: "slideswitch", feed: true }, { t: "led", color: "red", pin: "+" }, { t: "led", color: "green", pin: "+" }],
     try: ["Start and flip the switch: both LEDs light together.", "Delete the green LED: the red one stays on. That is parallel.", "For series circuits and brightness, open Circuit Construction Kit: DC in Virtual labs."],
-    note: "Circuit Lab checks which paths are complete. To compare brightness in series and parallel, use the PhET Circuit Construction Kit (Simulators page).",
+    note: "Circuit Lab works out the real current, so try series as well: wire the two LEDs one after the other and watch them both go dimmer. The PhET Circuit Construction Kit (Simulators page) shows the current flowing.",
   },
   "JM-02": {
     title: "Two-Player Reaction Timer with Scoreboard", goal: "Wait for the red light, then press first! The OLED keeps the score. Pressing too early loses the point.",

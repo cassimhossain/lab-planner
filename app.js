@@ -1001,9 +1001,13 @@
   const editableKit = () => (S.kits[UI.kitCode] = S.kits[UI.kitCode] || JSON.parse(JSON.stringify(BYCODE[UI.kitCode].kit)));
 
   /* ---------- CURRICULUM ---------- */
+  /* Robotics & AI Curriculum decks that suit every age group: they also sit
+     under Foundation in the Lesson library (the same file, listed twice) */
+  const FOUNDATION_ALSO = ["AI-01", "AI-02"];
+  const inLibGroup = (d, g) => d.group === g || (g === "F" && FOUNDATION_ALSO.includes(d.code));
   function deckCard(d) {
     const g = LG[d.group];
-    const st = d.group === "F" ? "" : (() => { const s = peek(d.code); return s.status === "Next week" ? `<span class="chip amber">${ic("cal")}${s.day ? DAYFULL[s.day] : "Planned"}</span>` : s.status === "Done" ? `<span class="chip green">${ic("check")}Done</span>` : ""; })();
+    const st = d.group === "F" || FOUNDATION_ALSO.includes(d.code) ? "" : (() => { const s = peek(d.code); return s.status === "Next week" ? `<span class="chip amber">${ic("cal")}${s.day ? DAYFULL[s.day] : "Planned"}</span>` : s.status === "Done" ? `<span class="chip green">${ic("check")}Done</span>` : ""; })();
     return `<button class="deck" data-view="${esc(d.code)}" style="--c:${g.color};--l:${g.light}">
       <span class="dthumb"><img loading="lazy" src="${esc(d.thumb)}" alt=""><span class="dplay">${ic("play")}</span><span class="dpages">${d.pages} slides</span></span>
       <span class="dbody"><span class="dtop"><span class="acode">${esc(d.code)}</span>${st}</span><b>${esc(deckTitle(d))}</b>${vidOf(d.code) ? `<span class="dvid">${ic("play")}Video included</span>` : ""}</span></button>`;
@@ -1023,15 +1027,16 @@
   const ageSub = g => (g.code === "F" ? "All age groups" : "Ages " + g.ages);
   function vCurriculum() {
     const sel = UI.libG && (LG[UI.libG] || UI.libG === "DOCS") ? UI.libG : (UI.libG = "F"), q = (UI.libQ || "").toLowerCase();
-    const tabs = LGROUPS.map(g => ({ code: g.code, name: g.name, color: g.color, light: g.light, sub: `${ageSub(g)} · ${LIB.decks.filter(d => d.group === g.code).length} slides` }))
+    const tabs = LGROUPS.map(g => ({ code: g.code, name: g.name, color: g.color, light: g.light, sub: `${ageSub(g)} · ${LIB.decks.filter(d => inLibGroup(d, g.code)).length} slides` }))
       .concat([{ code: "DOCS", name: "Plans & documents", color: "#C98A12", light: "#FFF4DC", icon: "book", sub: `${LIB.docs.length} files` }]);
     let body;
     if (sel === "DOCS") {
       body = DOCKINDS.map(([k, t]) => { const list = LIB.docs.map((d, n) => [d, n]).filter(([d]) => d.kind === k && (!q || (d.title + " " + d.about).toLowerCase().includes(q)));
         return list.length ? `<h3 class="unit">${t}</h3><div class="docgrid">${list.map(([d, n]) => docCard(d, n)).join("")}</div>` : ""; }).join("") || empty("Nothing matches your search.");
     } else {
-      const g = LG[sel], ds = LIB.decks.filter(d => d.group === sel && (!q || (d.code + " " + deckTitle(d)).toLowerCase().includes(q)));
-      const total = sel === "F" ? 4 : ACTS.filter(a => a.group === sel && !/^F-/.test(a.code)).length, have = LIB.decks.filter(d => d.group === sel).length;
+      const g = LG[sel], ds = LIB.decks.filter(d => inLibGroup(d, sel) && (!q || (d.code + " " + deckTitle(d)).toLowerCase().includes(q)))
+        .sort((x, y) => (x.group !== sel) - (y.group !== sel));   // the Foundation decks first, then the curriculum ones shown here too
+      const have = LIB.decks.filter(d => inLibGroup(d, sel)).length, total = sel === "F" ? have : ACTS.filter(a => a.group === sel && !/^F-/.test(a.code)).length;
       body = `<div class="lhead" style="--c:${g.color};--l:${g.light}"><b>${esc(g.name)}</b><span>${have} of ${total} activities have a presentation</span></div>` +
         (ds.length ? `<div class="dgrid">${ds.map(deckCard).join("")}</div>` : empty(q ? "No presentation matches your search." : "No presentations for this age group yet."));
     }

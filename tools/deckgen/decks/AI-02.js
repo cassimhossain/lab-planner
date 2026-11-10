@@ -6,255 +6,224 @@ const { DIAGRAMS } = require("../diagrams.js");
 const F = `<svg class="frame fb" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg><svg class="frame fa" preserveAspectRatio="none" viewBox="0 0 100 100"><rect width="100" height="100" rx="1"/></svg>`;
 const box = (c, h, body, ic) => `<div class="box fill c-${c}">${F}<div class="inner"><h3${ic ? ` ic="${ic}"` : ""}>${h}</h3>${body}</div></div>`;
 const note = (l, t, teal) => `<div class="note${teal ? " teal" : ""}">${F}<div class="inner"><b>${l}</b><span>${t}</span></div></div>`;
+const list = items => `<ul style="margin:4px 0 0 18px;line-height:1.6">${items.map(i => `<li>${i}</li>`).join("")}</ul>`;
 
 module.exports = {
   code: "AI-02",
-  title: "Training Data: Teach a Computer to See",
+  title: "AI Basics: How Machines See, Hear and Decide",
   series: "Artificial Intelligence",
   accent: "purple",
   slides: [
 
     titleSlide({
       series: "Artificial Intelligence · Machine Learning Foundations",
-      main: "Training Data", accentWords: ["Data"],
-      hook: "Teach a computer to see. It has never met a banana,<br>and in ten minutes it will spot one.",
+      main: "AI Basics", accentWords: ["AI"],
+      hook: "How can a machine see, hear and decide?<br>And what can't it do?",
       pills: ["60 minutes", "Pairs", "Laptop + webcam"],
-      fig: DIAGRAMS.trainingLoop(),
-      note: "In 2012 a model called AlexNet learned to recognise a thousand kinds of object from 1.2 million labelled photos, and beat every hand-written program by so far that the whole field changed direction within a year.",
+      fig: DIAGRAMS.inputModelOutput(),
+      note: "The first program to learn by itself played draughts. Arthur Samuel wrote it in 1959, and it learned to beat him by playing thousands of games against itself.",
     }),
 
-    { tag: "LEARN", kicker: "Let's think", title: "Nobody gave you rules for a banana",
-      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.1fr 1fr;gap:22px;align-items:start">
+    { tag: "LEARN", kicker: "Let's think", title: "Is a calculator smart?",
+      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1fr 1.15fr;gap:22px;height:100%">
         <div class="stack">
-          ${box("blue", "How did you learn it?", `<p>You can spot a banana in a second. Green, black-spotted, peeled, sliced, in a photo, in a cartoon.</p>
-            <p style="margin-top:6px">Nobody ever sat you down with a list of banana rules. You just saw <strong>a lot of bananas</strong>, and somebody told you the word.</p>`, "eye")}
-          ${box("purple", "That is exactly the trick", `<p>Last lesson we found that rules break. Today we do the other thing: collect examples, attach the right answer to each one, and let the computer find the pattern.</p>`, "brain")}
+          ${box("blue", "Vote with your hands", `<p>Hands up if you think each one is <strong>smart</strong>:</p>
+            ${list(["a calculator that does 9,999 × 9,999 instantly", "a fan that turns on when it gets hot", "a phone that unlocks when it sees your face", "a parrot that says hello"])}`, "hand")}
+          ${box("orange", "Think about it", list(["What makes a <strong>person</strong> smart?", "Is fast the same as smart?"]))}
         </div>
-        <div class="stack">
-          ${box("orange", "Guess first", `<ul style="margin:4px 0 0 18px;line-height:1.7">
-            <li>How many photos would you need to teach it <strong>banana</strong>?</li>
-            <li>Would 100 photos of the <strong>same</strong> banana be enough?</li>
-            <li>What happens when it sees a banana in a dark room?</li>
-            <li>How would you ever know if it was any good?</li></ul>`)}
-          ${note("Write your four guesses down", "We test every one of them before the end of the lesson. You will be right about some and wrong about at least one.")}
+        <div class="stack"><figure class="fig-wrap" style="flex:1 1 auto;min-height:0">${DIAGRAMS.calcVsFace()}</figure>
+          ${note("Hold on to your votes", "By the end you will have a test for which of these are AI.")}
         </div></div>` }] },
 
     objectives([
-      { t: "Collect and **label** training examples", icon: "camera", color: "purple" },
-      { t: "**Train** an image model and test it on new pictures", icon: "brain", color: "blue" },
-      { t: "Explain why **varied** examples beat more of the same", icon: "scales", color: "orange" },
-      { t: "Measure **accuracy** honestly, on data the model never saw", icon: "graph", color: "teal" },
-    ], "training data · label · class · sample · model · prediction · confidence · test set · accuracy · bias"),
+      { t: "Explain what **artificial intelligence** is, and what makes it different from a normal program", icon: "brain", color: "purple" },
+      { t: "Describe how AI works: **input, model, output**", icon: "arrow", color: "blue" },
+      { t: "Name **five things AI can do**, with an example of each", icon: "star", color: "teal" },
+      { t: "Say what AI **gets wrong**, and how to use it **safely**", icon: "eye", color: "orange" },
+    ], "intelligence · artificial intelligence · data · model · input · output · narrow AI · bias · prediction"),
 
-    { tag: "LEARN", kicker: "Objective 1 · The big idea", title: "Four words you need today",
-      bodyStyle: "display:grid;grid-template-columns:1fr 1fr;gap:20px",
-      blocks: [
-        { t: "html", html: `<div class="stack">
-          ${box("purple", "Class", `<p>One of the answers the model is allowed to give. <strong>banana</strong>, <strong>apple</strong>, <strong>nothing</strong>. You decide the classes before you start.</p>`, "book")}
-          ${box("blue", "Sample", `<p>One example. One photo. Teachable Machine counts these for you, and the count is the first thing to look at when something goes wrong.</p>`, "camera")}
-        </div>` },
-        { t: "html", html: `<div class="stack">
-          ${box("orange", "Label", `<p>The right answer attached to a sample. In Teachable Machine the label is simply <strong>which box you put the photo in</strong>.</p>`, "pencil")}
-          ${box("green", "Model", `<p>What comes out of training. A pattern, frozen, that turns a new photo into a guess and a number saying how sure it is.</p>`, "chip")}
-        </div>` },
-      ] },
-
-    { tag: "LEARN", kicker: "Objective 1 · The cycle", title: "The loop every AI team runs",
-      bodyStyle: "display:grid;grid-template-columns:1.3fr 1fr;gap:20px",
-      blocks: [
-        { t: "figbox", name: "trainingLoop", color: "purple", h: "Collect, label, train, test, repeat", style: "min-height:0" },
-        { t: "html", html: `<div class="stack">
-          ${box("blue", "It is a loop, not a line", `<p>No team gets it right first time. They train, find what it gets wrong, go and collect <strong>more of that</strong>, and train again.</p>`)}
-          ${box("red", "The loop is where the work is", `<p>Training takes seconds. Collecting the right examples takes days. Real AI jobs are mostly about data, not about maths.</p>`)}
-          ${note("Today", "You will go round this loop at least twice. The second time round is where the learning happens.", true)}
-        </div>` },
-      ] },
-
-    { tag: "LEARN", kicker: "Objective 2 · Inside", title: "What the computer actually sees",
-      bodyStyle: "display:grid;grid-template-columns:1.3fr 1fr;gap:20px",
-      blocks: [
-        { t: "figbox", name: "pixelsToNumbers", color: "blue", h: "No picture, just numbers", style: "min-height:0" },
-        { t: "html", html: `<div class="stack">
-          ${box("purple", "A photo is a grid", `<p>Every pixel is three numbers: how much red, green and blue. A small 224 by 224 photo is <strong>150,528 numbers</strong>.</p>`)}
-          ${box("teal", "The pattern is in the numbers", `<p>The model never sees yellow or curved. It finds that <em>these</em> numbers tend to go together when you said banana.</p>`)}
-          ${note("Why that matters", "Change the light and every number changes. That is why a model trained in one room can fail in the next one.")}
-        </div>` },
-      ] },
-
-    { tag: "LEARN", kicker: "Objective 3 · The key idea", title: "Variety beats quantity",
-      blocks: [{ t: "figbox", name: "goodBadData", color: "green", h: "Twenty photos, collected two ways", style: "flex:1 1 auto;min-height:0" }] },
-
-    { tag: "LEARN", kicker: "Objective 3 · Why", title: "A model only knows what it was shown",
-      bodyStyle: "display:grid;grid-template-columns:1.3fr 1fr;gap:20px",
-      blocks: [
-        { t: "figbox", name: "biasFunnel", color: "red", h: "What went in decides what works", style: "min-height:0" },
-        { t: "html", html: `<div class="stack">
-          ${box("orange", "This has a name", `<p>When the training data leaves something out, the model is <strong>biased</strong> against it. Not because anyone meant it. Because nobody photographed it.</p>`)}
-          ${box("red", "It matters outside class", `<p>Face systems that worked on some skin tones and not others, and voice systems that missed some accents, were built by people who did not notice what their data was missing.</p>`)}
-        </div>` },
-      ] },
-
-    { tag: "LEARN", kicker: "Objective 4 · Honesty", title: "Never mark your own homework",
-      bodyStyle: "display:grid;grid-template-columns:1.3fr 1fr;gap:20px",
-      blocks: [
-        { t: "figbox", name: "trainTestSplit", color: "teal", h: "Hold some examples back", style: "min-height:0" },
-        { t: "html", html: `<div class="stack">
-          ${box("teal", "Train set and test set", `<p>Most of the photos teach the model. A handful are hidden from it and used only at the end, to find out what it really learned.</p>`)}
-          ${box("purple", "Why hold any back?", `<p>A model can memorise. Ask it about a photo it already studied and it looks perfect. The held-back photos are the only honest question you can ask.</p>`)}
-          ${note("In Teachable Machine", "There is no split button. You make the test set yourself: take a few photos, keep them out, and try them at the end.", true)}
-        </div>` },
-      ] },
-
-    { tag: "LEARN", kicker: "In the real world", title: "Who is collecting data right now",
-      blocks: [{ t: "html", html: `<div class="cols c3" style="flex:1 1 auto;min-height:0;display:grid;gap:18px">
-        ${box("blue", "Your phone gallery", `<p>Search "mango" in your photos and it finds them. Somebody labelled millions of pictures so yours could be searched.</p>`, "phone")}
-        ${box("orange", "A mango farm", `<p>Sorting machines grade fruit by photo. They are trained on that farm's own fruit, because another farm's mangoes look different.</p>`, "plant")}
-        ${box("purple", "Every CAPTCHA", `<p>"Select all squares with a bus." You are labelling training data, free, a few seconds at a time.</p>`, "webcam")}
-      </div>` }] },
-
-    divider({
-      part: "Part 2 · Make it", main: "Now teach one yourself",
-      sub: "Three classes, a honest test, and one round of making it better.",
-      pills: ["35 minutes", "Pairs", "Teachable Machine"],
-      art: ART.svg("webcam"),
-    }),
-
-    { tag: "MAKE", kicker: "Class game", title: "Be the model",
-      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.1fr 1fr;gap:22px;align-items:start">
-        ${box("green", "How to play", `<ol style="margin:6px 0 0 19px;line-height:1.75">
-          <li>One student leaves the room. They are the model.</li>
-          <li>The class picks a secret class, say <strong>things that roll</strong>.</li>
-          <li>They come back. You show them objects and say only <strong>yes</strong> or <strong>no</strong>. No explaining.</li>
-          <li>After ten objects, hand them a new one. Can they guess?</li></ol>
-          <p style="margin-top:10px">They just learned from labelled examples, with no rules given.</p>`)}
+    { tag: "LEARN", kicker: "Objective 1 · The big idea", title: "What is intelligence?",
+      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.3fr 1fr;gap:22px;height:100%">
+        <figure class="fig-wrap" style="flex:1 1 auto;min-height:0">${DIAGRAMS.humanIntelligence()}</figure>
         <div class="stack">
-          ${box("red", "Round two: bad data", `<p>Now only show them <strong>round red</strong> things that roll. Then hand them a blue pen lid.</p>
-            <p style="margin-top:6px">They will say no. They learned <em>red and round</em>, because that is all you showed.</p>`)}
-          ${note("Say it out loud", "\"The model is not stupid. It learned exactly what we taught it.\" That sentence is the whole lesson.")}
+          ${box("blue", "You do four things", list(["<strong>See</strong> a friend's face across the playground", "<strong>Hear</strong> what someone says, and answer", "<strong>Learn</strong> by practising and seeing examples", "<strong>Decide</strong>: cross the road now, or wait?"]))}
+          ${note("Intelligence", "Taking in information, learning from it, and using it to decide what to do. You do it hundreds of times a day.")}
         </div></div>` }] },
 
-    { tag: "MAKE", kicker: "Before you start", title: "What you need",
-      bodyStyle: "display:grid;grid-template-columns:1fr 1fr;gap:20px",
+    { tag: "LEARN", kicker: "Objective 1 · The big idea", title: "So what is AI?",
+      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1fr 1.1fr;gap:22px;height:100%">
+        <div class="stack">
+          ${box("purple", "Artificial intelligence", `<p><strong>Artificial</strong> means made by people. <strong>Intelligence</strong> means seeing, hearing, learning and deciding.</p>
+            <p style="margin-top:6px">So AI is <strong>a computer program that does things we would call smart if a person did them</strong>.</p>`, "brain")}
+          ${box("green", "AI is a tool", `<p>People build it, train it and decide how to use it. It has no feelings, no wishes and no plan of its own.</p>`, "gear")}
+        </div>
+        <div class="stack"><figure class="fig-wrap" style="flex:1 1 auto;min-height:0">${DIAGRAMS.brainVsChip()}</figure>
+          ${note("The difference", "A normal program follows rules a person wrote. Most AI <strong>learns its own rules from examples</strong>, like you learned what a cat is.", true)}
+        </div></div>` }] },
+
+    { tag: "LEARN", kicker: "Objective 1 · History", title: "Seventy years of AI",
+      bodyStyle: "display:grid;grid-template-columns:1.35fr 1fr;gap:22px",
       blocks: [
-        { t: "html", html: box("teal", "Kit, per pair", `<ul style="margin:6px 0 0 18px;line-height:1.8">
-          <li>One laptop with a webcam</li>
-          <li>Chrome or Edge, and internet</li>
-          <li><strong>teachablemachine.withgoogle.com</strong></li>
-          <li>Three objects: say a banana, an apple, and nothing at all</li>
-        </ul>`, "laptop") },
+        { t: "figbox", name: "aiTimeline", color: "purple", h: "From a question to your pocket", style: "min-height:0" },
         { t: "html", html: `<div class="stack">
-          ${box("orange", "Two rules before you touch it", `<ul style="margin:4px 0 0 18px;line-height:1.7">
-            <li>Nothing leaves the laptop. Training runs <strong>in the browser</strong>.</li>
-            <li>No photos of faces today, yours or anyone else's. Objects and hands only.</li></ul>`)}
-          ${note("Why the third class?", "A model with only banana and apple must answer one of the two, even for an empty desk. A nothing class gives it somewhere honest to put that.", true)}
+          ${box("blue", "Why so long?", `<p>The ideas are old. What was missing was <strong>enough examples</strong> to learn from and <strong>fast enough computers</strong>. The internet and smartphones gave us both.</p>`, "graph")}
+          ${box("orange", "Why now?", `<p>Every day people upload billions of photos and messages. A modern AI can learn from more examples in a week than a person sees in a lifetime.</p>`, "cloud")}
         </div>` },
       ] },
 
-    { tag: "MAKE", kicker: "Build step 1 of 4", title: "Collect and label",
-      bodyStyle: "display:grid;grid-template-columns:1.25fr 1fr;gap:20px",
+    { tag: "LEARN", kicker: "Objective 2 · How it works", title: "Input, model, output",
+      bodyStyle: "display:grid;grid-template-columns:1.3fr 1fr;gap:22px",
       blocks: [
-        { t: "figbox", name: "teachableUI", color: "purple", h: "The screen you will see", style: "min-height:0" },
+        { t: "figbox", name: "inputModelOutput", color: "purple", h: "Every AI does these three things", style: "min-height:0" },
         { t: "html", html: `<div class="stack">
-          ${box("orange", "Do this", `<ol style="margin:4px 0 0 19px;line-height:1.65">
-            <li>New Project, then <strong>Image Project</strong>, then Standard.</li>
-            <li>Rename Class 1 to <strong>banana</strong>, Class 2 to <strong>apple</strong>.</li>
-            <li>Add a Class and call it <strong>nothing</strong>.</li>
-            <li>Hold Webcam and record about <strong>40 samples</strong> each.</li>
-            <li>Keep the three counts roughly equal.</li></ol>`)}
-          ${note("Move while you record", "Turn it, tilt it, move nearer, change hands, step sideways. Forty varied samples beat four hundred identical ones.")}
+          ${box("blue", "1. Input", `<p>What goes in: a photo from a camera, sound from a microphone, words you type.</p>`)}
+          ${box("purple", "2. Model", `<p>The patterns the AI learned during <strong>training</strong>, from thousands of examples.</p>`)}
+          ${box("green", "3. Output", `<p>What comes out: a label, a sentence, an action. Always its <strong>best guess</strong>.</p>`)}
         </div>` },
       ] },
 
-    { tag: "MAKE", kicker: "Build step 2 of 4", title: "Train it, then try to break it",
-      bodyStyle: "display:grid;grid-template-columns:1fr 1fr;gap:20px",
-      blocks: [
-        { t: "html", html: `<div class="stack">
-          ${box("orange", "Do this", `<ol style="margin:4px 0 0 19px;line-height:1.7">
-            <li>Press <strong>Train Model</strong>. Do not switch tabs while it runs.</li>
-            <li>Watch the Preview bars as you hold things up.</li>
-            <li>Now try to fool it: move to a window, use your other hand, hold the fruit further away.</li>
-            <li>Write down <strong>three things that fooled it</strong>.</li></ol>`)}
-          ${box("purple", "Read the bars, not the winner", `<p>92% banana is a confident model. 48% banana and 44% apple is a model guessing. Both show the same top answer.</p>`)}
-        </div>` },
-        { t: "html", html: `<div class="stack">
-          ${box("blue", "It never says yes or no", `<p>Every prediction is a set of percentages that add up to 100. The app just shows you the biggest one.</p>`)}
-          ${note("The honest question", "Not \"does it work?\" but \"when does it stop working?\" Engineers get paid for the second question.")}
-        </div>` },
-      ] },
+    { tag: "LEARN", kicker: "Objective 3 · What AI can do", title: "Five things AI can do",
+      blocks: [{ t: "html", html: `<div style="display:flex;flex-direction:column;gap:12px;height:100%">
+        <div class="art" style="height:150px;flex:none">${DIAGRAMS.fiveAbilities()}</div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:start">
+          ${box("blue", "See", `<p>Face unlock, photo search, a sick leaf on a farmer's phone.</p>`)}
+          ${box("teal", "Hear", `<p>Voice typing in Urdu, smart speakers, reading aloud.</p>`)}
+          ${box("purple", "Language", `<p>Google Translate, chatbots, spelling correction.</p>`)}
+          ${box("orange", "Decide", `<p>The next YouTube video, the fastest road, spam or not.</p>`)}
+          ${box("red", "Create", `<p>Writing a story, drawing a picture, making music.</p>`)}
+        </div></div>` }] },
 
-    { tag: "MAKE", kicker: "Build step 3 of 4", title: "Measure it properly",
-      bodyStyle: "display:grid;grid-template-columns:1.2fr 1fr;gap:20px",
-      blocks: [
-        { t: "figbox", name: "accuracyCount", color: "teal", h: "Twelve honest questions", style: "min-height:0" },
-        { t: "html", html: `<div class="stack">
-          ${box("orange", "Do this", `<ol style="margin:4px 0 0 19px;line-height:1.7">
-            <li>Take <strong>12 new photos</strong>: 4 banana, 4 apple, 4 empty. New spot, new light.</li>
-            <li>Show each one and write down what it said.</li>
-            <li>Count the right ones. Divide by 12.</li>
-            <li>That number is your <strong>accuracy</strong>. Write it on the board.</li></ol>`)}
-          ${note("Compare across the class", "Every pair will get a different number from the same app and the same fruit. The difference is entirely in the data they collected.", true)}
-        </div>` },
-      ] },
+    { tag: "LEARN", kicker: "Objective 3 · Kinds of AI", title: "Real AI versus film AI",
+      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1fr 1.15fr;gap:22px;height:100%">
+        <div class="stack">
+          ${box("green", "Narrow AI: every AI that exists", `<p>Very good at <strong>one job</strong>. A chess AI can't make tea. Face unlock can't translate Urdu.</p>`, "target")}
+          ${box("red", "General AI: only in films", `<p>As clever as a person at <strong>everything</strong>, with its own goals. Nobody has built one.</p>`, "robot")}
+        </div>
+        <div class="stack"><figure class="fig-wrap" style="flex:1 1 auto;min-height:0">${DIAGRAMS.narrowVsFilm()}</figure>
+          ${note("So when you hear \"AI\"", "Ask: what one job was it trained for, and what examples did it learn from?")}
+        </div></div>` }] },
 
-    { tag: "MAKE", kicker: "Build step 4 of 4", title: "Round two: make it better",
-      bodyStyle: "display:grid;grid-template-columns:1fr 1fr;gap:20px",
-      blocks: [
-        { t: "html", html: `<div class="stack">
-          ${box("orange", "Do this", `<ol style="margin:4px 0 0 19px;line-height:1.7">
-            <li>Look at your three failures from step 2.</li>
-            <li>Collect <strong>15 more samples of exactly those cases</strong>.</li>
-            <li>Train again.</li>
-            <li>Run the <strong>same 12 test photos</strong>. Did accuracy go up?</li></ol>`)}
-          ${box("green", "This is the job", `<p>You did not change the model, the maths or the code. You changed the data. That is how nearly every real AI system gets better.</p>`)}
-        </div>` },
-        { t: "html", html: `<div class="stack">
-          ${box("red", "If it got worse", `<p>That happens, and it is worth more than a win. Usually one class now has far more samples than the others, so the model leans towards it.</p>`)}
-          ${note("Keep both numbers", "Before and after, on the same 12 photos. A measurement you can compare is worth more than one that sounds good.")}
-        </div>` },
-      ] },
+    { tag: "LEARN", kicker: "Objective 2 · The fuel", title: "Data is what AI learns from",
+      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.2fr 1fr;gap:22px;height:100%">
+        <figure class="fig-wrap" style="flex:1 1 auto;min-height:0">${DIAGRAMS.dataPile()}</figure>
+        <div class="stack">
+          ${box("blue", "Examples", `<p>Lots of them: photos, sounds, sentences. Thousands for a simple job, billions for a chatbot.</p>`)}
+          ${box("purple", "Labels", `<p>The right answer for each example, written by a person.</p>`)}
+          ${note("Good data, good AI", "If the examples only show some people, the AI works well for them and badly for everyone else.")}
+        </div></div>` }] },
 
-    { tag: "TEST", kicker: "Test like an engineer", title: "Break it on purpose",
+    { tag: "LEARN", kicker: "Objective 4 · Humans and AI", title: "Who is better at what?",
+      bodyStyle: "display:grid;grid-template-columns:1.25fr 1fr;gap:22px",
       blocks: [
-        { t: "table", color: "red", cols: ["Try this", "What usually happens", "What it teaches"], rows: [
-          ["Hold the fruit against a window", "Confidence collapses", "Backlight changes every pixel number"],
-          ["Ask a different student to hold it", "It often gets it wrong", "It learned your hands as part of banana"],
-          ["Use a yellow pencil case", "It may shout banana", "It learned yellow, not fruit"],
-          ["Record 200 of one class, 20 of another", "It favours the big class", "Unbalanced data quietly skews the model"],
-          ["Delete the nothing class and retrain", "An empty desk becomes apple", "A model must answer with what it has"],
+        { t: "table", color: "purple", cols: ["Job", "Better at it"], rows: [
+          ["Checking 10,000 photos for a fault", "AI: fast, never tired"],
+          ["Spotting a pattern in a huge table", "AI"],
+          ["Understanding a joke", "Humans"],
+          ["Knowing a friend is upset", "Humans"],
+          ["Doing a brand new kind of task", "Humans"],
+          ["Deciding what is fair or kind", "Humans: people stay in charge"],
         ] },
-        { t: "note", l: "Record the failures", text: "A class list of ways to fool a model is a better record of this lesson than any screenshot of it working." },
+        { t: "html", html: `<div class="stack" style="height:100%"><figure class="fig-wrap" style="flex:1 1 auto;min-height:0">${DIAGRAMS.humanVsAiScale()}</figure>
+          ${note("The best results", "People and AI together: the AI does the fast part, a person checks and decides.")}</div>` },
+      ] },
+
+    { tag: "LEARN", kicker: "Objective 4 · Limits", title: "What AI gets wrong",
+      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.2fr 1fr;gap:22px;height:100%">
+        <div class="stack"><figure class="fig-wrap" style="flex:1 1 auto;min-height:0">${DIAGRAMS.huskyWolf()}</figure>
+          ${note("The habit to learn", "Treat an AI answer like advice from a stranger: useful, but check it before you trust it.")}</div>
+        <div class="stack">
+          ${box("red", "Mistakes", `<p>It always gives its best guess, even when it is unsure.</p>`, "eye")}
+          ${box("orange", "Bias", `<p>If the examples left some people out, it works worse for them.</p>`, "scales")}
+          ${box("purple", "Made-up facts", `<p>Chatbots can write wrong answers that <strong>sound</strong> right.</p>`, "book")}
+        </div></div>` }] },
+
+    { tag: "LEARN", kicker: "Objective 4 · Using AI well", title: "Using AI safely and fairly",
+      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:18px;height:100%">
+        ${box("green", "Do", list(["<strong>Check</strong> facts in a book or a trusted website", "Say when you used AI", "Use it to explain what you're stuck on", "Ask an adult before trying a new AI app"]), "star")}
+        <figure class="fig-wrap" style="flex:1 1 auto;min-height:0">${DIAGRAMS.safetyShield()}</figure>
+        ${box("red", "Don't", list(["Share your name, address or photos", "Hand in AI work as your own", "Believe it just because it sounds sure", "Make fake pictures of real people"]), "bin")}
+        </div>` }] },
+
+    { tag: "LEARN", kicker: "In the real world", title: "AI around you in Pakistan",
+      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.2fr 1fr;gap:20px;height:100%">
+        <figure class="fig-wrap" style="flex:1 1 auto;min-height:0">${DIAGRAMS.farmerPhone()}</figure>
+        <div class="stack">
+          ${box("green", "Farming", `<p>A farmer photographs a sick leaf, and the app names the disease so it can be treated early.</p>`, "leaf")}
+          ${box("blue", "And all around you", list(["<strong>Travel:</strong> Maps predicts traffic in Lahore and Karachi", "<strong>Language:</strong> voice typing and translation in Urdu", "<strong>Shopping:</strong> shops suggest what to buy next", "<strong>Banking:</strong> a strange payment gets flagged", "<strong>Health:</strong> AI helps read X-rays; a doctor checks"]), "map")}
+        </div></div>` }] },
+
+    divider({
+      part: "Part 2 · Make it",
+      main: "Now let's meet AI",
+      sub: "Decide who is better at what, sort AI by what it does, then teach a computer to see.",
+      pills: ["30 minutes", "Pairs", "Laptop + webcam"],
+      art: ART.svg("robot"),
+    }),
+
+    { tag: "MAKE", kicker: "Class game 1", title: "Human or AI: who is better?",
+      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.2fr 1fr;gap:22px;align-items:start">
+        ${box("purple", "How to play", `<ol style="margin:6px 0 0 19px;line-height:1.7">
+          <li>Left wall: <strong>AI is better</strong>. Right wall: <strong>humans are better</strong>. Middle: <strong>both</strong>.</li>
+          <li>The teacher reads a job. Walk to where you think it belongs.</li>
+          <li>Two people explain their choice. Anyone can change sides.</li>
+          <li>The teacher gives the answer, and why.</li></ol>`, "hand")}
+        <div class="stack">
+          ${box("orange", "Some jobs to read out", list(["Remembering every word in a dictionary", "Comforting a crying friend", "Finding one face in a crowd photo", "Inventing a new game"]))}
+          ${note("Notice", "AI wins on speed and size. Humans win on understanding, feelings and anything new.")}
+        </div></div>` }] },
+
+    { tag: "MAKE", kicker: "Class game 2", title: "Sort the AI",
+      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.2fr 1fr;gap:22px;align-items:start">
+        ${box("blue", "How to play", `<ol style="margin:6px 0 0 19px;line-height:1.7">
+          <li>Each pair gets the app cards from the sheet.</li>
+          <li>Sort them into five piles: <strong>see</strong>, <strong>hear and speak</strong>, <strong>language</strong>, <strong>decide</strong>, <strong>create</strong>.</li>
+          <li>For each card, say what its <strong>input</strong> and <strong>output</strong> are.</li>
+          <li>Find one card that fits two piles, and explain why.</li></ol>`, "magnifier")}
+        <div class="stack">
+          ${box("green", "Example", `<p><strong>Face unlock:</strong> input a photo of a face, output <em>yes, it's you</em> or <em>no</em>. That's <strong>see</strong>.</p>`)}
+          ${note("Tricky one", "A self-driving car fits every pile. Real machines often use several AIs together.")}
+        </div></div>` }] },
+
+    { tag: "MAKE", kicker: "Teach a computer to see", title: "Teachable Machine",
+      bodyStyle: "display:grid;grid-template-columns:1fr 1.1fr;gap:22px",
+      blocks: [
+        { t: "html", html: `<div class="stack">
+          ${box("orange", "Do this", `<ol style="margin:6px 0 0 19px;line-height:1.7">
+            <li>Open <strong>teachablemachine.withgoogle.com</strong> → Image project → Standard.</li>
+            <li>Make two classes, like <strong>thumbs up</strong> and <strong>thumbs down</strong>.</li>
+            <li>Hold the webcam button: 30 pictures each, moving your hand.</li>
+            <li>Press <strong>Train</strong>, then test it. Try to trick it.</li></ol>`, "camera")}
+          ${note("Spot the three steps", "Your pictures are the <strong>input</strong>. Training made the <strong>model</strong>. The bars are the <strong>output</strong>, with how sure it is.")}
+        </div>` },
+        { t: "figbox", name: "teachableUI", color: "purple", h: "What you will see", style: "min-height:0" },
       ] },
 
     { tag: "LEVEL UP", kicker: "Finished early?", title: "Go further",
       blocks: [{ t: "rows", items: [
-        { t: "Build a **four-class** model: ripe, unripe, bruised, nothing", a: "Much harder. The classes overlap, and the bars show it.", color: "purple", icon: "camera" },
-        { t: "Export the model and run it in a **web page**", a: "Export Model, TensorFlow.js, and paste the snippet.", color: "blue", icon: "laptop" },
-        { t: "Test one pair's model on **another pair's** fruit", a: "Accuracy usually drops. Ask out loud why.", color: "orange", icon: "scales" },
-        { t: "Try **Machine Learning for Kids** and compare", a: "Same idea, different tool, text instead of pictures.", color: "teal", icon: "chat" },
+        { t: "Add a **third class** (an empty background) to Teachable Machine", a: "Why does it need a 'nothing' class?", color: "purple", icon: "camera" },
+        { t: "Make it fail on purpose: train with **one person**, test with another", a: "That is bias, made in two minutes.", color: "red", icon: "scales" },
+        { t: "Find **three AIs** at home and write their input and output", a: "TV, phone, car, kitchen: where else?", color: "teal", icon: "phone" },
+        { t: "Ask a chatbot a question you **know** the answer to", a: "Was it right? How sure did it sound?", color: "orange", icon: "chat" },
       ] }] },
 
     check([
-      { t: "Collect and **label** training examples", a: "Proof: three classes, roughly 40 varied samples each", color: "purple" },
-      { t: "**Train** a model and test it on new pictures", a: "Proof: it named fruit it had never seen before", color: "blue" },
-      { t: "Explain why **varied** examples beat more of the same", a: "Proof: I named three things that fooled my model and why", color: "orange" },
-      { t: "Measure **accuracy** on held-back data", a: "Proof: I have a before and an after number on the same 12 photos", color: "teal" },
+      { t: "Explain what **AI** is", a: "Proof: I explained it to my partner in one sentence", color: "purple" },
+      { t: "Describe **input, model, output**", a: "Proof: I named all three for my Teachable Machine model", color: "blue" },
+      { t: "Name **five things AI can do**", a: "Proof: I sorted the app cards into the five piles", color: "teal" },
+      { t: "Say what AI **gets wrong** and how to stay safe", a: "Proof: I named one mistake and one safety rule", color: "orange" },
     ]),
 
     { tag: "WRAP UP", kicker: "Show what you know", title: "What did we learn?",
-      bodyStyle: "display:grid;grid-template-columns:1.15fr 1fr;gap:20px",
-      blocks: [
-        { t: "html", html: box("teal", "Five things to keep", `<ul style="margin:6px 0 0 18px;line-height:1.85">
-          <li>A model learns from labelled examples, not rules.</li>
-          <li>A photo reaches it as a grid of numbers.</li>
-          <li>Varied examples beat more of the same.</li>
-          <li>Test on pictures it has never seen, or you learn nothing.</li>
-          <li>A model only knows what it was shown.</li>
-        </ul>`) },
-        { t: "html", html: `<div class="stack">
-          ${box("orange", "Exit ticket", `<p>Your model calls a yellow pencil case a banana. You may not change the code. What exactly would you do?</p>`)}
-          ${note("Next class", "AI-03 Nearest Neighbours: the simplest learning method there is, and you can do it on paper.", true)}
-        </div>` },
-      ] },
-
+      blocks: [{ t: "html", html: `<div style="display:grid;grid-template-columns:1.3fr 1fr;gap:22px;align-items:start">
+        <div class="box fill c-purple">${F}<div class="inner"><h3 ic="book">Five things to keep</h3>${list([
+          "AI is a program that does things we would call smart, made by people.",
+          "It works in three steps: input, model, output.",
+          "It can see, hear, understand language, decide and create.",
+          "All real AI is narrow: very good at one job.",
+          "It learns from data, makes mistakes, and needs a person to check it."])}</div></div>
+        <div class="stack">
+          ${box("orange", "Exit ticket", `<p>Go back to the votes from the start. Which of the four was really <strong>AI</strong>, and why?</p>`, "pencil")}
+          ${note("Next class", "AI-03: Nearest neighbours. How a computer decides by comparing something new with things it has seen before.", true)}
+        </div></div>` }] },
   ],
 };

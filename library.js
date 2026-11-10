@@ -14,12 +14,12 @@ window.LIBRARY = {
   {
    "code": "AI-02",
    "group": "AI",
-   "title": "Training Data Teach a Computer to See",
-   "file": "library/slides/AI-02_Training_Data_Teach_a_Computer_to_See_Slides.pdf",
+   "title": "AI Basics How Machines See Hear and Decide",
+   "file": "library/slides/AI-02_AI_Basics_How_Machines_See_Hear_and_Decide_Slides.pdf",
    "thumb": "library/thumbs/AI-02.jpg",
    "banner": "library/banners/AI-02.jpg",
    "pages": 21,
-   "kb": 3842
+   "kb": 4249
   },
   {
    "code": "EF-10",

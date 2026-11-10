@@ -299,6 +299,184 @@ DIAGRAMS.patternScatter = () => {
   ${dot([316, 92], C.blue)}${tx(328, 96, "dog", C.body, 12, 700, "start")}`);
 };
 
+/* ---------------- AI-02 · AI basics ---------------- */
+
+/* seventy years of AI on one line */
+DIAGRAMS.aiTimeline = () => {
+  const ev = [[1950, "Turing asks", "can machines think?", C.blue], [1956, "the name", "artificial intelligence", C.purple], [1997, "Deep Blue", "wins at chess", C.teal],
+    [2011, "Siri", "talks on phones", C.orange], [2016, "AlphaGo", "wins at Go", C.green], [2022, "ChatGPT", "writes like a person", C.red]];
+  /* evenly spaced, not to scale: the last three are only eleven years apart */
+  const x = k => 62 + k * 55;
+  return S(400, 236, `
+  ${arrow(20, 120, 388, 120, C.muted, 2.2)}
+  ${ev.map(([y, a, b, c], k) => { const X = x(k), up = k % 2 === 0, ty = up ? 58 : 168;
+    return `<circle cx="${X}" cy="120" r="7" fill="${c}" stroke="${c}"/>${line(X, up ? 112 : 128, X, up ? 80 : 150, c, 1.8)}
+      ${tx(X, up ? 74 : 162, String(y), c, 13, 700)}${tx(X, up ? ty - 28 : ty + 14, a, C.ink, 12, 700)}${tx(X, up ? ty - 14 : ty + 28, b, C.body, 10.5)}`; }).join("")}
+  ${hand(200, 226, "seventy years from a question to your pocket", C.orange, 15)}`);
+};
+
+/* how every AI works: something comes in, a learned model, something comes out */
+DIAGRAMS.inputModelOutput = () => S(400, 236, `
+  ${tx(62, 34, "INPUT", C.blue, 13, 800)}${tx(200, 34, "MODEL", C.purple, 13, 800)}${tx(338, 34, "OUTPUT", C.green, 13, 800)}
+  ${box(14, 48, 96, 34, C.blue, "a photo")}${box(14, 92, 96, 34, C.blue, "a voice")}${box(14, 136, 96, 34, C.blue, "some text")}
+  <rect x="146" y="62" width="108" height="94" rx="12" fill="#fff" stroke="${C.purple}" stroke-width="2.8"/>
+  ${tx(200, 100, "patterns it", C.ink, 13, 700)}${tx(200, 118, "learned from", C.ink, 13, 700)}${tx(200, 136, "examples", C.ink, 13, 700)}
+  ${arrow(112, 109, 142, 109, C.blue)}${arrow(258, 109, 288, 109, C.green)}
+  ${box(290, 48, 96, 34, C.green, "\"a cat\"")}${box(290, 92, 96, 34, C.green, "words typed")}${box(290, 136, 96, 34, C.green, "an answer")}
+  ${hand(200, 196, "sense, think, act: the same loop as a robot", C.orange, 15)}
+  ${hand(200, 218, "it always gives its best guess, never a certainty", C.red, 14)}`);
+
+/* ---------------- AI-02 · hand-drawn illustrations ----------------
+   Pictures rather than diagrams: flat colours and a dark marker outline,
+   the same style as the doodles in art.js, through the same rough filter. */
+const K = "#1B2333";
+const PIC = (w, h, body) =>
+  `<svg class="fig" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+   <g filter="url(#rai-rough)" stroke="${K}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${body}</g></svg>`;
+const face = (cx, cy, r, skin = "#F2C19B") => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${skin}"/>
+  <path d="M${cx - r} ${cy - 2} C${cx - r} ${cy - r - 10} ${cx + r} ${cy - r - 10} ${cx + r} ${cy - 2} C${cx + r * .6} ${cy - r * .55} ${cx - r * .2} ${cy - r * .75} ${cx - r} ${cy - 2}z" fill="#3B2A22"/>
+  <circle cx="${cx - r * .35}" cy="${cy + 2}" r="2.6" fill="${K}"/><circle cx="${cx + r * .35}" cy="${cy + 2}" r="2.6" fill="${K}"/>
+  <path d="M${cx - r * .35} ${cy + r * .45} Q${cx} ${cy + r * .7} ${cx + r * .35} ${cy + r * .45}" fill="none"/>`;
+const robotHead = (cx, cy, s = 1) => `<g transform="translate(${cx} ${cy}) scale(${s})">
+  <path d="M0 -38v-12" fill="none"/><circle cx="0" cy="-54" r="5" fill="#E0414B"/>
+  <rect x="-30" y="-38" width="60" height="50" rx="12" fill="#B6C4A7"/>
+  <rect x="-36" y="-22" width="6" height="18" rx="2" fill="#8C9A7E"/><rect x="30" y="-22" width="6" height="18" rx="2" fill="#8C9A7E"/>
+  <circle cx="-12" cy="-16" r="8" fill="#EFFFD9"/><circle cx="12" cy="-16" r="8" fill="#EFFFD9"/>
+  <circle cx="-12" cy="-16" r="3.4" fill="#2E6BE6"/><circle cx="12" cy="-16" r="3.4" fill="#2E6BE6"/>
+  <rect x="-15" y="0" width="30" height="6" rx="3" fill="#545B61"/></g>`;
+
+/* slide 2: fast is not the same as smart */
+DIAGRAMS.calcVsFace = () => PIC(400, 236, `
+  <rect x="38" y="30" width="110" height="160" rx="12" fill="#3A4152"/>
+  <rect x="50" y="42" width="86" height="34" rx="4" fill="#C9E7C2"/>
+  ${tx(130, 66, "99980001", K, 15, 700, "end")}
+  ${[0, 1, 2, 3].map(r => [0, 1, 2].map(c => `<rect x="${52 + c * 28}" y="${88 + r * 24}" width="22" height="18" rx="4" fill="${r === 3 && c === 2 ? "#F2A31B" : "#E6E8EE"}"/>`).join("")).join("")}
+  <rect x="236" y="22" width="96" height="176" rx="16" fill="#262D47"/>
+  <rect x="244" y="38" width="80" height="140" rx="6" fill="#DCEFEC"/>
+  ${face(284, 98, 24)}
+  <path d="M262 60 h-6 v10 M306 60 h6 v10 M262 140 h-6 v-10 M306 140 h6 v-10" stroke="#0E8A86" stroke-width="2.6" fill="none"/>
+  <circle cx="284" cy="160" r="9" fill="#1DA14E"/><path d="M279 160 l4 4 l7 -8" stroke="#fff" stroke-width="2.6" fill="none"/>
+  ${hand(93, 214, "very fast, but only follows rules", C.blue, 15)}
+  ${hand(284, 222, "learned your face from examples", C.purple, 15)}`);
+
+/* slide 4: what a person does that we call intelligent */
+DIAGRAMS.humanIntelligence = () => PIC(400, 236, `
+  ${face(200, 124, 42)}
+  <path d="M152 112 c-10 0 -12 26 0 26" fill="#F2C19B"/><path d="M248 112 c10 0 12 26 0 26" fill="#F2C19B"/>
+  <g><circle cx="70" cy="56" r="26" fill="#E8F0FD"/><path d="M52 56 Q70 40 88 56 Q70 72 52 56z" fill="#fff"/><circle cx="70" cy="56" r="7" fill="#2E6BE6"/></g>
+  <g><circle cx="330" cy="56" r="26" fill="#E3F6F2"/><path d="M322 44 a10 12 0 1 1 6 22 c-4 2 -6 6 -10 6" fill="none"/><path d="M344 46 q6 10 0 20 M350 42 q10 14 0 28" stroke="#0E8A86" fill="none"/></g>
+  <g><circle cx="70" cy="184" r="26" fill="#F1E9FB"/><path d="M62 192 h16 M63 198 h14" fill="none"/><path d="M60 188 c-8 -10 -4 -26 10 -26 c14 0 18 16 10 26z" fill="#F2D55B"/></g>
+  <g><circle cx="330" cy="184" r="26" fill="#FDF1E3"/><path d="M330 172 v30" fill="none"/><path d="M330 172 h16 l6 6 l-6 6 h-16z" fill="#E8591F"/><path d="M330 188 h-16 l-6 6 l6 6 h16z" fill="#2E6BE6"/></g>
+  ${line(96, 64, 160, 100, C.muted, 1.6, "4 4")}${line(304, 64, 240, 100, C.muted, 1.6, "4 4")}${line(96, 176, 160, 150, C.muted, 1.6, "4 4")}${line(304, 176, 240, 150, C.muted, 1.6, "4 4")}
+  ${hand(70, 104, "see", C.blue, 17)}${hand(330, 104, "hear and talk", C.teal, 17)}${hand(70, 228, "learn", C.purple, 17)}${hand(330, 228, "decide", C.orange, 17)}`);
+
+/* slide 5: a brain and a chip, both learning */
+DIAGRAMS.brainVsChip = () => PIC(400, 236, `
+  <path d="M60 120 c-18 -6 -16 -40 6 -44 c2 -22 30 -30 44 -16 c14 -14 42 -6 42 16 c22 4 22 38 4 44 c6 20 -18 36 -36 26 c-12 14 -40 10 -44 -6 c-20 2 -28 -12 -16 -20z" fill="#F4B6C2"/>
+  <path d="M86 84 c10 6 10 18 0 24 M118 70 c-6 14 6 22 0 36 M140 96 c-12 4 -12 18 0 24 M100 128 c10 -6 22 -4 26 6" fill="none" stroke="#B5677A"/>
+  <g transform="translate(290 112)">
+    ${[-30, -15, 0, 15, 30].map(d => `<path d="M${d} -52 v-12 M${d} 52 v12 M-52 ${d} h-12 M52 ${d} h12" fill="none"/>`).join("")}
+    <rect x="-52" y="-52" width="104" height="104" rx="10" fill="#262D47"/>
+    <rect x="-30" y="-30" width="60" height="60" rx="6" fill="#3A4152"/>
+    ${tx(0, 6, "AI", "#9CC1FF", 20, 800)}
+  </g>
+  ${arrow(172, 112, 214, 112, C.purple)}${arrow(214, 124, 172, 124, C.purple)}
+  ${hand(108, 196, "learns from experience", "#B5677A", 16)}
+  ${hand(290, 210, "learns from data, made by people", C.purple, 16)}`);
+
+/* slide 8: five things AI can do, as badges */
+DIAGRAMS.fiveAbilities = () => {
+  const cx = k => 42 + k * 79, cy = 50;
+  const ring = (k, fill) => `<circle cx="${cx(k)}" cy="${cy}" r="32" fill="${fill}"/>`;
+  return PIC(400, 120, `
+  ${ring(0, "#E8F0FD")}<path d="M${cx(0) - 20} ${cy} Q${cx(0)} ${cy - 18} ${cx(0) + 20} ${cy} Q${cx(0)} ${cy + 18} ${cx(0) - 20} ${cy}z" fill="#fff"/><circle cx="${cx(0)}" cy="${cy}" r="8" fill="#2E6BE6"/><circle cx="${cx(0)}" cy="${cy}" r="3" fill="${K}"/>
+  ${ring(1, "#E3F6F2")}<path d="M${cx(1) - 8} ${cy - 14} a12 14 0 1 1 6 26 c-4 2 -5 6 -10 6" fill="none"/><path d="M${cx(1) + 12} ${cy - 10} q6 10 0 20 M${cx(1) + 18} ${cy - 15} q10 15 0 30" stroke="#0E8A86" fill="none"/>
+  ${ring(2, "#F1E9FB")}<path d="M${cx(2) - 20} ${cy - 16} h40 a6 6 0 0 1 6 6 v18 a6 6 0 0 1 -6 6 h-24 l-10 8 v-8 h-6 a6 6 0 0 1 -6 -6 v-18 a6 6 0 0 1 6 -6z" fill="#fff"/>${tx(cx(2) + 2, cy + 4, "Aa", C.purple, 15, 800)}
+  ${ring(3, "#FDF1E3")}<path d="M${cx(3)} ${cy - 22} v44" fill="none"/><path d="M${cx(3)} ${cy - 20} h18 l6 6 l-6 6 h-18z" fill="#E8591F"/><path d="M${cx(3)} ${cy - 2} h-18 l-6 6 l6 6 h18z" fill="#2E6BE6"/>
+  ${ring(4, "#FCEAE9")}<path d="M${cx(4) - 16} ${cy + 16} l24 -30 l8 6 l-24 30z" fill="#F2A31B"/><path d="M${cx(4) - 16} ${cy + 16} l-3 8 l8 -3z" fill="${K}"/><path d="M${cx(4) + 12} ${cy - 22} l2 -6 l2 6 l6 2 l-6 2 l-2 6 l-2 -6 l-6 -2z" fill="#E0414B" stroke="#E0414B" stroke-width="1"/>
+  ${hand(cx(0), 112, "see", C.blue, 17)}${hand(cx(1), 112, "hear", C.teal, 17)}${hand(cx(2), 112, "language", C.purple, 17)}${hand(cx(3), 112, "decide", C.orange, 17)}${hand(cx(4), 112, "create", C.red, 17)}`);
+};
+
+/* slide 9: narrow AI does one job; film AI does everything */
+DIAGRAMS.narrowVsFilm = () => PIC(400, 236, `
+  <rect x="24" y="150" width="140" height="46" rx="4" fill="#F4F1EA"/>
+  ${[0, 1, 2, 3, 4, 5, 6].map(c => [0, 1].map(r => (c + r) % 2 ? `<rect x="${24 + c * 20}" y="${150 + r * 23}" width="20" height="23" fill="#3A4152" stroke="none"/>` : "").join("")).join("")}
+  <path d="M96 150 v-14 h-8 c0 -12 4 -20 12 -26 l8 8 c-4 4 -4 10 -2 18 h-6 v14z" fill="#fff"/>
+  <path d="M36 110 l40 -34 l32 22" fill="none" stroke="${K}" stroke-width="7"/><path d="M36 110 l40 -34 l32 22" fill="none" stroke="#8A94A6" stroke-width="3"/>
+  <circle cx="76" cy="76" r="7" fill="#F2A31B"/><rect x="22" y="108" width="28" height="12" rx="3" fill="#F2A31B"/>
+  ${hand(94, 222, "narrow AI: brilliant at one job", C.green, 16)}
+  <rect x="226" y="20" width="156" height="176" rx="6" fill="#262D47"/>
+  ${[0, 1, 2, 3, 4, 5, 6].map(k => `<rect x="${232 + k * 21}" y="25" width="12" height="8" rx="1.5" fill="#fff" stroke="none"/><rect x="${232 + k * 21}" y="183" width="12" height="8" rx="1.5" fill="#fff" stroke="none"/>`).join("")}
+  <rect x="234" y="40" width="140" height="136" fill="#4A5578"/>
+  ${robotHead(304, 104, 0.9)}
+  <rect x="280" y="116" width="48" height="44" rx="8" fill="#B6C4A7"/>
+  ${tx(250, 70, "?", "#F2D55B", 22, 800)}${tx(358, 74, "!", "#F2D55B", 22, 800)}
+  ${hand(304, 222, "film AI: does everything (made up)", C.red, 16)}`);
+
+/* slide 10: labelled examples go in, a model comes out */
+DIAGRAMS.dataPile = () => {
+  const card = (x, y, rot, lab, cat) => `<g transform="translate(${x} ${y}) rotate(${rot}) scale(.8)"><rect x="-30" y="-30" width="60" height="60" rx="4" fill="#fff"/>
+    ${cat ? `<path d="M-14 6 l-4 -20 l12 8 h12 l12 -8 l-4 20 c0 12 -28 12 -28 0z" fill="#F2A31B"/><circle cx="-6" cy="2" r="2" fill="${K}"/><circle cx="6" cy="2" r="2" fill="${K}"/>`
+      : `<circle cx="0" cy="0" r="14" fill="#C9A06B"/><path d="M-14 -2 c-6 -10 -2 -16 4 -10 M14 -2 c6 -10 2 -16 -4 -10" fill="#8C6A43"/><circle cx="-5" cy="-1" r="2" fill="${K}"/><circle cx="5" cy="-1" r="2" fill="${K}"/>`}
+    <rect x="-22" y="20" width="44" height="14" rx="3" fill="${cat ? "#7B3FC4" : "#0E8A86"}"/>${tx(0, 31, lab, "#fff", 10, 700)}</g>`;
+  return PIC(400, 236, `
+  ${card(52, 52, -5, "cat", 1)}${card(124, 52, 4, "dog", 0)}${card(52, 124, 3, "dog", 0)}${card(124, 124, -4, "cat", 1)}${card(88, 194, 2, "cat", 1)}
+  ${arrow(168, 118, 214, 118, C.purple, 2.8)}
+  <g transform="translate(270 118)">${[-24, -8, 8, 24].map(d => `<path d="M${d} -40 v-10 M${d} 40 v10 M-40 ${d} h-10 M40 ${d} h10" fill="none"/>`).join("")}
+    <rect x="-40" y="-40" width="80" height="80" rx="8" fill="#262D47"/>${tx(0, 5, "model", "#9CC1FF", 14, 800)}</g>
+  ${arrow(326, 118, 360, 118, C.green, 2.8)}${tx(378, 122, "?", C.green, 22, 800)}
+  ${hand(88, 14, "examples with labels", C.purple, 16)}${hand(270, 196, "training finds the pattern", C.orange, 16)}`);
+};
+
+/* slide 11: people and AI, each heavier on different jobs */
+DIAGRAMS.humanVsAiScale = () => PIC(400, 236, `
+  <path d="M200 64 v130" fill="none" stroke-width="4"/><path d="M160 200 h80 l-10 -12 h-60z" fill="#8A94A6"/>
+  <path d="M90 74 L310 74" fill="none" stroke-width="4"/><circle cx="200" cy="66" r="8" fill="#F2A31B"/>
+  <path d="M90 74 l-30 60 h60z M310 74 l-30 60 h60z" fill="none" stroke="#8A94A6" stroke-width="1.8"/>
+  <path d="M52 134 h76 c0 14 -76 14 -76 0z M272 134 h76 c0 14 -76 14 -76 0z" fill="#E6E8EE"/>
+  ${robotHead(90, 128, 0.62)}
+  ${face(310, 110, 20)}<path d="M290 134 c0 -12 40 -12 40 0" fill="#2E6BE6"/>
+  ${hand(90, 172, "fast, tireless, huge memory", C.purple, 15)}
+  ${hand(310, 172, "understands, feels, invents", C.blue, 15)}
+  ${hand(200, 226, "best of all: working together", C.green, 16)}`);
+
+/* slide 12: the husky in the snow */
+DIAGRAMS.huskyWolf = () => PIC(400, 236, `
+  <rect x="40" y="24" width="190" height="170" rx="6" fill="#DCE9F6"/>
+  <path d="M40 150 c40 -16 80 -6 110 -14 c30 -8 60 2 80 -4 v62 h-190z" fill="#fff"/>
+  <path d="M70 60 l2 4 l4 2 l-4 2 l-2 4 l-2 -4 l-4 -2 l4 -2z M190 48 l2 4 l4 2 l-4 2 l-2 4 l-2 -4 l-4 -2 l4 -2z M118 40 l2 4 l4 2 l-4 2 l-2 4 l-2 -4 l-4 -2 l4 -2z" fill="#fff" stroke="#9CB4D0" stroke-width="1.2"/>
+  <path d="M104 92 l-8 -26 l22 14z M166 92 l8 -26 l-22 14z" fill="#8A94A6"/>
+  <path d="M100 100 c0 -24 70 -24 70 0 c0 26 -16 42 -35 42 c-19 0 -35 -16 -35 -42z" fill="#A9B2C2"/>
+  <path d="M118 112 c6 -12 28 -12 34 0 c0 18 -34 18 -34 0z" fill="#fff"/>
+  <circle cx="122" cy="100" r="4" fill="#2E6BE6"/><circle cx="148" cy="100" r="4" fill="#2E6BE6"/><ellipse cx="135" cy="118" rx="6" ry="4" fill="${K}"/>
+  <rect x="246" y="58" width="132" height="58" rx="10" fill="#FCEAE9" stroke="#E0414B" stroke-width="2.6"/>
+  ${tx(312, 84, "wolf", "#E0414B", 18, 800)}${tx(312, 104, "94% sure", "#E0414B", 13, 700)}
+  ${arrow(244, 92, 214, 104, "#E0414B")}
+  ${hand(312, 148, "it's a husky!", C.green, 18)}
+  ${hand(312, 178, "it learned: snow = wolf", C.orange, 16)}
+  ${hand(135, 222, "every wolf photo it saw had snow", C.muted, 14)}`);
+
+/* slide 13: privacy, kept safe */
+DIAGRAMS.safetyShield = () => PIC(260, 240, `
+<g transform="translate(-70 0)">
+  <path d="M200 24 l72 26 v58 c0 52 -34 84 -72 100 c-38 -16 -72 -48 -72 -100 v-58z" fill="#E3F6F2"/>
+  <path d="M200 42 l56 20 v46 c0 40 -26 66 -56 80 c-30 -14 -56 -40 -56 -80 v-46z" fill="#0E8A86"/>
+  <rect x="176" y="104" width="48" height="40" rx="6" fill="#F2A31B"/><path d="M186 104 v-12 a14 14 0 0 1 28 0 v12" fill="none" stroke-width="5"/>
+  <circle cx="200" cy="120" r="5" fill="${K}"/><path d="M200 124 v10" fill="none" stroke-width="3"/></g>
+  ${hand(130, 232, "keep private things private", C.orange, 17)}`);
+
+/* slide 14: a farmer's phone spots a leaf disease */
+DIAGRAMS.farmerPhone = () => PIC(400, 236, `
+  <path d="M40 200 c40 -12 100 -12 140 0" fill="none" stroke="#1DA14E" stroke-width="3"/>
+  ${[60, 90, 120, 150].map(x => `<path d="M${x} 198 v-30 M${x} 182 c-10 -4 -14 -14 -10 -20 c8 2 12 10 10 20 M${x} 176 c10 -4 14 -14 10 -20 c-8 2 -12 10 -10 20" fill="#7CC36E"/>`).join("")}
+  <rect x="216" y="24" width="112" height="190" rx="16" fill="#262D47"/>
+  <rect x="226" y="40" width="92" height="140" rx="6" fill="#FFF9F0"/>
+  <path d="M272 60 c26 10 30 50 0 76 c-30 -26 -26 -66 0 -76z" fill="#7CC36E"/><path d="M272 66 v66" fill="none" stroke="#3E8A3A"/>
+  <circle cx="262" cy="92" r="6" fill="#C9772B" stroke="none"/><circle cx="282" cy="108" r="5" fill="#C9772B" stroke="none"/><circle cx="266" cy="118" r="4" fill="#C9772B" stroke="none"/>
+  <path d="M234 48 h10 M234 48 v10 M310 48 h-10 M310 48 v10 M234 172 h10 M234 172 v-10 M310 172 h-10 M310 172 v-10" stroke="#0E8A86" stroke-width="2.6" fill="none"/>
+  <rect x="230" y="186" width="84" height="20" rx="5" fill="#E0414B"/>${tx(272, 200, "leaf rust 91%", "#fff", 10.5, 700)}
+  ${hand(110, 40, "snap a photo of a sick leaf", C.green, 16)}${hand(110, 64, "the app names the disease", C.orange, 16)}`);
+
 module.exports = { DIAGRAMS, C };
 
 /* ================= AI-02 · training data ================= */

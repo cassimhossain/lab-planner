@@ -300,3 +300,153 @@ DIAGRAMS.patternScatter = () => {
 };
 
 module.exports = { DIAGRAMS, C };
+
+/* ================= AI-02 · training data ================= */
+
+/* the loop a class actually walks through: gather, label, train, test, and
+   back round again when the model gets something wrong */
+DIAGRAMS.trainingLoop = () => S(400, 236, `
+  ${box(14, 26, 86, 42, C.orange, "Collect", "photos")}
+  ${arrow(104, 47, 136, 47, C.ink)}
+  ${box(140, 26, 86, 42, C.blue, "Label", "name each one")}
+  ${arrow(230, 47, 262, 47, C.ink)}
+  ${box(266, 26, 96, 42, C.purple, "Train", "find the pattern")}
+  ${arrow(314, 68, 314, 92, C.purple)}
+  ${box(104, 96, 192, 44, C.green, "Model", "it can guess on new pictures")}
+  ${arrow(200, 140, 200, 164, C.green)}
+  ${box(104, 168, 192, 40, C.teal, "Test it on pictures it never saw")}
+  ${poly([[104, 188], [46, 188], [46, 12], [57, 12]], C.red, 2.4)}
+  ${arrow(50, 12, 57, 12), ""}
+  ${poly([[57, 12], [57, 26]], C.red, 2.4)}
+  ${arrow(57, 20, 57, 26, C.red)}
+  ${hand(214, 228, "got it wrong? go and collect more of that", C.red, 17)}`);
+
+/* what the Teachable Machine screen looks like, so the class recognises it
+   before they open it */
+DIAGRAMS.teachableUI = () => {
+  const cls = (y, name, n, c) => `
+    ${box(10, y, 176, 48, c, "")}
+    ${tx(24, y + 21, name, C.ink, 13, 700, "start")}
+    ${tx(24, y + 38, n + " samples", C.muted, 11, 400, "start")}
+    <rect x="152" y="${y + 13}" width="24" height="22" rx="4" fill="${c}" stroke="${c}"/>
+    ${tx(164, y + 28, "cam", "#fff", 8.5, 700)}`;
+  const bar = (y, name, pct, c) => `
+    ${tx(210, y, name, C.ink, 11.5, 700, "start")}
+    ${tx(388, y, pct + "%", c, 11.5, 700, "end")}
+    <rect x="210" y="${y + 6}" width="178" height="13" rx="6.5" fill="#EFEAE0" stroke="none"/>
+    <rect x="210" y="${y + 6}" width="${Math.round(178 * pct / 100)}" height="13" rx="6.5" fill="${c}" stroke="none"/>`;
+  return S(400, 236, `
+    ${cls(14, "banana", 42, C.amber)}
+    ${cls(70, "apple", 38, C.red)}
+    ${cls(126, "nothing", 50, C.muted)}
+    ${box(10, 188, 176, 40, C.purple, "Train Model")}
+    <rect x="210" y="14" width="178" height="62" rx="5" fill="${C.ink}" stroke="${C.ink}" stroke-width="2.6"/>
+    ${tx(299, 42, "webcam", "#fff", 13, 700)}
+    ${tx(299, 60, "live preview", "#B9C0CF", 10.5)}
+    ${tx(210, 100, "Preview says:", C.muted, 11, 700, "start")}
+    ${bar(118, "banana", 92, C.amber)}
+    ${bar(152, "apple", 6, C.red)}
+    ${bar(186, "nothing", 2, C.muted)}
+    ${hand(292, 224, "it says how sure it is, not yes or no", C.orange, 16)}`);
+};
+
+/* the same number of examples, collected two ways, and what each does to a
+   new photo. This is the slide the whole lesson turns on. */
+DIAGRAMS.goodBadData = () => {
+  const card = (x, y, c, tilt) =>
+    `<rect x="${x}" y="${y}" width="26" height="22" rx="3" fill="#fff" stroke="${c}" stroke-width="2.2"
+      transform="rotate(${tilt} ${x + 13} ${y + 11})"/>`;
+  return S(400, 236, `
+    ${tx(12, 18, "20 photos, all the same", C.red, 12.5, 700, "start")}
+    ${[0, 1, 2, 3].map(i => card(14 + i * 34, 30, C.red, 0)).join("")}
+    ${[0, 1, 2, 3].map(i => card(14 + i * 34, 60, C.red, 0)).join("")}
+    ${hand(84, 108, "same hand, same desk, same light", C.red, 15)}
+    ${line(196, 14, 196, 222, C.muted, 1.4, "5 5")}
+    ${tx(212, 18, "20 photos, all different", C.green, 12.5, 700, "start")}
+    ${[0, 1, 2, 3].map(i => card(214 + i * 34, 30, C.green, i * 7 - 10)).join("")}
+    ${[0, 1, 2, 3].map(i => card(214 + i * 34, 60, C.green, 12 - i * 9)).join("")}
+    ${hand(286, 108, "different hands, angles, backgrounds", C.green, 15)}
+    ${box(14, 130, 160, 40, C.red, "New photo, new room", "")}
+    ${box(214, 130, 160, 40, C.green, "New photo, new room", "")}
+    ${arrow(94, 170, 94, 186, C.red)}${arrow(294, 170, 294, 186, C.green)}
+    ${tx(94, 206, "51% · no idea", C.red, 14, 700)}
+    ${tx(294, 206, "94% · banana", C.green, 14, 700)}
+    ${hand(200, 232, "same effort, very different model", C.purple, 17)}`);
+};
+
+/* what the model is actually handed: brightness numbers, not a picture */
+DIAGRAMS.pixelsToNumbers = () => {
+  const g = [[90, 60, 40, 70], [70, 30, 20, 50], [40, 20, 25, 60], [80, 55, 45, 85]];
+  const cells = g.map((row, r) => row.map((v, c) => {
+    const x = 150 + c * 30, y = 56 + r * 30, sh = Math.round(255 - v * 1.6);
+    return `<rect x="${x}" y="${y}" width="30" height="30" fill="rgb(${sh},${sh},${sh})" stroke="#fff" stroke-width="1"/>
+      <text x="${x + 15}" y="${y + 19}" text-anchor="middle" font-family="Deck Body" font-size="10.5"
+        font-weight="700" fill="${sh < 140 ? "#fff" : C.ink}" stroke="none">${v}</text>`;
+  }).join("")).join("");
+  return S(400, 236, `
+    <rect x="14" y="56" width="108" height="120" rx="4" fill="${C.ink}" stroke="${C.ink}" stroke-width="2.6"/>
+    ${tx(68, 112, "your photo", "#fff", 12.5, 700)}
+    ${tx(68, 130, "224 x 224", "#B9C0CF", 10.5)}
+    ${arrow(126, 116, 146, 116, C.ink)}
+    ${cells}
+    <rect x="150" y="56" width="120" height="120" fill="none" stroke="${C.purple}" stroke-width="2.6"/>
+    ${arrow(274, 116, 296, 116, C.purple)}
+    ${box(300, 92, 88, 48, C.purple, "the model", "sees only this")}
+    ${hand(200, 36, "a picture is just a grid of numbers", C.orange, 17)}
+    ${hand(200, 204, "50,176 pixels, three numbers each", C.purple, 16)}
+    ${hand(200, 224, "150,528 numbers, for one small photo", C.muted, 15)}`);
+};
+
+/* keep some examples back, or you are marking your own homework */
+DIAGRAMS.trainTestSplit = () => {
+  const card = (x, y, c) => `<rect x="${x}" y="${y}" width="24" height="20" rx="3" fill="#fff" stroke="${c}" stroke-width="2.2"/>`;
+  return S(400, 236, `
+    ${tx(200, 20, "60 photos you collected", C.ink, 13.5, 700)}
+    ${[0, 1, 2, 3, 4, 5, 6, 7].map(i => card(60 + i * 36, 32, C.muted)).join("")}
+    ${arrow(140, 60, 96, 84, C.blue)}${arrow(260, 60, 304, 84, C.teal)}
+    ${box(14, 90, 164, 52, C.blue, "48 for training", "the model sees the answers")}
+    ${box(222, 90, 164, 52, C.teal, "12 held back", "the model never sees these")}
+    ${[0, 1, 2, 3, 4].map(i => card(26 + i * 32, 150, C.blue)).join("")}
+    ${[0, 1].map(i => card(254 + i * 32, 150, C.teal)).join("")}
+    ${arrow(96, 182, 96, 200, C.blue)}${arrow(304, 182, 304, 200, C.teal)}
+    ${tx(96, 218, "it learns", C.blue, 12.5, 700)}
+    ${tx(304, 218, "you mark it", C.teal, 12.5, 700)}
+    ${hand(200, 180, "testing on photos it", C.red, 16)}
+    ${hand(200, 198, "already saw is cheating", C.red, 16)}`);
+};
+
+/* where a model trained on one kind of face or fruit quietly fails */
+DIAGRAMS.biasFunnel = () => S(400, 236, `
+  ${tx(14, 18, "What went in", C.ink, 12.5, 700, "start")}
+  ${box(14, 26, 180, 34, C.blue, "ripe yellow bananas")}
+  ${box(14, 68, 180, 34, C.blue, "one room, one lamp")}
+  ${box(14, 110, 180, 34, C.blue, "one pair of hands")}
+  ${arrow(198, 85, 224, 85, C.purple)}
+  ${box(228, 62, 88, 46, C.purple, "the model")}
+  ${arrow(320, 85, 346, 85, C.green)}
+  ${tx(372, 80, "works", C.green, 12.5, 700)}
+  ${tx(372, 97, "here", C.green, 12.5, 700)}
+  ${line(14, 162, 386, 162, C.muted, 1.4, "5 5")}
+  ${tx(14, 186, "What it has never seen", C.red, 12.5, 700, "start")}
+  ${box(14, 194, 118, 32, C.red, "a green banana")}
+  ${box(140, 194, 112, 32, C.red, "a dim room")}
+  ${box(260, 194, 126, 32, C.red, "somebody else")}
+  ${hand(300, 142, "nobody chose to leave", C.orange, 16)}
+  ${hand(300, 158, "these out. They just did.", C.orange, 16)}`);
+
+/* one honest number: how many of the held-back photos it got right */
+DIAGRAMS.accuracyCount = () => {
+  const tick = (x, y) => `${poly([[x, y + 6], [x + 5, y + 11], [x + 13, y - 2]], C.green, 2.8)}`;
+  const cross = (x, y) => `${line(x, y - 2, x + 12, y + 10, C.red, 2.8)}${line(x + 12, y - 2, x, y + 10, C.red, 2.8)}`;
+  const marks = Array.from({ length: 12 }, (_, i) => {
+    const x = 32 + (i % 6) * 60, y = 72 + Math.floor(i / 6) * 46;
+    return i < 10 ? tick(x, y) : cross(x, y);
+  }).join("");
+  return S(400, 236, `
+    ${tx(200, 28, "the 12 photos it had never seen", C.ink, 13.5, 700)}
+    ${marks}
+    ${line(20, 160, 380, 160, C.muted, 1.6)}
+    ${tx(200, 192, "10 right out of 12", C.ink, 20, 700)}
+    ${tx(200, 214, "accuracy = 10 ÷ 12 = 83%", C.purple, 14, 700)}
+    ${hand(200, 234, "write it down before you change anything", C.orange, 16)}`);
+};
